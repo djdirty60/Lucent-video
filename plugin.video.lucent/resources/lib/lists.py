@@ -35,19 +35,32 @@ def _trakt_body(kind, tmdb_id):
     return {("movies" if kind == "movie" else "shows"): [{"ids": {"tmdb": int(tmdb_id)}}]}
 
 
+def _list_key(list_id):
+    return "trakt" + "users/me/lists/%s/items/movie,show:all" % list_id
+
+
 def _trakt_list_items(list_id):
-    return trakt.pairs_from(trakt.cached("users/me/lists/%s/items/movie,show" % list_id, 300) or [])
+    """Every title on one of your lists: Trakt gives them page by page, so a long list is read to the end."""
+    rows = util.cache_get(_list_key(list_id), 300)
+    if rows is None:
+        rows = trakt.all_pages("users/me/lists/%s/items/movie,show" % list_id, 250)
+        util.cache_set(_list_key(list_id), rows)
+    return trakt.pairs_from(rows)
 
 
 def _trakt_rows(kind, tmdb_id):
-    rows = [(T("Collectie (Trakt)", "Collection (Trakt)"), _in(tracker.pairs("collection_movie" if kind == "movie" else "collection_tv"), kind, tmdb_id),
+    rows = [(T("Trakt-collectie", "Trakt collection"), _in(tracker.pairs("collection_movie" if kind == "movie" else "collection_tv"), kind, tmdb_id),
              lambda add: trakt.call("sync/collection" + ("" if add else "/remove"), data=_trakt_body(kind, tmdb_id)))]
+    own = []
     for _owner, list_id, name in trakt.custom_lists("mine"):
         def change(add, list_id=list_id):
             trakt.call("users/me/lists/%s/items%s" % (list_id, "" if add else "/remove"), data=_trakt_body(kind, tmdb_id))
-            util.cache_drop("trakt" + "users/me/lists/%s/items/movie,show" % list_id)
-        rows.append((T("Trakt-lijst: %s", "Trakt list: %s") % name, _in(_trakt_list_items(list_id), kind, tmdb_id), change))
-    return rows
+            util.cache_drop(_list_key(list_id))
+        pairs = _trakt_list_items(list_id)
+        # a list that already holds this kind (films for a film, series for a series) or is empty comes first
+        other = bool(pairs) and not any(k == _pair(kind, 0)[0] for k, _i in pairs)
+        own.append(((other, name.lower()), (T("Lijst: %s", "List: %s") % name, _in(pairs, kind, tmdb_id), change)))
+    return rows + [row for _key, row in sorted(own, key=lambda item: item[0])]
 
 
 # ------------------------------------------------------------------ Simkl (one status at a time)
@@ -111,15 +124,16 @@ def rows_for(kind, tmdb_id):
     """[(label, on now, change(add))]."""
     meta = {"kind": kind, "tmdb": str(tmdb_id)}
     watch = _in(tracker.pairs("watchlist_movie" if kind == "movie" else "watchlist_tv"), kind, tmdb_id)
-    rows = [(T("Kijklijst", "Watchlist"), watch, lambda add: tracker.set_watchlist(meta, add)),
-            (T("Kodi-bibliotheek", "Kodi library"), library.has(kind, tmdb_id),
-             lambda add: library.add_one(kind, tmdb_id) if add else library.remove_one(kind, tmdb_id, ask=False))]
+    # in this order: your account (watchlist, collection, own lists), other services, then this device
+    rows = [(T("Kijklijst", "Watchlist"), watch, lambda add: tracker.set_watchlist(meta, add))]
     account = tracker.active()
     for part in ((_trakt_rows,) if account is trakt else (_simkl_rows,) if account is simkl else ()) + ((_mdb_rows,) if mdblist.available() else ()):
         try:
             rows += part(kind, tmdb_id)
         except util.HttpError as error:
             util.log("lists: %s" % error)
+    rows.append((T("Kodi-bibliotheek op dit apparaat", "Kodi library on this device"), library.has(kind, tmdb_id),
+                 lambda add: library.add_one(kind, tmdb_id) if add else library.remove_one(kind, tmdb_id, ask=False)))
     return rows
 
 
@@ -135,7 +149,7 @@ def open_lists(kind, tmdb_id):
     picked = xbmcgui.Dialog().multiselect(title, [label for label, _on, _do in rows], preselect=[n for n, row in enumerate(rows) if row[1]])
     if picked is None:
         return None
-    done = []
+    done, failed = [], []
     for number, (label, on, change) in enumerate(rows):
         wanted = number in picked
         if wanted == on:
@@ -145,10 +159,31 @@ def open_lists(kind, tmdb_id):
             done.append(("+ " if wanted else "- ") + label)
         except util.HttpError as error:
             util.log("lists %s: %s" % (label, error))
-            util.notify(T("Niet gelukt: %s", "Did not work: %s") % label)
+            failed.append((label, error.status))
     tracker.forget_lists()
     import widgets
     widgets.mark_old(account_only=True)
-    if done:
+    if failed:
+        xbmcgui.Dialog().ok(title, "\n".join("%s: %s" % (label, why(status)) for label, status in failed))
+    elif done:
         util.notify(", ".join(done))
     return True
+
+
+def why(status):
+    """The reason in plain words, from the answer of Trakt (or MDBList)."""
+    if not isinstance(status, int):
+        return T("Geen verbinding. Controleer je internet en probeer het opnieuw.", "No connection. Check your internet and try again.")
+    if status == 420:
+        return T("Trakt staat niet meer titels toe: de grens van je account is bereikt. Een gratis Trakt-account "
+                 "heeft een maximum per lijst (ook voor de kijklijst en collectie). Haal titels weg of neem Trakt VIP.",
+                 "Trakt does not allow more titles: your account limit is reached. A free Trakt account has a maximum "
+                 "per list (also for the watchlist and collection). Remove titles or get Trakt VIP.")
+    if status in (401, 403):
+        return T("Je account is niet meer gekoppeld. Koppel hem opnieuw in Instellingen › Account.",
+                 "Your account is no longer linked. Link it again in Settings › Account.")
+    if status == 404:
+        return T("Niet gevonden. De lijst of titel bestaat daar misschien niet meer.", "Not found. The list or title may no longer exist there.")
+    if status == 429:
+        return T("Even te veel tegelijk. Probeer het over een minuut opnieuw.", "Too much at once. Try again in a minute.")
+    return T("De dienst gaf foutcode %s. Probeer het later opnieuw.", "The service gave error %s. Try again later.") % status

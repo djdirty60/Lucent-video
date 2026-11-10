@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="0.33.2" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.33.3" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -79,7 +79,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt. Werkt zonder Seren.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.33.2: New look for every menu: each item has its own card with an icon and colour, a dark film background and a short line that explains what you find there.
+        <news>0.33.3: Every setting has a short explanation. Library and lists: your Trakt watchlist, collection and lists first (lists that fit the title on top), the Kodi library last; if a change fails you see why. Watchlist, collection and long lists are read to the end again (Trakt sends only 100 at a time since April 2026). The More menu on the info page no longer repeats buttons that are already on the page.
+0.33.2: New look for every menu: each item has its own card with an icon and colour, a dark film background and a short line that explains what you find there.
 0.33.1: Clean-up: the Dolby Vision rebuild setting and unused code, texts and pictures are gone. Every settings group has a heading, and the setup assistant has one name everywhere.
 0.33.0: Everything from 0.31.6-0.32.5 is back without the Dolby Vision problem: background work waits while any video plays.
 - New titles come into the Kodi library already marked as watched.

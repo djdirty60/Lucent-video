@@ -651,6 +651,13 @@ def set_watched(params):
     xbmc.executebuiltin("Container.Refresh")
 
 
+def _action_of(command):
+    """The action=... of a RunPlugin/PlayMedia/Container.Update command, or ''."""
+    import urllib.parse
+    inner = command[command.find("(") + 1:-1]
+    return dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(inner).query)).get("action", "")
+
+
 def title_menu(params):
     """All of Lucent Video's options for one title, as one menu (for a '...' button on the skin's info page; works for
     titles from other add-ons too): choose source, ready for tonight, watched, intro, library and lists, trailer, cast,
@@ -669,6 +676,12 @@ def title_menu(params):
     entries = items.context(meta, seen)
     if meta["kind"] in ("movie", "tvshow"):
         entries.insert(0, (T("Bibliotheek en lijsten", "Library and lists"), "RunPlugin(%s)" % util.url_for(action="lists", type=meta["kind"], tmdb=meta["tmdb"])))
+        if params.get("all") != "1":
+            # the info page already has buttons for these (Library and lists covers watchlist and library):
+            # 'More' only shows what is not on the page yet
+            on_page = {"lists", "watched", "watchlist", "trailer", "cast_popup", "library_add", "library_remove"}
+            trailer = lambda command: command.startswith("PlayMedia(") and "select=1" not in command     # noqa: E731
+            entries = [entry for entry in entries if _action_of(entry[1]) not in on_page and not trailer(entry[1])]
     picked = xbmcgui.Dialog().contextmenu([label for label, _command in entries])
     if picked >= 0:
         command = entries[picked][1]
