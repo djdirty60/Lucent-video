@@ -138,6 +138,32 @@ def build(meta, source):
     return item
 
 
+def _trailer_playing():
+    if util.HOME.getProperty("nuvio.trailer.active"):
+        return True
+    if not xbmc.getCondVisibility("Player.HasMedia"):
+        return False
+    try:
+        return "plugin.video.youtube" in xbmc.Player().getPlayingFile()
+    except RuntimeError:
+        return False
+
+
+def _no_trailer(limit=3.0):
+    """The Lucent skin plays trailers on posters. A trailer still stopping while the film starts can disturb the
+    switch to Dolby Vision on some boxes, so stop it and wait until it is really gone (at most a few seconds).
+    The skin sets Home property nuvio.trailer.active while a trailer is on."""
+    if not _trailer_playing():
+        return
+    xbmc.executebuiltin("PlayerControl(Stop)")
+    monitor, waited = xbmc.Monitor(), 0.0
+    while waited < limit and _trailer_playing():
+        if monitor.waitForAbort(0.1):
+            return
+        waited += 0.1
+    util.log("trailer stopped before the film (%.1fs)" % waited)
+
+
 def lighter_than(source, order):
     """Up to three sources that are much smaller than the one playing, for when it keeps buffering."""
     size = source.get("size") or 0
@@ -328,6 +354,7 @@ def play(params, handle):
     handoff(meta, resume, source, [s for s in order if s is not source][:4], others, lighter_than(source, order), last)
     bedtime.counted()
     util.log("playing %s" % progress_key(meta))
+    _no_trailer()
     if handle >= 0:
         xbmcplugin.setResolvedUrl(handle, True, item)
     else:

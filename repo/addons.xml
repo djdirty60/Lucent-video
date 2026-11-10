@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="0.32.4" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.32.5" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -79,7 +79,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt. Werkt zonder Seren.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.32.4: For skins: action=trakt_refresh renews the Trakt login quietly.
+        <news>0.32.5: A trailer from the skin is stopped completely before a film starts.
+0.32.4: For skins: action=trakt_refresh renews the Trakt login quietly.
 0.32.3: New setting (off by default) for CoreELEC: rebuild the picture once when Dolby Vision over a stream shows purple and green.
 0.32.2: While finding sources you see per scraper how many it found (or that it is still busy), and per resolution, not only at the end.
 0.32.1: The source list shows which scraper found each source (AIO, Coco, Fenom, Open, Easynews, TorBox).
