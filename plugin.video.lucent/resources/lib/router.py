@@ -432,27 +432,48 @@ def list_titles(handle, params):
         return librows.send_row(handle, name)
     page = int(params.get("page") or 1)
     import hide
+    size = util.number("widget_size", 20) if params.get("widget") == "1" else 0       # a Home row: as many as you chose
+    cut = (lambda rows: rows[:size]) if size else (lambda rows: rows)
     cached = widgets.get(params) if widgets.wanted(params) else None
     if cached:
-        send_titles(handle, hide.keep(cached.get("titles") or [], name), cached.get("content") or "")
-        if widgets.is_old(params, cached):
+        send_titles(handle, cut(hide.keep(cached.get("titles") or [], name)), cached.get("content") or "")
+        if widgets.is_old(params, cached, size):
             try:
-                titles, content, _more = gather(params)
+                titles, content, _more = gather_row(params, size)
             except Exception as error:      # noqa: BLE001 - the copy stays; try again next time
                 util.log("row %s not refreshed: %s" % (name, type(error).__name__))
                 return None
             changed = not widgets.same(cached, titles, content)
             if titles or not cached.get("titles"):
-                widgets.put(params, titles, content)
+                widgets.put(params, titles, content, size)
             if changed and titles:
                 widgets.bump()
         return None
-    titles, content, more = gather(params)
+    titles, content, more = gather_row(params, size)
     if widgets.wanted(params) and titles:
-        widgets.put(params, titles, content)
+        widgets.put(params, titles, content, size)
     next_url = util.url_for(**dict(params, page=page + 1)) if more and params.get("widget") != "1" else None     # a Home row has no next page
-    send_titles(handle, hide.keep(titles, name), content, next_url)
+    send_titles(handle, cut(hide.keep(titles, name)), content, next_url)
     return None
+
+
+def gather_row(params, size):
+    """A list, with more pages fetched for a Home row until it holds the number of titles you chose (at most 6 pages)."""
+    titles, content, more = gather(params)
+    if not size:
+        return titles, content, more
+    import hide
+    name, page = params.get("name", ""), int(params.get("page") or 1)
+    seen = {(t.get("kind"), str(t.get("tmdb")), t.get("season"), t.get("episode")) for t in titles}
+    while more and len(hide.keep(titles, name)) < size and page < 6:
+        page += 1
+        extra, _content, more = gather(dict(params, page=page))
+        for meta in extra:
+            key = (meta.get("kind"), str(meta.get("tmdb")), meta.get("season"), meta.get("episode"))
+            if key not in seen:
+                seen.add(key)
+                titles.append(meta)
+    return titles, content, more
 
 
 def gather(params):

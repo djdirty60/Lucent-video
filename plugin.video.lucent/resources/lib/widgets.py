@@ -49,16 +49,18 @@ def get(params):
         return None
 
 
-def put(params, titles, content):
+def put(params, titles, content, size=0):
     folder = _folder()
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, _key(params) + ".json")
     with open(path + ".tmp", "w", encoding="utf-8") as handle:
-        json.dump({"at": time.time(), "titles": [_slim(t) for t in titles], "content": content}, handle)
+        json.dump({"at": time.time(), "titles": [_slim(t) for t in titles], "content": content, "size": size}, handle)
     os.replace(path + ".tmp", path)
 
 
-def is_old(params, entry):
+def is_old(params, entry, size=0):
+    if size and entry.get("size") != size:
+        return True                             # you chose another number of titles per row
     marks = util.load_json(MARKS, {})
     account = params.get("name") in ACCOUNT
     age = ACCOUNT_AGE if account else OTHER_AGE
