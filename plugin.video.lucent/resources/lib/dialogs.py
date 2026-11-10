@@ -201,6 +201,30 @@ class Busy(Base):
             self.cancelled = True
             self.close()
 
+    def live(self, live, final=False):
+        """While searching: a pill per scraper (busy, done with its count, nothing, error) and the resolutions so far."""
+        props = {}
+        for number in range(1, 7):
+            props["src%d" % number], props["src%dstate" % number] = "", ""
+        for number, name in enumerate(list(live["order"])[:6], 1):
+            row = live["rows"].get(name) or {}
+            short = SCRAPER_SHORT.get(name, name)
+            state = row.get("state", "busy")
+            if final and state == "busy":
+                state = "error"                     # it took too long: the search went on without it
+            props["src%d" % number] = {"done": "✓ %s  %d" % (short, row.get("count", 0)), "busy": "… %s" % short,
+                                       "none": "%s  0" % short, "error": "%s  ✗" % short}.get(state, short)
+            if state == "error" and final and row.get("state") == "busy":
+                props["src%d" % number] = "%s  %s" % (short, T("te traag", "too slow"))
+            props["src%dstate" % number] = state
+        counts = dict(live["res"])
+        names = sorted([r for r in counts if r], key=lambda r: ORDER.index(r) if r in ORDER else 9)
+        for number in range(1, 5):
+            props["res%d" % number] = "%s  %d" % (names[number - 1], counts[names[number - 1]]) if number <= len(names) else ""
+        total = sum(counts.values())
+        props["count"] = total if total else ""
+        self.fill(props)
+
     def done(self, sources):
         counts = {}
         for source in sources:

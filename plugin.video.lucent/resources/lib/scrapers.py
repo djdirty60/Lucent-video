@@ -18,6 +18,32 @@ for _pack in coco.PACKS:                     # CocoScrapers, FenomScrapers, Open
     LINKS[_pack] = coco.link
 
 
+# What the 'Finding sources' screen shows while searching: per scraper busy / done (with count) / error, and the
+# number per resolution so far. Scrapers that are not set up (answer None) are left out.
+LIVE = {"order": [], "rows": {}, "res": {}}
+
+
+def _reset_live():
+    LIVE["order"], LIVE["rows"], LIVE["res"] = [], {}, {}
+
+
+def _finished(name, job, limit):
+    try:
+        found = job.result()
+    except Exception:          # noqa: BLE001 - shown as an error, reported by _run
+        LIVE["rows"][name] = {"state": "error", "count": 0}
+        return
+    if found is None:
+        LIVE["rows"].pop(name, None)
+        if name in LIVE["order"]:
+            LIVE["order"].remove(name)
+        return
+    found = found[:limit] if limit else found
+    for source in found:
+        LIVE["res"][source.get("resolution")] = LIVE["res"].get(source.get("resolution"), 0) + 1
+    LIVE["rows"][name] = {"state": "done" if found else "none", "count": len(found)}
+
+
 def names(profile):
     """Scraper names in the order of the profile; new ones at the end."""
     usable = [n for n in REGISTRY if n not in coco.PACKS or coco.installed(n)]       # packs only when installed
@@ -29,7 +55,12 @@ def _run(selection, profile, meta):
     """Returns (sources in scraper order, did anything answer?, was an address missing everywhere?)."""
     per = profile["scrapers"].get("per") or {}
     pool = ThreadPoolExecutor(max_workers=max(1, len(selection)))
-    jobs = {name: pool.submit(REGISTRY[name], meta) for name in selection}
+    jobs = {}
+    for name in selection:
+        LIVE["order"].append(name)
+        LIVE["rows"][name] = {"state": "busy", "count": 0}
+        jobs[name] = pool.submit(REGISTRY[name], meta)
+        jobs[name].add_done_callback(lambda job, name=name: _finished(name, job, int(per.get(name, {}).get("max") or 0)))
     wait(list(jobs.values()), timeout=max(5, int(profile["scrapers"].get("wait") or 30)))
     pool.shutdown(wait=False)
     collected, answered, unset = [], False, 0
@@ -69,6 +100,7 @@ def search(meta):
     profile = ranking.active()
     per = profile["scrapers"].get("per") or {}
     order = [n for n in names(profile) if not per.get(n, {}).get("off")]
+    _reset_live()
     main = [n for n in order if not per.get(n, {}).get("fallback")]
     spare = [n for n in order if per.get(n, {}).get("fallback")]
     found, answered, unset = _run(main, profile, meta) if main else ([], False, False)

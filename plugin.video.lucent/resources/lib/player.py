@@ -238,13 +238,18 @@ def search_with_screen(params):
         pass
     screen = dialogs.busy_dialog(out.get("meta"))
     started, limit = time.time(), max(5, util.number("timeout", 30))
+    tick = 0
     while worker.is_alive() and not screen.cancelled and not monitor.waitForAbort(0.1):
         screen.percent(min(90, (time.time() - started) * 90.0 / limit))
+        tick += 1
+        if tick % 3 == 0:                       # a few times a second: which scraper found how many so far
+            screen.live(scrapers.LIVE)
     if screen.cancelled:
         return None, "cancelled"
     if out.get("error") or out.get("sources") is None:
         screen.close()
         return None, out.get("error") or "address"
+    screen.live(scrapers.LIVE, final=True)
     screen.done(out["sources"])
     if out["sources"]:
         monitor.waitForAbort(0.8)
