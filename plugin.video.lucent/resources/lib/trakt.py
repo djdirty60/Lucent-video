@@ -66,12 +66,6 @@ def _access():
     return saved.get("access_token")
 
 
-def refresh_quietly():
-    """action=trakt_refresh (the skin reads trakt.json): renews the login when less than an hour is left. No list, no
-    window, nothing in the log but a failure."""
-    _access()
-
-
 def call(path, data=None, method=None, auth=True, retry=True):
     """Returns (json, headers). Raises util.HttpError."""
     cid, _ = client()
@@ -91,11 +85,7 @@ def call(path, data=None, method=None, auth=True, retry=True):
         raise
 
 
-# Since July 2026 Trakt pages its watched lists (250 per page at most) and only gives the seasons and episodes of
-# watched shows with extended=progress (100 per page at most). Without these every series looked unwatched.
-WATCHED_SHOWS = "sync/watched/shows?extended=progress"
-SHOWS_ONLY = "sync/watched/shows?extended=noseasons"
-PAGED = {"sync/watched/movies": 250, WATCHED_SHOWS: 100, SHOWS_ONLY: 250, "sync/playback": 250}
+PAGED = ("sync/watched/movies", "sync/watched/shows", "sync/playback")
 
 
 def cached(path, ttl=300):
@@ -103,7 +93,7 @@ def cached(path, ttl=300):
     most 100 items per request, so with only the first page most of your history was missing."""
     value = util.cache_get("trakt" + path, ttl)
     if value is None:
-        value = all_pages(path, limit=PAGED[path]) if path in PAGED else call(path)[0]
+        value = all_pages(path, limit=1000) if path in PAGED else call(path)[0]
         util.cache_set("trakt" + path, value)
     return value
 
@@ -112,7 +102,7 @@ def refresh():
     forget_lists()
     try:
         cached("sync/watched/movies", 0)
-        cached(WATCHED_SHOWS, 0)
+        cached("sync/watched/shows", 0)
         cached("sync/playback", 0)
         return True
     except util.HttpError as error:
@@ -159,7 +149,7 @@ def list_pairs(owner, list_id, page, size):
 
 def next_up():
     from concurrent.futures import ThreadPoolExecutor
-    shows = sorted(cached(SHOWS_ONLY), key=lambda s: s.get("last_watched_at") or "", reverse=True)[:40]
+    shows = sorted(cached("sync/watched/shows?extended=noseasons"), key=lambda s: s.get("last_watched_at") or "", reverse=True)[:40]
 
     def load(row):
         ids = row["show"]["ids"]
@@ -352,7 +342,7 @@ def scrobble(state, meta, percent):
 
 
 def forget_lists():
-    for path in ("sync/watched/movies", WATCHED_SHOWS, SHOWS_ONLY, "sync/playback", "sync/watchlist/movies",
+    for path in ("sync/watched/movies", "sync/watched/shows", "sync/playback", "sync/watchlist/movies",
                  "sync/watchlist/shows"):
         util.cache_drop("trakt" + path)
     util.cache_drop("nextup")
@@ -377,12 +367,11 @@ def watched_episodes():
     if not logged_in():
         return {}
     try:
-        data = cached(WATCHED_SHOWS)
+        data = cached("sync/watched/shows")
     except util.HttpError:
         return {}
     return {str(i["show"]["ids"].get("tmdb")): {(s["number"], e["number"]): _stamp(e.get("last_watched_at"))
-                                                 for s in i.get("seasons") or [] for e in s.get("episodes") or []
-                                                 if e.get("completed", True) or e.get("plays")} for i in data}
+                                                 for s in i.get("seasons") or [] for e in s.get("episodes") or []} for i in data}
 
 
 def paused():

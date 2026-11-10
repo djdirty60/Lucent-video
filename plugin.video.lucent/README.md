@@ -2,7 +2,7 @@
 
 Films and series for Kodi, made for the Lucent skin but working in any skin:
 - browse with TMDB;
-- play through your own AIOStreams address, Easynews, TorBox, debrid services, or the scraper packs CocoScrapers, FenomScrapers and OpenScrapers;
+- play through your own AIOStreams address, Easynews, TorBox, debrid services or CocoScrapers;
 - keep your progress on Trakt, Simkl or only this device.
 
 ## For other add-ons and skins
@@ -47,17 +47,9 @@ These actions are public: any add-on or skin may call them with `RunPlugin(plugi
 | Kompas page, Your taste | `action=kompas_page`, `action=kompas_taste` |
 | What shall we watch? / Your year of watching | `action=pick`, `action=year` |
 | Type with your phone | `action=remote` |
+| Format check | `action=formatcheck` |
 | Settings on a category | `action=settings&section=general\|account\|sources\|play\|subs\|skip\|library\|services` |
 | Subtitles or skip intro, step by step | `action=subs_setup`, `action=skip_setup` |
-
-### Rows and properties (new in 0.32.0)
-
-| What | Call or property |
-|---|---|
-| Coming soon from your watchlist (not out yet, soonest first; `ListItem.Tagline` says "Out on 3 Feb 2027") | `plugin://plugin.video.lucent/?action=list&name=coming_watchlist&widget=1` |
-| On a series you started | `ListItem.Property(lucent.left)` ("3 episodes to go" / "All seen"), `ListItem.Property(lucent.progress)` ("S2 · 5 of 8"), `ListItem.Property(lucent.percent)` (0-100) |
-| Titles per Home row | setting `widget_size` (5-60), for every row with `&widget=1` |
-| Renew the Trakt login quietly (for skins that read `addon_data/plugin.video.lucent/trakt.json`) | `RunPlugin(plugin://plugin.video.lucent/?action=trakt_refresh)` (0.32.4 and later) |
 
 Rows for Home and their properties: see the docstrings of `router.py`, `widgets.py`, `kompas.py`, `services.py` and `librows.py`.
 

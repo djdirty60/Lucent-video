@@ -24,7 +24,7 @@ DISCOVER = ("trending_movie", "popular_movie", "toprated_movie", "trending_tv", 
             "similar", "foryou", "new_tv", "company", "decade", "award", "provider", "service_list", "person", "kompas_foryou",
             "kompas_because", "kompas_gems", "kompas_new", "kompas_trending", "kompas_saved")
 # 'only what you can watch' leaves these alone
-NOT_YET = ("coming_watchlist", "upcoming_movie", "upcoming_tv", "nowplaying_movie", "calendar", "new_seasons", "continue", "continue_movie",
+NOT_YET = ("upcoming_movie", "upcoming_tv", "nowplaying_movie", "calendar", "new_seasons", "continue", "continue_movie",
            "continue_episode", "nextup", "tonight", "alerts", "lib_newseasons", "lib_newepisodes", "search")
 
 

@@ -138,32 +138,6 @@ def build(meta, source):
     return item
 
 
-def _trailer_playing():
-    if util.HOME.getProperty("nuvio.trailer.active"):
-        return True
-    if not xbmc.getCondVisibility("Player.HasMedia"):
-        return False
-    try:
-        return "plugin.video.youtube" in xbmc.Player().getPlayingFile()
-    except RuntimeError:
-        return False
-
-
-def _no_trailer(limit=3.0):
-    """The Lucent skin plays trailers on posters. A trailer still stopping while the film starts can disturb the
-    switch to Dolby Vision on some boxes, so stop it and wait until it is really gone (at most a few seconds).
-    The skin sets Home property nuvio.trailer.active while a trailer is on."""
-    if not _trailer_playing():
-        return
-    xbmc.executebuiltin("PlayerControl(Stop)")
-    monitor, waited = xbmc.Monitor(), 0.0
-    while waited < limit and _trailer_playing():
-        if monitor.waitForAbort(0.1):
-            return
-        waited += 0.1
-    util.log("trailer stopped before the film (%.1fs)" % waited)
-
-
 def lighter_than(source, order):
     """Up to three sources that are much smaller than the one playing, for when it keeps buffering."""
     size = source.get("size") or 0
@@ -186,7 +160,14 @@ def cannot_play(source):
     """Does this device, by the setting 'Dolby Vision on this device', not handle this source?"""
     support = util.number("dv_support", 0)
     tags = ranking.tags_of(source)
-    return (support == 1 and bool(tags & {"fel", "p7"})) or (support == 2 and "dv" in tags)
+    return (support == 1 and bool(tags & {"fel", "p7"})) or (support == 2 and "dv" in tags) or is_hidden(source, tags)
+
+
+def is_hidden(source, tags=None):
+    """A format hidden after the format check: left out of the source list, autoplay and the next episode."""
+    import formatcheck
+    gone = formatcheck.hidden()
+    return bool(gone and (tags or ranking.tags_of(source)) & gone)
 
 
 def same_release_first(meta, sources):
@@ -264,18 +245,13 @@ def search_with_screen(params):
         pass
     screen = dialogs.busy_dialog(out.get("meta"))
     started, limit = time.time(), max(5, util.number("timeout", 30))
-    tick = 0
     while worker.is_alive() and not screen.cancelled and not monitor.waitForAbort(0.1):
         screen.percent(min(90, (time.time() - started) * 90.0 / limit))
-        tick += 1
-        if tick % 3 == 0:                       # a few times a second: which scraper found how many so far
-            screen.live(scrapers.LIVE)
     if screen.cancelled:
         return None, "cancelled"
     if out.get("error") or out.get("sources") is None:
         screen.close()
         return None, out.get("error") or "address"
-    screen.live(scrapers.LIVE, final=True)
     screen.done(out["sources"])
     if out["sources"]:
         monitor.waitForAbort(0.8)
@@ -331,6 +307,8 @@ def play(params, handle):
     for source in sources:
         source["cannot"] = cannot_play(source)
     usable = [s for s in usable if not s["cannot"]] or usable
+    shown = [s for s in sources if not is_hidden(s)]
+    sources = shown or sources
     if params.get("select") == "1" or (util.number("play_mode", 0) == 1 and not autoplay):
         chosen = dialogs.choose_source(meta, sources, util.flag("include_uncached"))
         if not chosen:
@@ -354,7 +332,6 @@ def play(params, handle):
     handoff(meta, resume, source, [s for s in order if s is not source][:4], others, lighter_than(source, order), last)
     bedtime.counted()
     util.log("playing %s" % progress_key(meta))
-    _no_trailer()
     if handle >= 0:
         xbmcplugin.setResolvedUrl(handle, True, item)
     else:

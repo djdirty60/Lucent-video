@@ -107,7 +107,8 @@ class Setup(dialogs.Base):
             return [(T("Volgorde van bronnen openen", "Open the order of sources"), ranking.active()["name"], None)]
         if key == "dv":
             now = util.number("dv_support", 0)
-            return [(label, "", now == number) for number, label in enumerate((T("Speelt alles af", "Plays everything"), T("Geen P7 / FEL", "No P7 / FEL"), T("Geen Dolby Vision", "No Dolby Vision")))]
+            return [(T("Formaattest: laat Lucent het uitzoeken", "Format check: let Lucent find out"), "", None)] + \
+                [(label, "", now == number) for number, label in enumerate((T("Speelt alles af", "Plays everything"), T("Geen P7 / FEL", "No P7 / FEL"), T("Geen Dolby Vision", "No Dolby Vision")))]
         if key == "extra":
             import subconf
             import skipdup
@@ -189,7 +190,11 @@ class Setup(dialogs.Base):
         elif key == "order":
             ranking_ui.open_main()
         elif key == "dv":
-            put("dv_support", str(at))
+            if at == 0:
+                import formatcheck
+                formatcheck.open_check()
+            else:
+                put("dv_support", str(at - 1))
         elif key == "extra":
             import subsetup
             if at == 2:
