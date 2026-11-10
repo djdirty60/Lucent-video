@@ -783,3 +783,6 @@ msgctxt "#32230"
 msgid "Titles per Home row"
 msgstr ""
 
+msgctxt "#32231"
+msgid "Tidy up the watchlist by itself (watched films, finished series)"
+msgstr ""

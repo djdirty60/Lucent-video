@@ -231,6 +231,30 @@ def scrobble(state, meta, percent, position=0, total=0):
     floppy.scrobble(state, meta, position, total)
 
 
+def tidy_watchlist(meta):
+    """After a film or episode was watched (setting 'Tidy up the watchlist by itself'): a film leaves the watchlist,
+    a series when it has ended and you saw every episode."""
+    if util.setting("watchlist_tidy").lower() == "false":
+        return
+    import tmdb
+    if meta["kind"] == "movie":
+        if ("movie", str(meta["tmdb"])) in {(k, str(i)) for k, i in pairs("watchlist_movie")}:
+            set_watchlist({"kind": "movie", "tmdb": str(meta["tmdb"])}, False)
+            util.log("watchlist: watched film %s taken off" % meta["tmdb"])
+        return
+    show = str(meta["tmdb"])
+    if ("tvshow", show) not in {(k, str(i)) for k, i in pairs("watchlist_tv")}:
+        return
+    raw = tmdb.get("tv/%s" % show, ttl=86400)
+    if raw.get("status") not in ("Ended", "Canceled"):
+        return
+    total = sum(s.get("episode_count") or 0 for s in raw.get("seasons") or [] if s.get("season_number", 0) > 0)
+    seen = watched_episodes().get(show, {})
+    if total and len([k for k in seen if k[0] > 0]) >= total:
+        set_watchlist({"kind": "tvshow", "tmdb": show}, False)
+        util.log("watchlist: finished series %s taken off" % show)
+
+
 def enrich(titles):
     """Adds Trakt and MDBList scores where those are available."""
     mdblist.enrich(titles)                  # one request for 50 titles, the Trakt score included

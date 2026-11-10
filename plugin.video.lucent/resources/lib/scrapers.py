@@ -11,14 +11,18 @@ import streams
 import usenet
 import util
 
-REGISTRY = {"AIOStreams": streams.fetch, "Easynews": usenet.easynews, "TorBox": usenet.torbox, "CocoScrapers": coco.fetch}
-LINKS = {"TorBox": usenet.torbox_link, "CocoScrapers": coco.link}
+REGISTRY = {"AIOStreams": streams.fetch, "Easynews": usenet.easynews, "TorBox": usenet.torbox}
+LINKS = {"TorBox": usenet.torbox_link}
+for _pack in coco.PACKS:                     # CocoScrapers, FenomScrapers, OpenScrapers: only used when installed
+    REGISTRY[_pack] = (lambda pack: lambda meta: coco.fetch(meta, pack))(_pack)
+    LINKS[_pack] = coco.link
 
 
 def names(profile):
     """Scraper names in the order of the profile; new ones at the end."""
-    order = [n for n in profile["scrapers"].get("order") or [] if n in REGISTRY]
-    return order + [n for n in REGISTRY if n not in order]
+    usable = [n for n in REGISTRY if n not in coco.PACKS or coco.installed(n)]       # packs only when installed
+    order = [n for n in profile["scrapers"].get("order") or [] if n in usable]
+    return order + [n for n in usable if n not in order]
 
 
 def _run(selection, profile, meta):

@@ -88,8 +88,30 @@ def send_titles(handle, titles, content, more=None):
             shown = shows.get(meta["tmdb"], {})
             counts = (meta.get("episodes") or 0, len(shown))
             seen, last = bool(counts[0]) and counts[1] >= counts[0], max(shown.values()) if shown else ""
-        rows.append(items.title_item(meta, seen, _resume_for(meta, local, paused), last, counts))
+        row = items.title_item(meta, seen, _resume_for(meta, local, paused), last, counts)
+        if meta["kind"] == "tvshow":
+            _progress(row[1], meta, shows.get(meta["tmdb"], {}))
+        rows.append(row)
     send(handle, rows, content, more)
+
+
+def _progress(item, meta, shown):
+    """For the skin, on a series you started: lucent.left ('3 episodes to go' or 'All seen'), lucent.progress
+    ('S2 · 5 of 10': the season you are in) and lucent.percent (0-100, the whole series)."""
+    if not shown:
+        return
+    total = sum(s.get("episode_count") or 0 for s in meta.get("seasons") or [])
+    done = len([key for key in shown if key[0] > 0])
+    if total:
+        left = max(0, total - done)
+        item.setProperty("lucent.left", T("Alles gezien", "All seen") if not left else
+                         T("Nog 1 aflevering", "1 episode to go") if left == 1 else T("Nog %d afleveringen", "%d episodes to go") % left)
+        item.setProperty("lucent.percent", str(min(100, int(100 * done / total))))
+    season = max(shown, key=lambda key: (shown[key] or "", key))[0]
+    in_season = next((s.get("episode_count") or 0 for s in meta.get("seasons") or [] if s.get("season_number") == season), 0)
+    if in_season:
+        seen_here = len([key for key in shown if key[0] == season])
+        item.setProperty("lucent.progress", T("S%d · %d van %d", "S%d · %d of %d") % (season, min(seen_here, in_season), in_season))
 
 
 def _action(label, url, icon="DefaultAddonProgram.png"):
@@ -171,7 +193,7 @@ def trakt_menu(handle, _params):
     """Everything that is yours: watchlists, collection and lists of every service you use."""
     import prefetch
     entries = [(T("Klaar voor vanavond", "Ready for tonight"), "tonight")] if prefetch.tonight() else []
-    entries += [(T("Kijklijst films", "Watchlist movies"), "watchlist_movie"), (T("Kijklijst series", "Watchlist shows"), "watchlist_tv")]
+    entries += [(T("Komt binnenkort uit", "Coming soon"), "coming_watchlist"), (T("Kijklijst films", "Watchlist movies"), "watchlist_movie"), (T("Kijklijst series", "Watchlist shows"), "watchlist_tv")]
     if tracker.logged_in():
         entries += [(T("Collectie films", "Collection movies"), "collection_movie"), (T("Collectie series", "Collection shows"), "collection_tv")]
     rows = [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
@@ -492,6 +514,9 @@ def gather(params):
     elif name == "new_seasons":
         import newseason
         titles, content = newseason.titles(), "tvshows"
+    elif name == "coming_watchlist":
+        import coming
+        titles = coming.titles()
     elif name == "tonight":
         import prefetch
         titles = prefetch.tonight_titles()

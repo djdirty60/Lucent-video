@@ -7,6 +7,7 @@ import time
 import xbmc
 
 import alerts
+import coming
 import dialogs
 import learn
 import library
@@ -149,6 +150,8 @@ class Watcher(xbmc.Player):
         tracker.forget_lists()
         import widgets
         threading.Timer(15, widgets.mark_old, args=(True,)).start()     # the account knows it a few seconds later
+        if percent >= WATCHED_AT and meta.get("kind") in ("movie", "episode"):
+            threading.Timer(20, _tidy_watchlist, args=(dict(meta),)).start()       # after the account has the scrobble
         if percent >= WATCHED_AT and meta.get("kind") == "movie":
             import kompas
             kompas.after_film(meta)
@@ -350,6 +353,14 @@ class SubtitleJobs:
             util.log("subtitle jobs: %s" % type(error).__name__)
 
 
+def _tidy_watchlist(meta):
+    try:
+        tracker.forget_lists()
+        tracker.tidy_watchlist(meta)
+    except Exception as error:      # noqa: BLE001 - only tidying
+        util.log("watchlist tidy: %s" % type(error).__name__)
+
+
 def forget_format_check():
     """The format check was removed (0.31.6). Its results (formats.json) hid formats when playing, and when not one
     clip started on a box it could have set 'Dolby Vision on this device' to none: undo that once, then the file goes."""
@@ -401,6 +412,11 @@ def run():
             if util.HOME.getProperty(library.SYNC_WANTED):          # the library was just updated: marks follow
                 util.HOME.clearProperty(library.SYNC_WANTED)
                 threading.Thread(target=libwatch.periodic, daemon=True).start()
+            if seconds == 20 and not watcher.isPlaying():            # Home rows fresh right after starting
+                import widgets
+                threading.Thread(target=widgets.warm, daemon=True).start()
+            if seconds >= 300 and seconds % 300 == 0 and not watcher.isPlaying() and coming.due():
+                threading.Thread(target=coming.check, daemon=True).start()
             if seconds >= 600 and seconds % 600 == 0 and not watcher.isPlaying() and newseason.due():
                 threading.Thread(target=newseason.run, daemon=True).start()
             if seconds >= 240 and seconds % 60 == 0 and not watcher.isPlaying() and prefetch.due():

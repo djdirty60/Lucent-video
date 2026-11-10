@@ -783,3 +783,6 @@ msgctxt "#32230"
 msgid "Titles per Home row"
 msgstr "Titels per Home-rij"
 
+msgctxt "#32231"
+msgid "Tidy up the watchlist by itself (watched films, finished series)"
+msgstr "Kijklijst vanzelf opruimen (gekeken films, uitgekeken series)"
