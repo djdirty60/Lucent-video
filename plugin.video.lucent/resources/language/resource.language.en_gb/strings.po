@@ -778,6 +778,7 @@ msgstr ""
 msgctxt "#32229"
 msgid "Search subtitles automatically"
 msgstr ""
+
 msgctxt "#32230"
 msgid "Titles per Home row"
 msgstr ""
