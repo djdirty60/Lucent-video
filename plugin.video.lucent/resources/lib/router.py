@@ -199,7 +199,7 @@ def trakt_menu(handle, _params):
     rows = [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
     if tracker.has_lists():
         rows.append(items.folder(T("Mijn eigen lijsten", "My own lists"), util.url_for(action="traktlists", kind="mine")))
-        rows.append(items.folder(T("Gelikete lijsten", "Liked lists"), util.url_for(action="traktlists", kind="liked")))
+        rows.append(items.folder(T("Lijsten die je leuk vindt", "Liked lists"), util.url_for(action="traktlists", kind="liked")))
         rows.append(items.folder(T("Openbare lijsten", "Public lists"), util.url_for(action="publiclists")))
     if mdblist.available():
         rows.append(items.folder("MDBList", util.url_for(action="mdblistmenu")))
@@ -279,7 +279,7 @@ def floppy_lists(handle, _params):
 
 def mdblist_menu(handle, _params):
     send(handle, [items.folder(label, util.url_for(action="mdblists", kind=kind)) for label, kind in
-                  ((T("Mijn lijsten", "My lists"), "mine"), (T("Gelikete lijsten", "Liked lists"), "liked"), (T("Toplijsten", "Top lists"), "top"), (T("Lijst zoeken", "Search lists"), "search"))])
+                  ((T("Mijn lijsten", "My lists"), "mine"), (T("Lijsten die je leuk vindt", "Liked lists"), "liked"), (T("Toplijsten", "Top lists"), "top"), (T("Lijst zoeken", "Search lists"), "search"))])
 
 
 def mdblists(handle, params):

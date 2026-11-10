@@ -27,7 +27,7 @@ KEEP_RESULTS = 600
 FLAG_OF = [("dv2", "DV2"), ("fel", "aio_FEL"), ("p7", "aio_P7"), ("hdr", "HDR"), ("hlg", "HDR"), ("sdr", "SDR"), ("3d", "3D"), ("imax", "aio_IMAX"), ("hevc", "HEVC"), ("avc", "AVC"), ("av1", "AV1"),
            ("remux", "REMUX"), ("bluray", "BLURAY"), ("web", "WEB"), ("hdtv", "HDTV"), ("cam", "CAM"), ("atmos", "ATMOS"), ("truehd", "TRUEHD"), ("dtsx", "DTS-X"), ("dtsma", "DTS-HDMA"),
            ("dtshd", "DTS-HD"), ("ddplus", "DD+"), ("aac", "AAC"), ("opus", "OPUS"), ("71", "7.1"), ("51", "5.1"), ("20", "2.0"), ("nl", "aio_NL"), ("multi", "aio_MULTI"), ("nlsubs", "aio_NL-SUBS")]
-AGENT = "Lucent-Video/0.7"
+AGENT = "Lucent-Video"
 
 
 def _flags(name):

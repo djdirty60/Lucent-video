@@ -3,10 +3,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language: nl_nl\n"
 
-msgctxt "#32001"
-msgid "Connections"
-msgstr "Verbindingen"
-
 msgctxt "#32002"
 msgid "Playback"
 msgstr "Afspelen"
@@ -147,10 +143,6 @@ msgctxt "#32059"
 msgid "Stop"
 msgstr "Stoppen"
 
-msgctxt "#32060"
-msgid "Link Trakt"
-msgstr "Trakt koppelen"
-
 msgctxt "#32061"
 msgid "Cancel"
 msgstr "Annuleren"
@@ -187,10 +179,6 @@ msgctxt "#32077"
 msgid "MDBList API key"
 msgstr "MDBList API-sleutel"
 
-msgctxt "#32078"
-msgid "Test MDBList"
-msgstr "MDBList testen"
-
 msgctxt "#32079"
 msgid "Floppy address"
 msgstr "Floppy-adres"
@@ -202,10 +190,6 @@ msgstr "Floppy API-token"
 msgctxt "#32081"
 msgid "Test Floppy"
 msgstr "Floppy testen"
-
-msgctxt "#32082"
-msgid "Services"
-msgstr "Diensten"
 
 msgctxt "#32083"
 msgid "Order of sources"
@@ -223,10 +207,6 @@ msgctxt "#32086"
 msgid "LOOK AT FIRST"
 msgstr "EERST KIJKEN NAAR"
 
-msgctxt "#32087"
-msgid "MY RANKED LIST"
-msgstr "MIJN RANGLIJST"
-
 msgctxt "#32088"
 msgid "HOW IT WILL LOOK"
 msgstr "ZO KOMT HET ERUIT TE ZIEN"
@@ -239,18 +219,6 @@ msgctxt "#32090"
 msgid "Why is this source on top?"
 msgstr "Waarom staat deze bron bovenaan?"
 
-msgctxt "#32091"
-msgid "OK = pick up   Up/Down = move   Right = next column"
-msgstr "OK = oppakken   Omhoog/Omlaag = verplaatsen   Rechts = volgende kolom"
-
-msgctxt "#32092"
-msgid "OK = pick up   Up/Down = move   Right = change state"
-msgstr "OK = oppakken   Omhoog/Omlaag = verplaatsen   Rechts = status wijzigen"
-
-msgctxt "#32093"
-msgid "Menu button = copy, rename, save or delete"
-msgstr "Menuknop = kopiëren, naam wijzigen, bewaren of verwijderen"
-
 msgctxt "#32094"
 msgid "pick up"
 msgstr "oppakken"
@@ -262,10 +230,6 @@ msgstr "verplaatsen"
 msgctxt "#32096"
 msgid "order within this group"
 msgstr "volgorde binnen deze groep"
-
-msgctxt "#32097"
-msgid "Preferred · Required · Hide · Off"
-msgstr "Voorkeur · Verplicht · Verbergen · Uit"
 
 msgctxt "#32098"
 msgid "ALWAYS HIDE"
@@ -299,17 +263,9 @@ msgctxt "#32105"
 msgid "Easynews password"
 msgstr "Easynews-wachtwoord"
 
-msgctxt "#32106"
-msgid "Test Easynews"
-msgstr "Easynews testen"
-
 msgctxt "#32107"
 msgid "TorBox API key"
 msgstr "TorBox API-sleutel"
-
-msgctxt "#32108"
-msgid "Test TorBox"
-msgstr "TorBox testen"
 
 msgctxt "#32109"
 msgid "Country for streaming services (e.g. NL, empty = automatic)"
@@ -341,7 +297,7 @@ msgstr "Foutrapport maken"
 
 msgctxt "#32116"
 msgid "Setup assistant"
-msgstr "Setup-assistent"
+msgstr "Installatie-assistent"
 
 msgctxt "#32117"
 msgid "Who is watching?"
@@ -375,25 +331,9 @@ msgctxt "#32124"
 msgid "Premiumize API key"
 msgstr "Premiumize API-sleutel"
 
-msgctxt "#32125"
-msgid "Test Real-Debrid"
-msgstr "Real-Debrid testen"
-
-msgctxt "#32126"
-msgid "Test AllDebrid"
-msgstr "AllDebrid testen"
-
-msgctxt "#32127"
-msgid "Test Premiumize"
-msgstr "Premiumize testen"
-
 msgctxt "#32128"
 msgid "Backup and restore"
 msgstr "Back-up maken of terugzetten"
-
-msgctxt "#32129"
-msgid "Search subtitles automatically (not with the Lucent skin: it does this itself)"
-msgstr "Ondertitels automatisch zoeken (niet bij de Lucent-skin: die doet dat zelf)"
 
 msgctxt "#32130"
 msgid "Choose source"
@@ -522,10 +462,6 @@ msgstr "Mijn eigen abonnement aanbieden als een titel daarop staat"
 msgctxt "#32163"
 msgid "Choose my subscriptions"
 msgstr "Mijn abonnementen kiezen"
-
-msgctxt "#32164"
-msgid "Subtitles"
-msgstr "Ondertitels"
 
 msgctxt "#32165"
 msgid "Together and subscriptions"
@@ -787,6 +723,18 @@ msgctxt "#32231"
 msgid "Tidy up the watchlist by itself (watched films, finished series)"
 msgstr "Kijklijst vanzelf opruimen (gekeken films, uitgekeken series)"
 
-msgctxt "#32232"
-msgid "Dolby Vision on streams: rebuild the picture once (CoreELEC, against purple/green)"
-msgstr "Dolby Vision bij streams: beeld één keer opnieuw opbouwen (CoreELEC, tegen paars/groen)"
+msgctxt "#32233"
+msgid "Keeping track of what you watch"
+msgstr "Bijhouden wat je kijkt"
+
+msgctxt "#32234"
+msgid "When you press play"
+msgstr "Bij het afspelen"
+
+msgctxt "#32235"
+msgid "TheIntroDB"
+msgstr "TheIntroDB"
+
+msgctxt "#32236"
+msgid "Your collection in Kodi"
+msgstr "Je collectie in Kodi"
