@@ -176,3 +176,12 @@ def save_json(name, value):
     with open(path + ".tmp", "w", encoding="utf-8") as handle:
         json.dump(value, handle)
     os.replace(path + ".tmp", path)
+
+
+def video_playing():
+    """A video is on (any video, also from outside Lucent): background work waits, so the box has its full power for
+    decoding (Dolby Vision FEL needs it)."""
+    try:
+        return xbmc.getCondVisibility("Player.HasVideo")
+    except Exception:          # noqa: BLE001
+        return False

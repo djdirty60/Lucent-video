@@ -96,7 +96,8 @@ class Sources(Base):
         for source in self.current:
             item = xbmcgui.ListItem(source["name"], offscreen=True)
             item.setProperty("res", source["resolution"])
-            item.setProperty("meta", source["meta"] + (T(" · Kan dit apparaat niet", " · Not for this device") if source.get("cannot") else ""))
+            item.setProperty("meta", _with_scraper(source) + (T(" · Kan dit apparaat niet", " · Not for this device") if source.get("cannot") else ""))
+            item.setProperty("scraper", SCRAPER_SHORT.get(source.get("scraper"), source.get("scraper") or ""))
             if source["cached"]:
                 item.setProperty("cached", "1")
             if source is self.sources[0]:
@@ -159,6 +160,19 @@ class Why(Base):
         self.close()
 
 
+SCRAPER_SHORT = {"AIOStreams": "AIO", "CocoScrapers": "Coco", "FenomScrapers": "Fenom", "OpenScrapers": "Open",
+                 "Easynews": "Easynews", "TorBox": "TorBox"}
+
+
+def _with_scraper(source):
+    """'AIO · TorBox · 78.1 GB': which scraper found it first (not twice when the scraper is also the service)."""
+    short = SCRAPER_SHORT.get(source.get("scraper"), source.get("scraper") or "")
+    line = source.get("meta") or ""
+    if not short or line.upper().startswith(short.upper()):
+        return line
+    return "%s · %s" % (short, line) if line else short
+
+
 def choose_source(meta, sources, show_uncached):
     dialog = _open(Sources, "lucent_sources.xml", meta=meta, sources=sources, show_uncached=show_uncached)
     dialog.doModal()
@@ -186,6 +200,30 @@ class Busy(Base):
         if action.getId() in BACK:
             self.cancelled = True
             self.close()
+
+    def live(self, live, final=False):
+        """While searching: a pill per scraper (busy, done with its count, nothing, error) and the resolutions so far."""
+        props = {}
+        for number in range(1, 7):
+            props["src%d" % number], props["src%dstate" % number] = "", ""
+        for number, name in enumerate(list(live["order"])[:6], 1):
+            row = live["rows"].get(name) or {}
+            short = SCRAPER_SHORT.get(name, name)
+            state = row.get("state", "busy")
+            if final and state == "busy":
+                state = "error"                     # it took too long: the search went on without it
+            props["src%d" % number] = {"done": "✓ %s  %d" % (short, row.get("count", 0)), "busy": "… %s" % short,
+                                       "none": "%s  0" % short, "error": "%s  ✗" % short}.get(state, short)
+            if state == "error" and final and row.get("state") == "busy":
+                props["src%d" % number] = "%s  %s" % (short, T("te traag", "too slow"))
+            props["src%dstate" % number] = state
+        counts = dict(live["res"])
+        names = sorted([r for r in counts if r], key=lambda r: ORDER.index(r) if r in ORDER else 9)
+        for number in range(1, 5):
+            props["res%d" % number] = "%s  %d" % (names[number - 1], counts[names[number - 1]]) if number <= len(names) else ""
+        total = sum(counts.values())
+        props["count"] = total if total else ""
+        self.fill(props)
 
     def done(self, sources):
         counts = {}

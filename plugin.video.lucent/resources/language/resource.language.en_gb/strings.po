@@ -615,14 +615,6 @@ msgctxt "#32186"
 msgid "Keep this episode or season out of the library"
 msgstr ""
 
-msgctxt "#32187"
-msgid "Format check: what can this box play?"
-msgstr ""
-
-msgctxt "#32188"
-msgid "Own FEL test file"
-msgstr ""
-
 msgctxt "#32189"
 msgid "Lists"
 msgstr ""
@@ -785,4 +777,16 @@ msgstr ""
 
 msgctxt "#32229"
 msgid "Search subtitles automatically"
+msgstr ""
+
+msgctxt "#32230"
+msgid "Titles per Home row"
+msgstr ""
+
+msgctxt "#32231"
+msgid "Tidy up the watchlist by itself (watched films, finished series)"
+msgstr ""
+
+msgctxt "#32232"
+msgid "Dolby Vision on streams: rebuild the picture once (CoreELEC, against purple/green)"
 msgstr ""

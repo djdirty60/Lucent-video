@@ -157,9 +157,24 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, json.dumps(_search((query.get("q") or [""])[0])))
             if parts.path == "/api/title":
                 return self._send(200, json.dumps(_title((query.get("type") or ["movie"])[0], (query.get("id") or [""])[0])))
+            if parts.path == "/api/report":
+                return self._report()
         except util.HttpError:
             return self._send(502, json.dumps({"error": "tmdb"}))
         return self._send(404, json.dumps({"error": "not found"}))
+
+    def _report(self):
+        """The error report as a file for your phone (addresses, keys and passwords taken out, see report.py)."""
+        import report
+        data = report.build().encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Disposition", 'attachment; filename="lucent-video-rapport-%s.txt"' % time.strftime("%Y%m%d-%H%M"))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+        return None
 
     def do_POST(self):
         parts = urllib.parse.urlsplit(self.path)

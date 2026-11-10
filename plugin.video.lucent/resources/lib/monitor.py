@@ -68,6 +68,30 @@ class Watcher(xbmc.Player):
         self._scrobble("start")
         self.streams = None
         threading.Thread(target=self._series_streams, args=(now,), daemon=True).start()
+        threading.Thread(target=self._dolby_vision_kick, daemon=True).start()
+
+    def _dolby_vision_kick(self):
+        """CoreELEC: Dolby Vision over the internet (a stream) can switch the TV into the wrong mode (purple and green
+        picture), while the same file from a USB stick is fine: the switch is sensitive to timing. A few seconds after
+        the start, when the stream runs, Lucent rebuilds the picture once by jumping back one second; the TV then
+        switches again, now with the data flowing. Only when setting 'dv_kick' is on (off by default)."""
+        if util.setting("dv_kick").lower() != "true" or not on_coreelec():
+            return
+        monitor = xbmc.Monitor()
+        for _ in range(20):
+            if monitor.waitForAbort(0.5) or not self.isPlayingVideo():
+                return
+            if xbmc.getInfoLabel("VideoPlayer.HdrType").lower() == "dolbyvision":
+                break
+        else:
+            return
+        if monitor.waitForAbort(2.5) or not self.isPlayingVideo():
+            return
+        try:
+            self.seekTime(max(0.0, self.getTime() - 1.0))
+            util.log("Dolby Vision on CoreELEC: picture rebuilt once")
+        except RuntimeError:
+            pass
 
     def _series_streams(self, meta):
         import streammem
@@ -149,6 +173,8 @@ class Watcher(xbmc.Player):
         tracker.forget_lists()
         import widgets
         threading.Timer(15, widgets.mark_old, args=(True,)).start()     # the account knows it a few seconds later
+        if percent >= WATCHED_AT and meta.get("kind") in ("movie", "episode"):
+            threading.Timer(20, _tidy_watchlist, args=(dict(meta),)).start()       # after the account has the scrobble
         if percent >= WATCHED_AT and meta.get("kind") == "movie":
             import kompas
             kompas.after_film(meta)
@@ -350,8 +376,50 @@ class SubtitleJobs:
             util.log("subtitle jobs: %s" % type(error).__name__)
 
 
+def on_coreelec():
+    try:
+        with open("/etc/os-release", encoding="utf-8") as handle:
+            return "coreelec" in handle.read().lower()
+    except OSError:
+        return False
+
+
+def _tidy_watchlist(meta):
+    try:
+        tracker.forget_lists()
+        tracker.tidy_watchlist(meta)
+    except Exception as error:      # noqa: BLE001 - only tidying
+        util.log("watchlist tidy: %s" % type(error).__name__)
+
+
+def forget_format_check():
+    """The format check was removed (0.31.6). Its results (formats.json) hid formats when playing, and when not one
+    clip started on a box it could have set 'Dolby Vision on this device' to none: undo that once, then the file goes."""
+    import os
+    path = os.path.join(util.PROFILE, "formats.json")
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path, encoding="utf-8") as handle:
+            results = (json.load(handle) or {}).get("results") or {}
+    except (OSError, ValueError):
+        results = {}
+    states = [entry.get("state") for entry in results.values() if entry.get("state")]
+    if states and all(state == "fail" for state in states) and util.setting("dv_support") == "2":
+        util.ADDON.setSetting("dv_support", "0")
+        util.log("format check removed: Dolby Vision setting put back (no clip had started)")
+    try:
+        os.remove(path)
+    except OSError:
+        pass
+
+
 def run():
     monitor = Events()
+    try:
+        forget_format_check()
+    except Exception as error:      # noqa: BLE001 - the service must start anyway
+        util.log("format check cleanup: %s" % type(error).__name__)
     watcher = Watcher()
     seconds = 0
     library.publish_status()
@@ -372,6 +440,11 @@ def run():
                 threading.Thread(target=library.run, daemon=True).start()
             if seconds >= 180 and seconds % 60 == 0 and not watcher.isPlaying() and libwatch.sync_due() and not library.due():
                 threading.Thread(target=libwatch.periodic, daemon=True).start()
+            if util.HOME.getProperty(library.SYNC_WANTED):          # the library was just updated: marks follow
+                util.HOME.clearProperty(library.SYNC_WANTED)
+                threading.Thread(target=libwatch.periodic, daemon=True).start()
+            # 0.33.0: the Home rows at start (widgets.warm) and the 'Coming soon' check (coming.check) do not run in
+            # the service for now: they are the main suspects of the broken Dolby Vision on CoreELEC (0.31.6-0.32.5).
             if seconds >= 600 and seconds % 600 == 0 and not watcher.isPlaying() and newseason.due():
                 threading.Thread(target=newseason.run, daemon=True).start()
             if seconds >= 240 and seconds % 60 == 0 and not watcher.isPlaying() and prefetch.due():

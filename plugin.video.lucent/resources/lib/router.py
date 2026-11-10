@@ -88,8 +88,30 @@ def send_titles(handle, titles, content, more=None):
             shown = shows.get(meta["tmdb"], {})
             counts = (meta.get("episodes") or 0, len(shown))
             seen, last = bool(counts[0]) and counts[1] >= counts[0], max(shown.values()) if shown else ""
-        rows.append(items.title_item(meta, seen, _resume_for(meta, local, paused), last, counts))
+        row = items.title_item(meta, seen, _resume_for(meta, local, paused), last, counts)
+        if meta["kind"] == "tvshow":
+            _progress(row[1], meta, shows.get(meta["tmdb"], {}))
+        rows.append(row)
     send(handle, rows, content, more)
+
+
+def _progress(item, meta, shown):
+    """For the skin, on a series you started: lucent.left ('3 episodes to go' or 'All seen'), lucent.progress
+    ('S2 · 5 of 10': the season you are in) and lucent.percent (0-100, the whole series)."""
+    if not shown:
+        return
+    total = sum(s.get("episode_count") or 0 for s in meta.get("seasons") or [])
+    done = len([key for key in shown if key[0] > 0])
+    if total:
+        left = max(0, total - done)
+        item.setProperty("lucent.left", T("Alles gezien", "All seen") if not left else
+                         T("Nog 1 aflevering", "1 episode to go") if left == 1 else T("Nog %d afleveringen", "%d episodes to go") % left)
+        item.setProperty("lucent.percent", str(min(100, int(100 * done / total))))
+    season = max(shown, key=lambda key: (shown[key] or "", key))[0]
+    in_season = next((s.get("episode_count") or 0 for s in meta.get("seasons") or [] if s.get("season_number") == season), 0)
+    if in_season:
+        seen_here = len([key for key in shown if key[0] == season])
+        item.setProperty("lucent.progress", T("S%d · %d van %d", "S%d · %d of %d") % (season, min(seen_here, in_season), in_season))
 
 
 def _action(label, url, icon="DefaultAddonProgram.png"):
@@ -171,7 +193,7 @@ def trakt_menu(handle, _params):
     """Everything that is yours: watchlists, collection and lists of every service you use."""
     import prefetch
     entries = [(T("Klaar voor vanavond", "Ready for tonight"), "tonight")] if prefetch.tonight() else []
-    entries += [(T("Kijklijst films", "Watchlist movies"), "watchlist_movie"), (T("Kijklijst series", "Watchlist shows"), "watchlist_tv")]
+    entries += [(T("Komt binnenkort uit", "Coming soon"), "coming_watchlist"), (T("Kijklijst films", "Watchlist movies"), "watchlist_movie"), (T("Kijklijst series", "Watchlist shows"), "watchlist_tv")]
     if tracker.logged_in():
         entries += [(T("Collectie films", "Collection movies"), "collection_movie"), (T("Collectie series", "Collection shows"), "collection_tv")]
     rows = [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
@@ -219,7 +241,6 @@ def tools(handle, _params):
         _action(T("Ondertitels en geluid instellen", "Set up subtitles and sound"), util.url_for(action="subs_setup")),
         _action(T("Intro overslaan instellen", "Set up skip intro"), util.url_for(action="skip_setup")),
         _action(T("Volgorde van bronnen", "Order of sources"), util.url_for(action="ranking")),
-        _action(T("Formaattest: wat kan dit apparaat?", "Format check: what can this box play?"), util.url_for(action="formatcheck")),
         _action(T("Bibliotheek nu bijwerken", "Update the library now"), util.url_for(action="library_sync"), "DefaultAddonLibrary.png"),
         _action(T("Kiezen wat in de bibliotheek komt", "Choose what goes in the library"), util.url_for(action="library_choose"), "DefaultAddonLibrary.png"),
         _action(T("Je kijkjaar", "Your year of watching"), util.url_for(action="year")),
@@ -433,27 +454,48 @@ def list_titles(handle, params):
         return librows.send_row(handle, name)
     page = int(params.get("page") or 1)
     import hide
+    size = util.number("widget_size", 20) if params.get("widget") == "1" else 0       # a Home row: as many as you chose
+    cut = (lambda rows: rows[:size]) if size else (lambda rows: rows)
     cached = widgets.get(params) if widgets.wanted(params) else None
     if cached:
-        send_titles(handle, hide.keep(cached.get("titles") or [], name), cached.get("content") or "")
-        if widgets.is_old(params, cached):
+        send_titles(handle, cut(hide.keep(cached.get("titles") or [], name)), cached.get("content") or "")
+        if widgets.is_old(params, cached, size):
             try:
-                titles, content, _more = gather(params)
+                titles, content, _more = gather_row(params, size)
             except Exception as error:      # noqa: BLE001 - the copy stays; try again next time
                 util.log("row %s not refreshed: %s" % (name, type(error).__name__))
                 return None
             changed = not widgets.same(cached, titles, content)
             if titles or not cached.get("titles"):
-                widgets.put(params, titles, content)
+                widgets.put(params, titles, content, size)
             if changed and titles:
                 widgets.bump()
         return None
-    titles, content, more = gather(params)
+    titles, content, more = gather_row(params, size)
     if widgets.wanted(params) and titles:
-        widgets.put(params, titles, content)
+        widgets.put(params, titles, content, size)
     next_url = util.url_for(**dict(params, page=page + 1)) if more and params.get("widget") != "1" else None     # a Home row has no next page
-    send_titles(handle, hide.keep(titles, name), content, next_url)
+    send_titles(handle, cut(hide.keep(titles, name)), content, next_url)
     return None
+
+
+def gather_row(params, size):
+    """A list, with more pages fetched for a Home row until it holds the number of titles you chose (at most 6 pages)."""
+    titles, content, more = gather(params)
+    if not size:
+        return titles, content, more
+    import hide
+    name, page = params.get("name", ""), int(params.get("page") or 1)
+    seen = {(t.get("kind"), str(t.get("tmdb")), t.get("season"), t.get("episode")) for t in titles}
+    while more and len(hide.keep(titles, name)) < size and page < 6:
+        page += 1
+        extra, _content, more = gather(dict(params, page=page))
+        for meta in extra:
+            key = (meta.get("kind"), str(meta.get("tmdb")), meta.get("season"), meta.get("episode"))
+            if key not in seen:
+                seen.add(key)
+                titles.append(meta)
+    return titles, content, more
 
 
 def gather(params):
@@ -472,6 +514,9 @@ def gather(params):
     elif name == "new_seasons":
         import newseason
         titles, content = newseason.titles(), "tvshows"
+    elif name == "coming_watchlist":
+        import coming
+        titles = coming.titles()
     elif name == "tonight":
         import prefetch
         titles = prefetch.tonight_titles()
@@ -839,9 +884,6 @@ def run(argv):
             if trakt.choose_library() and xbmcgui.Dialog().yesno("Lucent", T("Bibliotheek nu bijwerken?", "Update the library now?")):
                 return library.run(manual=True)
             return None
-        if action == "formatcheck":
-            import formatcheck
-            return formatcheck.open_check()
         if action == "title_menu":
             return title_menu(params)
         if action == "lists":
@@ -852,6 +894,14 @@ def run(argv):
         if action == "hide_languages":
             import hide
             return hide.choose()
+        if action == "trakt_refresh":                # for the skin: renew the Trakt login quietly when needed
+            util.OVERRIDE_USER = users.MAIN          # the skin reads the file of the first profile
+            try:
+                if trakt.logged_in():
+                    trakt.refresh_quietly()
+            finally:
+                util.OVERRIDE_USER = None
+            return None
         if action == "widgets_refresh":
             import widgets
             return widgets.refresh_all()

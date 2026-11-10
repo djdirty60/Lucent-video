@@ -12,6 +12,7 @@ import json
 import os
 import re
 import shutil
+import threading
 import time
 from xml.sax.saxutils import escape
 
@@ -136,6 +137,27 @@ def episode_nfo(show, raw, added):
             + tag("dateadded", added) + "</episodedetails>\n")
 
 
+PLAYCOUNT = re.compile(r"  <playcount>\d+</playcount>\n(?:  <lastplayed>[^<]*</lastplayed>\n)?")
+
+
+def with_seen(text, path, seen, when=""):
+    """Kodi reads 'watched' from the .nfo when it adds a title. A new file gets it when you saw the title already, so
+    nothing has to be marked afterwards (every mark makes Kodi reload the rows on screen). A file that exists keeps
+    what it had, so it does not change (and is not refreshed) every time you watch something."""
+    close = text.rindex("</")
+    if os.path.exists(path):
+        try:
+            with open(path, encoding="utf-8") as handle:
+                found = PLAYCOUNT.search(handle.read())
+        except OSError:
+            found = None
+        return text[:close] + found.group(0) + text[close:] if found else text
+    if not seen:
+        return text
+    line = "  <playcount>1</playcount>\n" + (tag("lastplayed", when[:19]) if when else "")
+    return text[:close] + line + text[close:]
+
+
 def stamp(text):
     return str(text or "").replace("T", " ")[:19]
 
@@ -193,14 +215,14 @@ def remove_gone(kind, base, wanted, total, manual):
     return removed, held
 
 
-def write_movie(tmdb_id, meta, folder, added):
+def write_movie(tmdb_id, meta, folder, added, seen=None):
     path = os.path.join(MOVIES, folder)
     os.makedirs(path, exist_ok=True)
     strm = util.url_for(action="play", type="movie", tmdb=tmdb_id, lib=1) + "\n"
     changed = write_if_changed(os.path.join(path, folder + ".strm"), strm)
     nfo = os.path.join(path, folder + ".nfo")
     existed = os.path.exists(nfo)
-    if write_if_changed(nfo, movie_nfo(meta, added)):
+    if write_if_changed(nfo, with_seen(movie_nfo(meta, added), nfo, seen is not None, seen or "")):
         changed += 1
         if existed:
             REFRESH.add(path)
@@ -218,12 +240,13 @@ def export_movies(manual, folders):
     rows = [(str(r["movie"]["ids"]["tmdb"]), r["movie"].get("title") or "film", r["movie"].get("year")) for r in collection]
     names = plan("movie", rows, folders)
     wanted, changed = set(names.values()), 0
+    seen = tracker.watched_movies()
     for row in collection:
         tmdb_id = str(row["movie"]["ids"]["tmdb"])
         meta = metas.get(tmdb_id)
         if not meta:                     # TMDB failed: leave what is there and try again next time
             continue
-        changed += write_movie(tmdb_id, meta, names[tmdb_id], stamp(row.get("collected_at")))
+        changed += write_movie(tmdb_id, meta, names[tmdb_id], stamp(row.get("collected_at")), seen.get(tmdb_id))
     removed, held = remove_gone("movies", MOVIES, wanted, len(collection), manual)
     return len(collection), changed, removed, held
 
@@ -248,7 +271,7 @@ def kept_out(skips, tmdb_id, season, episode):
     return int(season) in entry.get("seasons", []) or "%d:%d" % (int(season), int(episode)) in entry.get("episodes", [])
 
 
-def write_show(tmdb_id, show, episodes, folder, added, skips):
+def write_show(tmdb_id, show, episodes, folder, added, skips, seen=None):
     changed = 0
     root = os.path.join(SHOWS, folder)
     os.makedirs(root, exist_ok=True)
@@ -267,7 +290,9 @@ def write_show(tmdb_id, show, episodes, folder, added, skips):
         strm = util.url_for(action="play", type="episode", tmdb=tmdb_id, season=raw["season_number"],
                             episode=raw["episode_number"], lib=1) + "\n"
         changed += write_if_changed(os.path.join(root, season_dir, name + ".strm"), strm)
-        changed += write_if_changed(os.path.join(root, season_dir, name + ".nfo"), episode_nfo(show, raw, added))
+        nfo = os.path.join(root, season_dir, name + ".nfo")
+        when = (seen or {}).get((raw["season_number"], raw["episode_number"]))
+        changed += write_if_changed(nfo, with_seen(episode_nfo(show, raw, added), nfo, when is not None, when or ""))
         keep |= {os.path.join(season_dir, name + ".strm"), os.path.join(season_dir, name + ".nfo")}
     if show.get("complete"):         # only tidy up when every season came back
         for directory, _subdirs, files in os.walk(root):
@@ -287,12 +312,13 @@ def export_shows(manual, folders):
     names = plan("show", rows, folders)
     wanted, changed = set(names.values()), 0
     skips = util.load_json(SKIPS, {})
+    seen = tracker.watched_episodes()
     for row in collection:
         tmdb_id = str(row["show"]["ids"]["tmdb"])
         show, episodes = loaded.get(tmdb_id, (None, []))
         if not show:
             continue
-        changed += write_show(tmdb_id, show, episodes, names[tmdb_id], stamp(row.get("last_collected_at")), skips)
+        changed += write_show(tmdb_id, show, episodes, names[tmdb_id], stamp(row.get("last_collected_at")), skips, seen.get(tmdb_id))
     removed, held = remove_gone("shows", SHOWS, wanted, len(collection), manual)
     return len(collection), changed, removed, held
 
@@ -403,8 +429,22 @@ def _resume_call(method, id_name, item, percent):
     return method, {id_name: item[id_name], "resume": {"position": position, "total": total}}
 
 
+_SYNCING = threading.Lock()
+
+
 def sync_state():
-    """The account is the truth for what you have seen and where you stopped."""
+    """The account is the truth for what you have seen and where you stopped. Never twice at the same time."""
+    if not _SYNCING.acquire(blocking=False):
+        return
+    try:
+        _sync_state()
+    finally:
+        _SYNCING.release()
+
+
+def _sync_state():
+    if util.video_playing():
+        return                                  # never while a video plays: it comes again later
     if not tracker.refresh():     # never reset 'seen' on a failed answer
         return
     films, shows, paused = tracker.watched_movies(), tracker.watched_episodes(), tracker.paused()
@@ -444,6 +484,7 @@ def sync_state():
     util.log("library: %d seen/resume changes" % len(calls))
 
 
+SYNC_WANTED = "lucent.video.libsync.wanted"   # Home property: the service marks watched titles now
 BIG_SYNC = 25          # more changes than this are written while nobody looks at the screen
 IDLE_SECONDS = 15 * 60  # without a screensaver: this long without a key press
 
@@ -573,10 +614,12 @@ def run(manual=False):
                     scan(path)
             refresh_changed()
             prune()
-            sync_state()
         finally:
             if progress:
                 progress.close()
+    # after the progress bar is gone and outside the lock; with many changes it waits for the screensaver, so the
+    # service does it (a run from the menu is a short script that would end with it)
+    util.HOME.setProperty(SYNC_WANTED, "1")
     publish_counts()
     xbmc.executebuiltin("Container.Refresh")
     if manual:
