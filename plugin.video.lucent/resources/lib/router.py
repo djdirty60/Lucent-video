@@ -42,6 +42,8 @@ def send(handle, rows, content="", more=None):
     xbmcplugin.addDirectoryItems(handle, rows, len(rows))
     if content:
         xbmcplugin.setContent(handle, content)
+    else:                                       # a menu: in the order Lucent gives, no 'Date' or 'Name' sorting
+        xbmcplugin.addSortMethod(handle, xbmcplugin.SORT_METHOD_NONE)
     xbmcplugin.endOfDirectory(handle, cacheToDisc=False)
 
 
@@ -119,6 +121,7 @@ def _action(label, url, icon="DefaultAddonProgram.png"):
     item = xbmcgui.ListItem(label, offscreen=True)
     item.setArt({"icon": icon, "thumb": icon})
     item.setProperty("IsPlayable", "false")
+    items.menu_look(item, url)
     return url, item, False
 
 
