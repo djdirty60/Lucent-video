@@ -894,6 +894,14 @@ def run(argv):
         if action == "hide_languages":
             import hide
             return hide.choose()
+        if action == "trakt_refresh":                # for the skin: renew the Trakt login quietly when needed
+            util.OVERRIDE_USER = users.MAIN          # the skin reads the file of the first profile
+            try:
+                if trakt.logged_in():
+                    trakt.refresh_quietly()
+            finally:
+                util.OVERRIDE_USER = None
+            return None
         if action == "widgets_refresh":
             import widgets
             return widgets.refresh_all()

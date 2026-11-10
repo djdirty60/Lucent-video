@@ -57,6 +57,7 @@ These actions are public: any add-on or skin may call them with `RunPlugin(plugi
 | Coming soon from your watchlist (not out yet, soonest first; `ListItem.Tagline` says "Out on 3 Feb 2027") | `plugin://plugin.video.lucent/?action=list&name=coming_watchlist&widget=1` |
 | On a series you started | `ListItem.Property(lucent.left)` ("3 episodes to go" / "All seen"), `ListItem.Property(lucent.progress)` ("S2 · 5 of 8"), `ListItem.Property(lucent.percent)` (0-100) |
 | Titles per Home row | setting `widget_size` (5-60), for every row with `&widget=1` |
+| Renew the Trakt login quietly (for skins that read `addon_data/plugin.video.lucent/trakt.json`) | `RunPlugin(plugin://plugin.video.lucent/?action=trakt_refresh)` (0.32.4 and later) |
 
 Rows for Home and their properties: see the docstrings of `router.py`, `widgets.py`, `kompas.py`, `services.py` and `librows.py`.
 

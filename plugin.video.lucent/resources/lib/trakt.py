@@ -66,6 +66,12 @@ def _access():
     return saved.get("access_token")
 
 
+def refresh_quietly():
+    """action=trakt_refresh (the skin reads trakt.json): renews the login when less than an hour is left. No list, no
+    window, nothing in the log but a failure."""
+    _access()
+
+
 def call(path, data=None, method=None, auth=True, retry=True):
     """Returns (json, headers). Raises util.HttpError."""
     cid, _ = client()
