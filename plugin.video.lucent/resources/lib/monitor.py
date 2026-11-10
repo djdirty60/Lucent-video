@@ -398,6 +398,9 @@ def run():
                 threading.Thread(target=library.run, daemon=True).start()
             if seconds >= 180 and seconds % 60 == 0 and not watcher.isPlaying() and libwatch.sync_due() and not library.due():
                 threading.Thread(target=libwatch.periodic, daemon=True).start()
+            if util.HOME.getProperty(library.SYNC_WANTED):          # the library was just updated: marks follow
+                util.HOME.clearProperty(library.SYNC_WANTED)
+                threading.Thread(target=libwatch.periodic, daemon=True).start()
             if seconds >= 600 and seconds % 600 == 0 and not watcher.isPlaying() and newseason.due():
                 threading.Thread(target=newseason.run, daemon=True).start()
             if seconds >= 240 and seconds % 60 == 0 and not watcher.isPlaying() and prefetch.due():

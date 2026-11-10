@@ -12,6 +12,7 @@ import json
 import os
 import re
 import shutil
+import threading
 import time
 from xml.sax.saxutils import escape
 
@@ -403,8 +404,20 @@ def _resume_call(method, id_name, item, percent):
     return method, {id_name: item[id_name], "resume": {"position": position, "total": total}}
 
 
+_SYNCING = threading.Lock()
+
+
 def sync_state():
-    """The account is the truth for what you have seen and where you stopped."""
+    """The account is the truth for what you have seen and where you stopped. Never twice at the same time."""
+    if not _SYNCING.acquire(blocking=False):
+        return
+    try:
+        _sync_state()
+    finally:
+        _SYNCING.release()
+
+
+def _sync_state():
     if not tracker.refresh():     # never reset 'seen' on a failed answer
         return
     films, shows, paused = tracker.watched_movies(), tracker.watched_episodes(), tracker.paused()
@@ -444,6 +457,7 @@ def sync_state():
     util.log("library: %d seen/resume changes" % len(calls))
 
 
+SYNC_WANTED = "lucent.video.libsync.wanted"   # Home property: the service marks watched titles now
 BIG_SYNC = 25          # more changes than this are written while nobody looks at the screen
 IDLE_SECONDS = 15 * 60  # without a screensaver: this long without a key press
 
@@ -573,10 +587,12 @@ def run(manual=False):
                     scan(path)
             refresh_changed()
             prune()
-            sync_state()
         finally:
             if progress:
                 progress.close()
+    # after the progress bar is gone and outside the lock; with many changes it waits for the screensaver, so the
+    # service does it (a run from the menu is a short script that would end with it)
+    util.HOME.setProperty(SYNC_WANTED, "1")
     publish_counts()
     xbmc.executebuiltin("Container.Refresh")
     if manual:
