@@ -96,7 +96,8 @@ class Sources(Base):
         for source in self.current:
             item = xbmcgui.ListItem(source["name"], offscreen=True)
             item.setProperty("res", source["resolution"])
-            item.setProperty("meta", source["meta"] + (T(" · Kan dit apparaat niet", " · Not for this device") if source.get("cannot") else ""))
+            item.setProperty("meta", _with_scraper(source) + (T(" · Kan dit apparaat niet", " · Not for this device") if source.get("cannot") else ""))
+            item.setProperty("scraper", SCRAPER_SHORT.get(source.get("scraper"), source.get("scraper") or ""))
             if source["cached"]:
                 item.setProperty("cached", "1")
             if source is self.sources[0]:
@@ -157,6 +158,19 @@ class Why(Base):
 
     def onClick(self, _control):
         self.close()
+
+
+SCRAPER_SHORT = {"AIOStreams": "AIO", "CocoScrapers": "Coco", "FenomScrapers": "Fenom", "OpenScrapers": "Open",
+                 "Easynews": "Easynews", "TorBox": "TorBox"}
+
+
+def _with_scraper(source):
+    """'AIO · TorBox · 78.1 GB': which scraper found it first (not twice when the scraper is also the service)."""
+    short = SCRAPER_SHORT.get(source.get("scraper"), source.get("scraper") or "")
+    line = source.get("meta") or ""
+    if not short or line.upper().startswith(short.upper()):
+        return line
+    return "%s · %s" % (short, line) if line else short
 
 
 def choose_source(meta, sources, show_uncached):
