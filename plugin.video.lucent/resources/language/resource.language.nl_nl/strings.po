@@ -786,3 +786,7 @@ msgstr "Titels per Home-rij"
 msgctxt "#32231"
 msgid "Tidy up the watchlist by itself (watched films, finished series)"
 msgstr "Kijklijst vanzelf opruimen (gekeken films, uitgekeken series)"
+
+msgctxt "#32232"
+msgid "Dolby Vision on streams: rebuild the picture once (CoreELEC, against purple/green)"
+msgstr "Dolby Vision bij streams: beeld één keer opnieuw opbouwen (CoreELEC, tegen paars/groen)"

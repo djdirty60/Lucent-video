@@ -69,6 +69,30 @@ class Watcher(xbmc.Player):
         self._scrobble("start")
         self.streams = None
         threading.Thread(target=self._series_streams, args=(now,), daemon=True).start()
+        threading.Thread(target=self._dolby_vision_kick, daemon=True).start()
+
+    def _dolby_vision_kick(self):
+        """CoreELEC: Dolby Vision over the internet (a stream) can switch the TV into the wrong mode (purple and green
+        picture), while the same file from a USB stick is fine: the switch is sensitive to timing. A few seconds after
+        the start, when the stream runs, Lucent rebuilds the picture once by jumping back one second; the TV then
+        switches again, now with the data flowing. Only when setting 'dv_kick' is on (off by default)."""
+        if util.setting("dv_kick").lower() != "true" or not on_coreelec():
+            return
+        monitor = xbmc.Monitor()
+        for _ in range(20):
+            if monitor.waitForAbort(0.5) or not self.isPlayingVideo():
+                return
+            if xbmc.getInfoLabel("VideoPlayer.HdrType").lower() == "dolbyvision":
+                break
+        else:
+            return
+        if monitor.waitForAbort(2.5) or not self.isPlayingVideo():
+            return
+        try:
+            self.seekTime(max(0.0, self.getTime() - 1.0))
+            util.log("Dolby Vision on CoreELEC: picture rebuilt once")
+        except RuntimeError:
+            pass
 
     def _series_streams(self, meta):
         import streammem
@@ -351,6 +375,14 @@ class SubtitleJobs:
                 subconf.publish()
         except Exception as error:      # noqa: BLE001
             util.log("subtitle jobs: %s" % type(error).__name__)
+
+
+def on_coreelec():
+    try:
+        with open("/etc/os-release", encoding="utf-8") as handle:
+            return "coreelec" in handle.read().lower()
+    except OSError:
+        return False
 
 
 def _tidy_watchlist(meta):

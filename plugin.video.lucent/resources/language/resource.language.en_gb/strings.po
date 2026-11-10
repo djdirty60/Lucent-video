@@ -786,3 +786,7 @@ msgstr ""
 msgctxt "#32231"
 msgid "Tidy up the watchlist by itself (watched films, finished series)"
 msgstr ""
+
+msgctxt "#32232"
+msgid "Dolby Vision on streams: rebuild the picture once (CoreELEC, against purple/green)"
+msgstr ""
