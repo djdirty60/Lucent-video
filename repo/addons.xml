@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="0.35.4" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.35.5" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -79,7 +79,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt. Werkt zonder Seren.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.35.4: WeTrakr: linking keeps waiting when the connection hiccups, the settings show "Linked with WeTrakr as …", and you hear why when WeTrakr refuses.
+        <news>0.35.5: "Reset resume position" in Kodi really sticks now: Lucent notices it at the next library update (Kodi does not always tell) and removes the point on Trakt too. A start of less than a minute no longer leaves a 1% resume point.
+0.35.4: WeTrakr: linking keeps waiting when the connection hiccups, the settings show "Linked with WeTrakr as …", and you hear why when WeTrakr refuses.
 0.35.3: Homey cinema mode works: Homey answers in plain text, which Lucent took for no answer. The test says why it fails, and a pasted webhook link is fine too.
 0.35.2: A thin white edge that follows the round corners for the chosen actor card.
 0.35.1: "Where do I know them from?" has a new look: dark cards with the posters of what you saw with that actor; nothing runs out of the card any more.
@@ -87,8 +88,7 @@
 0.34.3: Choose which lists show in "Library and lists" (row "Choose lists…" in the window, or Settings > General). A list the title is already on always shows.
 0.34.2: The pause cards wait until the player menu is closed. The subtitle window has a row "Two languages at once".
 0.34.1: "Reset resume position" in the Kodi library now also forgets the point on Trakt and in Lucent, so it no longer comes back after a restart.
-0.34.0: Six new things.
-- Where do I know them from? Pause for 2 seconds: cards show the actors and where you saw them before (your own history).</news>
+0.34.0: Six new things.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

@@ -433,6 +433,37 @@ def _resume_call(method, id_name, item, percent):
     return method, {id_name: item[id_name], "resume": {"position": position, "total": total}}
 
 
+WRITTEN = "resume_written.json"    # {title key: the account's 'paused at' of the resume point Lucent put in the library}
+
+
+def _resume_key(meta):
+    if meta["kind"] == "movie":
+        return "movie:%s" % meta["tmdb"]
+    return "ep:%s:%s:%s" % (meta["tmdb"], meta["season"], meta["episode"])
+
+
+def _resume_or_reset(method, id_name, item, entry, meta, written, resets, first=False):
+    """The resume call for one title, or None. When Lucent put a resume point in the library before and it is gone now,
+    while the account still has that same point, you used 'Reset resume position' in Kodi (Kodi does not always tell):
+    then it is forgotten on the account as well instead of being put back."""
+    key = _resume_key(meta)
+    if not entry:
+        written.pop(key, None)
+        return None
+    stamp = str(entry.get("paused_at") or entry.get("at") or "")
+    position = (item.get("resume") or {}).get("position", 0)
+    if not position and key in written and written[key] == stamp:
+        resets.append(meta)
+        return None
+    if not position and first:
+        written[key] = stamp                 # earlier versions put it there and you reset it: leave it out
+        return None
+    call = _resume_call(method, id_name, item, entry.get("progress"))
+    if call or position:
+        written[key] = stamp
+    return call
+
+
 _SYNCING = threading.Lock()
 
 
@@ -452,9 +483,12 @@ def _sync_state():
     if not tracker.refresh():     # never reset 'seen' on a failed answer
         return
     films, shows, paused = tracker.watched_movies(), tracker.watched_episodes(), tracker.paused()
-    film_percent = {str(p["movie"]["ids"].get("tmdb")): p.get("progress") for p in paused if p.get("type") == "movie"}
-    episode_percent = {(str(p["show"]["ids"].get("tmdb")), p["episode"]["season"], p["episode"]["number"]): p.get("progress")
+    film_percent = {str(p["movie"]["ids"].get("tmdb")): p for p in paused if p.get("type") == "movie"}
+    episode_percent = {(str(p["show"]["ids"].get("tmdb")), p["episode"]["season"], p["episode"]["number"]): p
                        for p in paused if p.get("type") == "episode"}
+    written, resets = util.load_json(WRITTEN, None), []
+    first = written is None                  # the first time: a point that is not in the library now is left out
+    written = written or {}
     calls = []
     props = ["file", "playcount", "uniqueid", "runtime", "resume"]
     for movie in rpc("VideoLibrary.GetMovies", {"properties": props}).get("movies", []):
@@ -464,7 +498,8 @@ def _sync_state():
         seen = tmdb_id in films
         if seen != bool(movie.get("playcount")):
             calls.append(("VideoLibrary.SetMovieDetails", {"movieid": movie["movieid"], "playcount": 1 if seen else 0}))
-        resume = _resume_call("VideoLibrary.SetMovieDetails", "movieid", movie, film_percent.get(tmdb_id))
+        resume = _resume_or_reset("VideoLibrary.SetMovieDetails", "movieid", movie, film_percent.get(tmdb_id),
+                                  {"kind": "movie", "tmdb": tmdb_id}, written, resets, first)
         if resume:
             calls.append(resume)
     show_ids = {s["tvshowid"]: str((s.get("uniqueid") or {}).get("tmdb"))
@@ -478,13 +513,22 @@ def _sync_state():
         seen = pair in shows.get(tmdb_id, set())
         if seen != bool(episode.get("playcount")):
             calls.append(("VideoLibrary.SetEpisodeDetails", {"episodeid": episode["episodeid"], "playcount": 1 if seen else 0}))
-        resume = _resume_call("VideoLibrary.SetEpisodeDetails", "episodeid", episode, episode_percent.get((tmdb_id,) + pair))
+        resume = _resume_or_reset("VideoLibrary.SetEpisodeDetails", "episodeid", episode, episode_percent.get((tmdb_id,) + pair),
+                                  {"kind": "episode", "tmdb": tmdb_id, "season": pair[0], "episode": pair[1]}, written, resets, first)
         if resume:
             calls.append(resume)
     if len(calls) > BIG_SYNC:
         _write_when_idle(calls)
     else:
         rpc_batch(calls)
+    for meta in resets:                      # you reset these in Kodi: forget them on the account too
+        try:
+            tracker.forget_resume(meta)
+            util.log("library: resume point reset in Kodi, removed from the account too")
+        except util.HttpError as error:
+            util.log("library: resume reset: %s" % error)
+    keys = {_resume_key(m) for m in resets}
+    util.save_json(WRITTEN, {k: v for k, v in written.items() if k not in keys})
     util.log("library: %d seen/resume changes" % len(calls))
 
 

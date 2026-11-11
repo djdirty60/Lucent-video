@@ -122,7 +122,8 @@ class Watcher(xbmc.Player):
             util.notify(util.T("Geen lichtere versie gevonden", "No lighter version found"))
 
     def onPlayBackPaused(self):
-        self._scrobble("pause")
+        if self.position >= 60:
+            self._scrobble("pause")
         if getattr(self, "cinema", False):
             import homey
             homey.signal("pauze")
@@ -166,7 +167,10 @@ class Watcher(xbmc.Player):
         if percent >= WATCHED_AT and meta.get("together"):
             import together
             threading.Thread(target=together.mark, args=(dict(meta), meta["together"]), daemon=True).start()
-        self._scrobble("stop", meta, percent)
+        if self.position >= 60 or percent >= WATCHED_AT:
+            self._scrobble("stop", meta, percent)
+        else:                                   # a start of a few seconds: no resume point of 1% on the account
+            util.log("stopped within the first minute: no resume point sent")
         import streammem
         streammem.remember(meta, getattr(self, "streams", None))
         libwatch.played(meta)
