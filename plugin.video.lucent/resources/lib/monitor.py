@@ -51,13 +51,7 @@ class Watcher(xbmc.Player):
     def onAVStarted(self):
         util.HOME.clearProperty("lucent.video.memory")
         self.cinema = False
-        try:
-            if self.isPlayingVideo() and (self.getTotalTime() or 0) >= 600:      # a film or episode, not a trailer
-                import homey
-                homey.signal("start")
-                self.cinema = True
-        except RuntimeError:
-            pass
+        threading.Thread(target=self._cinema_start, daemon=True).start()
         raw = util.HOME.getProperty(player.HANDOFF)
         if not raw:
             self.current = None
@@ -135,6 +129,31 @@ class Watcher(xbmc.Player):
         if getattr(self, "cinema", False):
             import homey
             homey.signal("verder")
+
+    def _cinema_start(self):
+        """Homey 'start' for a film or episode (10 minutes or longer, not a trailer). A stream often does not know its
+        length at the very first moment: wait a few seconds for it."""
+        import homey
+        if not homey.address():
+            return
+        monitor = xbmc.Monitor()
+        for _ in range(20):
+            try:
+                if not self.isPlayingVideo():
+                    return
+                total = self.getTotalTime() or 0
+            except RuntimeError:
+                total = 0
+            if total:
+                break
+            if monitor.waitForAbort(0.5):
+                return
+        if total >= 600:
+            self.cinema = True
+            homey.signal("start")
+            util.log("Homey: start sent")
+        else:
+            util.log("Homey: no start (shorter than 10 minutes or length unknown)")
 
     def _cinema_end(self):
         self.pauses.resumed()
