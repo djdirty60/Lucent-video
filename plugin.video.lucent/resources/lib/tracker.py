@@ -240,10 +240,19 @@ def library_rows(kind):
 
 
 def scrobble(state, meta, percent, position=0, total=0):
+    """Your own 'counts as watched from' rules for the stop: Trakt and Simkl mark a stop from 80% as watched by
+    themselves, so a stop before your point goes as a pause (only a resume point), and a stop after your point but
+    below 80% goes as watched."""
     account = active()
     if account:
-        account.scrobble(state, meta, percent)
-    floppy.scrobble(state, meta, position, total)
+        sent_state, sent_percent = state, percent
+        if state == "stop":
+            if percent < util.watched_at():
+                sent_state = "pause"
+            elif percent < 80.0:
+                sent_percent = 100.0
+        account.scrobble(sent_state, meta, sent_percent)
+    floppy.scrobble("pause" if state == "stop" and percent < util.watched_at() else state, meta, position, total)
     import wetrakr
     wetrakr.scrobble(state, meta, percent, total)
 

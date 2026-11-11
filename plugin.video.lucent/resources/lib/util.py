@@ -38,6 +38,15 @@ def flag(name):
     return setting(name).lower() == "true"
 
 
+def watched_at():
+    """Percent from which a film or episode counts as watched (setting, 50-100; 90 when not set)."""
+    try:
+        value = float(setting("watched_at") or 90)
+    except ValueError:
+        value = 90.0
+    return min(100.0, max(50.0, value))
+
+
 def number(name, default):
     try:
         return int(setting(name))

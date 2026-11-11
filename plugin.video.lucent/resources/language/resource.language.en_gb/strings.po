@@ -1338,3 +1338,11 @@ msgstr ""
 msgctxt "#32265"
 msgid "Claude"
 msgstr ""
+
+msgctxt "#32266"
+msgid "Counts as watched from (%)"
+msgstr ""
+
+msgctxt "#32421"
+msgid "When you stop a film or episode before this point, it is not marked as watched: you keep a resume point. That also goes for Trakt, Simkl and WeTrakr."
+msgstr ""

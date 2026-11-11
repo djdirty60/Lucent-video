@@ -20,7 +20,6 @@ import tmdb
 import tracker
 import util
 
-WATCHED_AT = 90.0     # percent
 BROKEN_BEFORE_END = 180     # seconds
 PREFETCH_BEFORE_END = 300   # seconds
 
@@ -187,6 +186,7 @@ class Watcher(xbmc.Player):
         if not meta:
             return
         percent = self.percent()
+        WATCHED_AT = util.watched_at()
         progress = util.load_json(player.LOCAL, {})
         key = player.progress_key(meta)
         if self.position >= 60 and percent < WATCHED_AT:

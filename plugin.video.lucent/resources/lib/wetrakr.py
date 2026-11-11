@@ -15,7 +15,6 @@ import util
 T = util.T
 API = "https://api.wetrakr.com"
 FILE = "wetrakr.json"
-WATCHED_AT = 80.0
 
 
 def account():
@@ -77,7 +76,7 @@ def scrobble(state, meta, percent, total=0):
     elif state == "pause":
         send("paused", meta, percent, total)
     elif state == "stop":
-        send("scrobble" if percent >= WATCHED_AT else "paused", meta, percent, total)
+        send("scrobble" if percent >= util.watched_at() else "paused", meta, percent, total)
 
 
 def watched(meta, seen):

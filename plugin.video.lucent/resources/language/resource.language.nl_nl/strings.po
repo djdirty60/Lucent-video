@@ -1338,3 +1338,11 @@ msgstr "OpenRouter"
 msgctxt "#32265"
 msgid "Claude"
 msgstr "Claude"
+
+msgctxt "#32266"
+msgid "Counts as watched from (%)"
+msgstr "Telt als bekeken vanaf (%)"
+
+msgctxt "#32421"
+msgid "When you stop a film or episode before this point, it is not marked as watched: you keep a resume point. That also goes for Trakt, Simkl and WeTrakr."
+msgstr "Stop je een film of aflevering vóór dit punt, dan wordt hij niet als bekeken gemarkeerd: je houdt een hervatpunt. Dat geldt ook voor Trakt, Simkl en WeTrakr."
