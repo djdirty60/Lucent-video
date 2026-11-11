@@ -37,6 +37,10 @@ class Watcher(xbmc.Player):
         self.prefetched = False
         import known
         self.pauses = known.Pauses(self)
+        self.video_number = 0     # which video: a credits watcher stops when it changes
+        self.started_at = 0.0
+        self.paused_at = 0.0
+        self.recapping = False    # the 'back after a long pause' screen is open: its own pause and play are not events
 
     def percent(self):
         return min(100.0, self.position * 100.0 / self.total) if self.total else 0.0
@@ -50,6 +54,8 @@ class Watcher(xbmc.Player):
     def onAVStarted(self):
         util.HOME.clearProperty("lucent.video.memory")
         self.cinema = False
+        self.video_number += 1
+        self.started_at, self.paused_at, self.recapping = time.time(), 0.0, False
         threading.Thread(target=self._cinema_start, daemon=True).start()
         raw = util.HOME.getProperty(player.HANDOFF)
         if not raw:
@@ -65,6 +71,8 @@ class Watcher(xbmc.Player):
         self.learned = False
         self.buffering, self.stalls, self.asked_lighter = 0, [], False
         self.total = self.getTotalTime() or 0.0
+        import credits
+        threading.Thread(target=credits.Watch(self, dict(now), self.video_number).run, daemon=True).start()
         if now.get("resume"):
             self.seekTime(float(now["resume"]))
             self.position = float(now["resume"])
@@ -115,6 +123,9 @@ class Watcher(xbmc.Player):
             util.notify(util.T("Geen lichtere versie gevonden", "No lighter version found"))
 
     def onPlayBackPaused(self):
+        if self.recapping:
+            return
+        self.paused_at = time.time()
         if self.position >= 60:
             self._scrobble("pause")
         if getattr(self, "cinema", False):
@@ -123,6 +134,36 @@ class Watcher(xbmc.Player):
         self.pauses.paused(self.current)
 
     def onPlayBackResumed(self):
+        if self.recapping:
+            return
+        paused_for, self.paused_at = (time.time() - self.paused_at if self.paused_at else 0.0), 0.0
+        import pauserecap
+        if paused_for >= pauserecap.AFTER and pauserecap.wanted():
+            try:
+                long_video = (self.getTotalTime() or 0) >= 600
+            except RuntimeError:
+                long_video = False
+            if long_video:
+                self.recapping = True
+                self.pauses.resumed()
+                self.pause()                                   # hold it while the last lines are shown
+                threading.Thread(target=self._recap, args=(paused_for,), daemon=True).start()
+                return
+        self._resumed()
+
+    def _recap(self, paused_for):
+        import pauserecap
+        try:
+            pauserecap.show(self, self.current, paused_for, self.started_at)
+        except Exception as error:      # noqa: BLE001 - the video must always go on
+            util.log("pause recap: %s: %s" % (type(error).__name__, error))
+            if xbmc.getCondVisibility("Player.Paused"):
+                self.pause()
+        xbmc.Monitor().waitForAbort(1)                       # Kodi's own 'resumed' for it comes first
+        self.recapping = False
+        self._resumed()
+
+    def _resumed(self):
         self._scrobble("start")
         self.pauses.resumed()
         if getattr(self, "cinema", False):

@@ -1262,7 +1262,7 @@ msgid "Your own subtitle with the English one under it in italics, as one subtit
 msgstr ""
 
 msgctxt "#32415"
-msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start-film, start-serie, pauze, verder and einde to the Webhook 'lucent'."
+msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start-film, start-serie, pauze, verder, aftiteling and einde to the Webhook 'lucent'."
 msgstr ""
 
 msgctxt "#32416"
@@ -1339,4 +1339,20 @@ msgstr ""
 
 msgctxt "#32421"
 msgid "When you stop a film or episode before this point, it is not marked as watched: you keep a resume point. That also goes for Trakt, Simkl and WeTrakr."
+msgstr ""
+
+msgctxt "#32267"
+msgid "Stay seated: scene after the credits"
+msgstr ""
+
+msgctxt "#32268"
+msgid "Back after a long pause: the last lines"
+msgstr ""
+
+msgctxt "#32422"
+msgid "When a film has a scene during or after the credits, a card says so as soon as the credits begin. Where the credits begin comes from TheIntroDB. With Homey, the lights then stay dimmed; without such a scene Homey gets the tag aftiteling."
+msgstr ""
+
+msgctxt "#32423"
+msgid "Paused for 5 minutes or longer? When you press play, the last lines that were spoken appear first, with Go on and 30 sec back."
 msgstr ""

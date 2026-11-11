@@ -1262,8 +1262,8 @@ msgid "Your own subtitle with the English one under it in italics, as one subtit
 msgstr "Je eigen ondertitel met de Engelse er cursief onder, als één ondertitel. Alleen voor SRT-ondertitels."
 
 msgctxt "#32415"
-msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start-film, start-serie, pauze, verder and einde to the Webhook 'lucent'."
-msgstr "Je Homey-ID (Homey-app > Instellingen > Algemeen) of het IP-adres van een Homey Pro in je netwerk. Lucent stuurt start-film, start-serie, pauze, verder en einde naar de Webhook 'lucent'."
+msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start-film, start-serie, pauze, verder, aftiteling and einde to the Webhook 'lucent'."
+msgstr "Je Homey-ID (Homey-app > Instellingen > Algemeen) of het IP-adres van een Homey Pro in je netwerk. Lucent stuurt start-film, start-serie, pauze, verder, aftiteling en einde naar de Webhook 'lucent'."
 
 msgctxt "#32416"
 msgid "Sends a test signal (tag 'test') to your Homey."
@@ -1340,3 +1340,19 @@ msgstr "Telt als bekeken vanaf (%)"
 msgctxt "#32421"
 msgid "When you stop a film or episode before this point, it is not marked as watched: you keep a resume point. That also goes for Trakt, Simkl and WeTrakr."
 msgstr "Stop je een film of aflevering vóór dit punt, dan wordt hij niet als bekeken gemarkeerd: je houdt een hervatpunt. Dat geldt ook voor Trakt, Simkl en WeTrakr."
+
+msgctxt "#32267"
+msgid "Stay seated: scene after the credits"
+msgstr "Blijf zitten: scène na de aftiteling"
+
+msgctxt "#32268"
+msgid "Back after a long pause: the last lines"
+msgstr "Terug na een lange pauze: de laatste zinnen"
+
+msgctxt "#32422"
+msgid "When a film has a scene during or after the credits, a card says so as soon as the credits begin. Where the credits begin comes from TheIntroDB. With Homey, the lights then stay dimmed; without such a scene Homey gets the tag aftiteling."
+msgstr "Heeft een film een scène tijdens of na de aftiteling, dan zegt een kaart dat zodra de aftiteling begint. Waar de aftiteling begint, weet TheIntroDB. Met Homey blijven de lampen dan gedimd; zonder zo'n scène krijgt Homey de tag aftiteling."
+
+msgctxt "#32423"
+msgid "Paused for 5 minutes or longer? When you press play, the last lines that were spoken appear first, with Go on and 30 sec back."
+msgstr "Heb je 5 minuten of langer op pauze gestaan? Als je op afspelen drukt, zie je eerst de laatste zinnen die gezegd werden, met Verder en 30 sec terug."
