@@ -691,9 +691,6 @@ msgctxt "#32223"
 msgid "Set up skip intro (step by step)"
 msgstr "Intro overslaan instellen (stap voor stap)"
 
-msgctxt "#32224"
-msgid "One Skip button: Seren or TheIntroDB"
-msgstr "Eén knop Overslaan: Seren of TheIntroDB"
 
 msgctxt "#32225"
 msgid "Skip by itself: on/off"
@@ -1083,9 +1080,6 @@ msgctxt "#32385"
 msgid "On: the intro is skipped by itself. Off: you get a Skip button."
 msgstr "Aan: de intro wordt vanzelf overgeslagen. Uit: je krijgt een knop Overslaan."
 
-msgctxt "#32386"
-msgid "If Seren and TheIntroDB both have a button, choose which one appears."
-msgstr "Hebben Seren en TheIntroDB allebei een knop, kies dan welke er verschijnt."
 
 msgctxt "#32387"
 msgid "Opens the settings of TheIntroDB."

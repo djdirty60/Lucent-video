@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Trakt collection -> .strm and .nfo files for the Kodi video library, without Seren.
+"""Trakt collection -> .strm and .nfo files for the Kodi video library.
 
 Careful by design (the same rules as Lucent Library):
   - a failed Trakt or TMDB request never removes anything;

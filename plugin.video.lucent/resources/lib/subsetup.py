@@ -154,24 +154,24 @@ def skip_state():
     if skip_key():
         return T("Er staat een API-sleutel ingevuld. TheIntroDB heeft die niet nodig, en een verkeerde sleutel houdt de knop tegen: haal hem weg",
                  "An API key is filled in. TheIntroDB does not need one, and a wrong key stops the button: remove it")
-    import skipdup
-    both = skipdup.both_on()
     line = T("Slaat intro, terugblik en preview zelf over", "Skips intro, recap and preview by itself") if skip_auto() \
         else T("Laat een knop 'Overslaan' zien", "Shows a 'Skip' button")
-    if both:
-        line += T("  ·  Seren en TheIntroDB staan allebei aan", "  ·  Seren and TheIntroDB are both on")
     return line
+
+
+def skip_short():
+    """For the skin: 'Button' or 'Skips by itself' (TheIntroDB), or that it is not installed."""
+    if not has(SKIP):
+        return T("Niet geïnstalleerd", "Not installed")
+    return T("Vanzelf overslaan", "Skips by itself") if skip_auto() else T("Knop", "Button")
 
 
 def skip_actions():
     if not has(SKIP):
         return [(T("TheIntroDB installeren", "Install TheIntroDB"), install_skip)]
-    import skipdup
     out = [(T("API-sleutel weghalen", "Remove API key"), clear_skip_key)] if skip_key() else []
     out.append((T("Vanzelf overslaan: aan", "Skip by itself: on") if skip_auto() else T("Vanzelf overslaan: uit", "Skip by itself: off"),
                 toggle_skip_auto))
-    if has("plugin.video.seren"):
-        out.append((T("Eén knop: %s", "One button: %s") % skipdup.label(), skipdup.choose))
     out.append((T("Instellingen van TheIntroDB", "TheIntroDB settings"), lambda: xbmc.executebuiltin("Addon.OpenSettings(%s)" % SKIP)))
     return out
 

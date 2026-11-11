@@ -415,12 +415,6 @@ class SubtitleJobs:
             if seconds % 3600 == 1800 and not playing:
                 import subs_extra
                 threading.Thread(target=subs_extra.check_wanted, daemon=True).start()
-            if seconds % 600 == 300 and not playing and xbmc.getCondVisibility(
-                    "System.HasAddon(plugin.video.seren) + System.HasAddon(plugin.video.tidb) + Window.IsVisible(home)"):
-                import skipdup
-                util.log("skip twice: %s" % skipdup.check())
-                import subconf
-                subconf.publish()
         except Exception as error:      # noqa: BLE001
             util.log("subtitle jobs: %s" % type(error).__name__)
 

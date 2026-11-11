@@ -577,7 +577,7 @@ def download(path):
 def activate(local, mine="", seconds=30):
     """Load a subtitle file and make sure it really is the one shown. player.setSubtitles() only adds the file:
     a stream Kodi chose before (for example a Russian 'forced' track the film marks as default) can stay selected,
-    and Seren or Kodi can switch back a few seconds later. So select it ourselves and keep an eye on it for a while."""
+    and the player or Kodi can switch back a few seconds later. So select it ourselves and keep an eye on it for a while."""
     player, monitor = xbmc.Player(), xbmc.Monitor()
     try:
         import subs_extra
@@ -639,7 +639,7 @@ def open_list(auto=False):
         return
     paused_by_us = False
     # opened by hand: hold the film while you choose. Not when the list opens by itself: pausing a film that has just
-    # started makes Seren think it failed, and Seren starts it all over again.
+    # started makes the add-on that plays think it failed, and it starts it all over again.
     if not auto and not cond("Player.Paused"):
         player.pause()
         paused_by_us = True
@@ -895,7 +895,7 @@ def background():
     log(f"background: switched on {'and steady' if ok else 'but could not confirm it'}")
 
 def settled(monitor, player):
-    """Automatic opening: wait until the film really plays (Seren checks the first seconds of playback)."""
+    """Automatic opening: wait until the film really plays (some add-ons check the first seconds of playback)."""
     end = time.time() + 90
     while time.time() < end:
         if monitor.waitForAbort(1) or not player.isPlayingVideo():

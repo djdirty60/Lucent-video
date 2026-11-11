@@ -181,7 +181,7 @@ def publish():
                  T("Automatisch · op de achtergrond + AI", "Automatic · in the background + AI")][min(mode(), 2)]
     util.HOME.setProperty("lucent.video.subs.state", state)
     try:
-        import skipdup
-        util.HOME.setProperty("lucent.video.skip.state", skipdup.state_line())
+        import subsetup
+        util.HOME.setProperty("lucent.video.skip.state", subsetup.skip_short())
     except Exception as error:      # noqa: BLE001
         util.log("skip state: %s" % type(error).__name__)

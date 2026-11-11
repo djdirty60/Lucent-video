@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="0.35.9" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.36.0" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -48,11 +48,11 @@
             </item>
             <item library="context.py" args="browseshow">
                 <label>32176</label>
-                <visible>String.IsEqual(ListItem.DBType,episode) + System.HasAddon(skin.lucent) + [!String.IsEmpty(ListItem.TvShowDBID) | [[String.StartsWith(ListItem.FileNameAndPath,plugin://) | String.StartsWith(ListItem.Path,plugin://)] + !String.StartsWith(ListItem.FileNameAndPath,plugin://plugin.video.seren/) + [!String.IsEmpty(ListItem.UniqueID(tmdb)) | !String.IsEmpty(ListItem.Property(tmdb_id))]]]</visible>
+                <visible>String.IsEqual(ListItem.DBType,episode) + System.HasAddon(skin.lucent) + [!String.IsEmpty(ListItem.TvShowDBID) | [[String.StartsWith(ListItem.FileNameAndPath,plugin://) | String.StartsWith(ListItem.Path,plugin://)] + [!String.IsEmpty(ListItem.UniqueID(tmdb)) | !String.IsEmpty(ListItem.Property(tmdb_id))]]]</visible>
             </item>
             <item library="context.py" args="browseeps">
                 <label>32177</label>
-                <visible>String.IsEqual(ListItem.DBType,episode) + System.HasAddon(skin.lucent) + [!String.IsEmpty(ListItem.TvShowDBID) | [[String.StartsWith(ListItem.FileNameAndPath,plugin://) | String.StartsWith(ListItem.Path,plugin://)] + !String.StartsWith(ListItem.FileNameAndPath,plugin://plugin.video.seren/) + [!String.IsEmpty(ListItem.UniqueID(tmdb)) | !String.IsEmpty(ListItem.Property(tmdb_id))]]] + !String.IsEmpty(ListItem.Season)</visible>
+                <visible>String.IsEqual(ListItem.DBType,episode) + System.HasAddon(skin.lucent) + [!String.IsEmpty(ListItem.TvShowDBID) | [[String.StartsWith(ListItem.FileNameAndPath,plugin://) | String.StartsWith(ListItem.Path,plugin://)] + [!String.IsEmpty(ListItem.UniqueID(tmdb)) | !String.IsEmpty(ListItem.Property(tmdb_id))]]] + !String.IsEmpty(ListItem.Season)</visible>
             </item>
             <item library="context.py" args="addlib">
                 <label>32178</label>
@@ -75,18 +75,18 @@
     <extension point="xbmc.addon.metadata">
         <summary lang="en_GB">Movies and series for Lucent, with AIOStreams and Trakt</summary>
         <summary lang="nl_NL">Films en series voor Lucent, met AIOStreams en Trakt</summary>
-        <description lang="en_GB">Browse with TMDB, play through your own AIOStreams address and keep your progress on Trakt. Works without Seren.</description>
-        <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt. Werkt zonder Seren.</description>
+        <description lang="en_GB">Browse with TMDB, play through your own AIOStreams address and keep your progress on Trakt.</description>
+        <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.35.9: No more false "Set up a scraper first": when your scrapers are filled in, Lucent searches once more instead, and says so when your profile has them all switched off. The log tells per scraper what it did.
+        <news>0.36.0: The "One Skip button: Seren or TheIntroDB" choice is gone (it showed twice): TheIntroDB is the one skip button. Every mention of Seren is taken out.
+0.35.9: No more false "Set up a scraper first": when your scrapers are filled in, Lucent searches once more instead, and says so when your profile has them all switched off. The log tells per scraper what it did.
 0.35.8: New setting "Counts as watched from (%)" under Playback (50-100%, 90% as before). Stop earlier and it is not marked as watched: you keep a resume point. Trakt, Simkl, WeTrakr and Floppy follow the same point.
 0.35.7: Homey: the start signal now says what starts: start-film or start-serie, so a Homey Flow can set the room differently for a film and an episode.
 0.35.6: Homey cinema mode: a stream that does not know its length at the very start no longer stops the signals. Lucent waits a few seconds for it before it sends "start".
 0.35.5: "Reset resume position" in Kodi really sticks now: Lucent notices it at the next library update (Kodi does not always tell) and removes the point on Trakt too. A start of less than a minute no longer leaves a 1% resume point.
 0.35.4: WeTrakr: linking keeps waiting when the connection hiccups, the settings show "Linked with WeTrakr as …", and you hear why when WeTrakr refuses.
-0.35.3: Homey cinema mode works: Homey answers in plain text, which Lucent took for no answer. The test says why it fails, and a pasted webhook link is fine too.
-0.35.2: A thin white edge that follows the round corners for the chosen actor card.</news>
+0.35.3: Homey cinema mode works: Homey answers in plain text, which Lucent took for no answer. The test says why it fails, and a pasted webhook link is fine too.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

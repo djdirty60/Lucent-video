@@ -110,10 +110,10 @@ class Setup(dialogs.Base):
             return [(label, "", now == number) for number, label in enumerate((T("Speelt alles af", "Plays everything"), T("Geen P7 / FEL", "No P7 / FEL"), T("Geen Dolby Vision", "No Dolby Vision")))]
         if key == "extra":
             import subconf
-            import skipdup
+            import subsetup
             subconf.publish()
             return [(T("Ondertitels en geluid", "Subtitles and sound"), util.HOME.getProperty("lucent.video.subs.state"), None),
-                    (T("Intro overslaan", "Skip intro"), skipdup.state_line(), None),
+                    (T("Intro overslaan", "Skip intro"), subsetup.skip_short(), None),
                     (T("MDBList-sleutel (scores en lijsten)", "MDBList key (scores and lists)"), state("mdblist_key"), None)]
         return []
 

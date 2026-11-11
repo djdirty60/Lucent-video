@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Language rules and the automatic subtitle search on every video (taken over from the Lucent skin).
 
-Runs in Lucent Video's service, for videos from Lucent Video, Seren, Fen, the library and others (never YouTube):
+Runs in Lucent Video's service, for videos from Lucent Video, other add-ons, the library and others (never YouTube):
 spoken language (first and second choice), a wrong subtitle language off, no subtitle when the sound is already your
 language, subtitles always on, and when your language is missing: the live list, a quiet pick in the background or
 Kodi's own search. Also: Lucent Ondertitels as Kodi's default subtitle service (action=subs_default).
@@ -267,7 +267,7 @@ class Watcher(xbmc.Player):
         threading.Thread(target=later, daemon=True).start()
 
     def check_again(self):
-        """Seren (or Kodi) can pick the film's subtitle again some seconds after the start: look once more."""
+        """An add-on (or Kodi) can pick the film's subtitle again some seconds after the start: look once more."""
         def later():
             if self.monitor.waitForAbort(12) or not self.isPlayingVideo() or HOME.getProperty("lucent.video.memory") == "1":
                 return
@@ -312,7 +312,7 @@ class Watcher(xbmc.Player):
             xbmc.log(f"[lucent.video] subtitles: sound check: {error}", xbmc.LOGINFO)
         try:
             if not remembered and not subconf.on(ALWAYS) and quiet_if_same_language():
-                self.check_again()                       # Seren may switch one on a little later
+                self.check_again()                       # an add-on may switch one on a little later
                 return                                   # sound in your language: no subtitle, no search
         except Exception as error:  # noqa: BLE001 - never break playback
             xbmc.log(f"[lucent.video] subtitles: same-language check: {error}", xbmc.LOGINFO)
