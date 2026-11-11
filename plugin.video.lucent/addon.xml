@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="0.35.3" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.35.4" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -78,7 +78,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt. Werkt zonder Seren.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.35.3: Homey cinema mode works: Homey answers in plain text, which Lucent took for no answer. The test says why it fails, and a pasted webhook link is fine too.
+        <news>0.35.4: WeTrakr: linking keeps waiting when the connection hiccups, the settings show "Linked with WeTrakr as …", and you hear why when WeTrakr refuses.
+0.35.3: Homey cinema mode works: Homey answers in plain text, which Lucent took for no answer. The test says why it fails, and a pasted webhook link is fine too.
 0.35.2: A thin white edge that follows the round corners for the chosen actor card.
 0.35.1: "Where do I know them from?" has a new look: dark cards with the posters of what you saw with that actor; nothing runs out of the card any more.
 0.35.0: WeTrakr next to Trakt: link it in Settings > Account; what you watch, "watched" and ratings also go to WeTrakr. In the settings every debrid service (and every AI service) has its own block with its name above it.
@@ -86,9 +87,7 @@
 0.34.2: The pause cards wait until the player menu is closed. The subtitle window has a row "Two languages at once".
 0.34.1: "Reset resume position" in the Kodi library now also forgets the point on Trakt and in Lucent, so it no longer comes back after a restart.
 0.34.0: Six new things.
-- Where do I know them from? Pause for 2 seconds: cards show the actors and where you saw them before (your own history).
-- Marathon planner: behind with a series and a new season coming? Episodes, time, how many a night and the day you are done (More menu, and the row "In time for the new season").
-- Previous time on: after three weeks or more, a short summary of the two episodes before, while Lucent looks for sources.</news>
+- Where do I know them from? Pause for 2 seconds: cards show the actors and where you saw them before (your own history).</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

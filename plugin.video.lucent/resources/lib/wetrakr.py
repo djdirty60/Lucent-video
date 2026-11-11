@@ -103,7 +103,7 @@ def login():
         util.notify(T("WeTrakr is niet bereikbaar", "WeTrakr cannot be reached"))
         return False
     dialog, picture = dialogs.link_dialog("WeTrakr", code.get("verification_url") or "https://wetrakr.com/activate", code["user_code"])
-    state = {"open": True, "linked": False}
+    state = {"open": True, "linked": False, "reason": ""}
 
     def poll():
         interval, started = int(code.get("interval") or 5), time.time()
@@ -114,15 +114,18 @@ def login():
             try:
                 answer, _ = util.http(API + "/oauth/device/token", data={"device_code": code["device_code"]}, timeout=10)
             except util.HttpError as error:
-                reason = (error.detail or {}).get("error") if isinstance(error.detail, dict) else ""
+                reason = (error.detail or {}).get("error", "") if isinstance(error.detail, dict) else ""
+                if reason in ("access_denied", "expired_token", "invalid_grant"):
+                    state["reason"] = reason
+                    break
                 if reason == "slow_down":
                     interval += 2
-                    continue
-                if reason == "authorization_pending" or error.status in (400, 428):
-                    continue
-                break
-            if (answer or {}).get("access_token"):
-                util.save_json(FILE, {"token": answer["access_token"], "user": answer.get("username") or ""})
+                continue                         # still waiting for you, or a hiccup in the connection: ask again
+            answer = answer or {}
+            token = answer.get("access_token") or answer.get("token")
+            if token:
+                user = answer.get("username") or (answer.get("user") or {}).get("username") or ""
+                util.save_json(FILE, {"token": token, "user": user})
                 state["linked"] = True
                 break
         if state["open"]:
@@ -141,9 +144,14 @@ def login():
     except (OSError, TypeError):
         pass
     if state["linked"]:
-        util.ADDON.setSetting("wetrakr_user", account().get("user") or "WeTrakr")
+        name = account().get("user") or "WeTrakr"
+        util.ADDON.setSetting("wetrakr_user", name)
         xbmcgui.Dialog().ok("WeTrakr", T("Gekoppeld als %s. Wat je met Lucent kijkt, gaat nu ook naar WeTrakr.",
-                                         "Linked as %s. What you watch with Lucent now also goes to WeTrakr.") % (account().get("user") or "WeTrakr"))
+                                         "Linked as %s. What you watch with Lucent now also goes to WeTrakr.") % name)
+    elif state["reason"]:
+        xbmcgui.Dialog().ok(T("Niet gelukt", "Failed"), T("WeTrakr gaf geen toestemming (%s). Probeer het opnieuw en keur het goed "
+                                                          "op wetrakr.com/activate.", "WeTrakr did not allow it (%s). Try again and "
+                                                          "approve it on wetrakr.com/activate.") % state["reason"])
     return state["linked"]
 
 

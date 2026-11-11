@@ -181,3 +181,7 @@ def publish_names():
             name = T("ja", "yes")
         if util.setting(setting) != name:
             util.ADDON.setSetting(setting, name)
+    import wetrakr
+    name = (wetrakr.account().get("user") or T("ja", "yes")) if wetrakr.linked() else ""
+    if util.setting("wetrakr_user") != name:
+        util.ADDON.setSetting("wetrakr_user", name)
