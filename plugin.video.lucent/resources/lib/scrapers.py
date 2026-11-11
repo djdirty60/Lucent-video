@@ -71,8 +71,8 @@ def _run(selection, profile, meta):
             continue
         try:
             found = job.result()
-        except util.HttpError as error:
-            util.log("%s: %s" % (name, error))
+        except Exception as error:      # noqa: BLE001 - one scraper's error must not hide the others (or look like 'not set up')
+            util.log("%s: %s: %s" % (name, type(error).__name__, error))
             continue
         if found is None:
             unset += 1

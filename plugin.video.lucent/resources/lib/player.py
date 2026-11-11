@@ -247,10 +247,17 @@ def find(meta_out, params):
         meta_out["error"] = util.T("Titel niet gevonden", "Title not found")
         return
     meta_out["ready"] = True
-    sources, problem = scrapers.search(meta)
+    try:
+        sources, problem = scrapers.search(meta)
+    except Exception as error:                  # noqa: BLE001 - a surprise while searching is not 'no scraper set up'
+        util.log("search: %s: %s" % (type(error).__name__, error))
+        meta_out["error"] = util.T("Zoeken mislukt door een fout. Probeer het opnieuw.", "The search failed with an error. Try again.")
+        return
     if problem == "failed":
         meta_out["error"] = util.T("Geen scraper bereikbaar", "No scraper could be reached")
-    elif problem is None:
+    elif problem == "address":
+        meta_out["error"] = "address"
+    else:
         meta_out["sources"] = sources
 
 
@@ -274,7 +281,8 @@ def search_with_screen(params):
         return None, "cancelled"
     if out.get("error") or out.get("sources") is None:
         screen.close()
-        return None, out.get("error") or "address"
+        # only 'address' when the scrapers really said they are not set up; anything else is a failed search
+        return None, out.get("error") or util.T("Zoeken mislukt. Probeer het opnieuw.", "The search failed. Try again.")
     screen.live(scrapers.LIVE, final=True)
     screen.done(out["sources"])
     if out["sources"]:
