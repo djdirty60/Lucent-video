@@ -131,10 +131,20 @@ class Pauses:
         return number == self.count and xbmc.getCondVisibility("Player.Paused")
 
     def _run(self, meta, number):
-        if xbmc.Monitor().waitForAbort(WAIT) or not self._still(number):
+        monitor = xbmc.Monitor()
+        if monitor.waitForAbort(WAIT) or not self._still(number):
+            return
+        # the player menu (videoosd) may still be open: the skin closes it a few seconds after a pause; wait for that,
+        # so the cards never lie over its buttons
+        for _ in range(40):
+            if not xbmc.getCondVisibility("Window.IsActive(videoosd) | Window.IsActive(videoosdsettings) | System.HasActiveModalDialog"):
+                break
+            if monitor.waitForAbort(0.5) or not self._still(number):
+                return
+        else:
             return
         people = find(meta)
-        if not people or not self._still(number):
+        if not people or not self._still(number) or xbmc.getCondVisibility("Window.IsActive(videoosd) | System.HasActiveModalDialog"):
             return
         self.dialog = dialogs._open(Known, "lucent_known.xml", people=people)     # noqa: SLF001 - same add-on
         self.dialog.doModal()

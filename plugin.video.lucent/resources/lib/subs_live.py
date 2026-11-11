@@ -295,6 +295,14 @@ class SubsWindow(xbmcgui.WindowXMLDialog):
         li.setProperty("source", "Kodi")
         li.setProperty("path", "toggle:")
         items.append(li)
+        if my_code() != "en":
+            li = xbmcgui.ListItem(t("Two languages at once", "Twee talen tegelijk"))
+            li.setLabel2(t("Your language with the English one under it", "Jouw taal met het Engels eronder"))
+            li.setProperty("code", "2×")
+            li.setProperty("pillcol", "FF7C5CC4")
+            li.setProperty("source", "Lucent")
+            li.setProperty("path", "dual:")
+            items.append(li)
         try:
             props = rpc("Player.GetProperties", {"playerid": 1, "properties": ["subtitles", "currentsubtitle"]})
         except Exception:  # noqa: BLE001
@@ -412,7 +420,7 @@ class SubsWindow(xbmcgui.WindowXMLDialog):
             self.finish()
         elif cid == BTN_SYNC:
             item = self.getControl(LIST).getSelectedItem()
-            if item and not item.getProperty("path").startswith(("ai:", "cached:", "toggle:", "stream:", "otherstreams:")):
+            if item and not item.getProperty("path").startswith(("ai:", "cached:", "toggle:", "dual:", "stream:", "otherstreams:")):
                 self.choose(item.getProperty("path"), force_sync=True)
         elif cid == BTN_TIME:
             import subs_extra
@@ -432,6 +440,10 @@ class SubsWindow(xbmcgui.WindowXMLDialog):
 
     def choose(self, path, force_sync=False):
         player = xbmc.Player()
+        if path == "dual:":
+            self.dual = True                              # done after the window closed and the film plays on
+            self.finish()
+            return
         if path == "toggle:":
             player.showSubtitles(not cond("VideoPlayer.SubtitlesEnabled"))
             xbmc.sleep(300)
@@ -635,11 +647,12 @@ def open_list(auto=False):
     window = SubsWindow("lucent_subtitles.xml", skin_path(), "Default", "1080i")
     window.setup(sources, languages, mine)
     window.auto = auto                                # opened by itself: closes after AUTO_CLOSE s when you do nothing
-    after, load_after = "", None
+    after, load_after, dual = "", None, False
     try:
         window.doModal()
         after = window.after
         load_after = getattr(window, "load_after", None)
+        dual = getattr(window, "dual", False)
     finally:
         window.closing = True
         del window
@@ -651,6 +664,9 @@ def open_list(auto=False):
     if after:
         import subs_ai
         subs_ai.translate_and_load(after, my_code())
+    if dual:
+        import dualsubs
+        dualsubs.run_now()
 
 
 def ai_name():
