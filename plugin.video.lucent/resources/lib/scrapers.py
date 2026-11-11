@@ -63,6 +63,7 @@ def _run(selection, profile, meta):
         jobs[name].add_done_callback(lambda job, name=name: _finished(name, job, int(per.get(name, {}).get("max") or 0)))
     wait(list(jobs.values()), timeout=max(5, int(profile["scrapers"].get("wait") or 30)))
     pool.shutdown(wait=False)
+    _outcome(selection, jobs)
     collected, answered, unset = [], False, 0
     for name in selection:
         job = jobs[name]
@@ -93,7 +94,39 @@ def ready(source):
     return bool(source["url"])
 
 
-def search(meta):
+def configured():
+    """Scraper names that are filled in in the settings, read again here (not in the search threads)."""
+    import debrid
+    out = []
+    if util.setting("manifest_url"):
+        out.append("AIOStreams")
+    if util.setting("easynews_user") and util.setting("easynews_pass"):
+        out.append("Easynews")
+    if util.setting("torbox_key"):
+        out.append("TorBox")
+    if debrid.active():
+        out += [n for n in coco.PACKS if coco.installed(n)]
+    return out
+
+
+def _outcome(selection, jobs):
+    """One log line: what each scraper did, for an error report."""
+    parts = []
+    for name in selection:
+        job = jobs.get(name)
+        if job is None or not job.done():
+            parts.append("%s=too slow" % name)
+            continue
+        try:
+            found = job.result()
+        except Exception as error:      # noqa: BLE001
+            parts.append("%s=%s" % (name, type(error).__name__))
+            continue
+        parts.append("%s=%s" % (name, "not set up" if found is None else len(found)))
+    util.log("scrapers: " + ", ".join(parts))
+
+
+def search(meta, again=True):
     """Returns (ranked sources, None) or (None, 'address' or 'failed')."""
     import subcheck
     subtitles = subcheck.start(meta) if not meta.get("no_subcheck") else None
@@ -112,6 +145,18 @@ def search(meta):
     if not answered and not found:
         # 'address' (= 'set up a scraper first') only when not one scraper, main or reserve, is set up
         util.log("search: no answer (%s)" % ("nothing set up" if unset else "scrapers did not answer"))
+        if unset:
+            filled = configured()
+            if filled:
+                switched_off = [n for n in filled if per.get(n, {}).get("off")]
+                if switched_off and len(switched_off) == len(filled):
+                    util.log("search: %s switched off in profile '%s'" % (", ".join(switched_off), profile.get("name")))
+                    return None, "off"
+                # filled in, yet the search saw nothing: read too early or a hiccup; once more, then 'failed'
+                util.log("search: scrapers are filled in (%s), but said 'not set up'" % ", ".join(filled))
+                if again:
+                    return search(meta, again=False)
+                return None, "failed"
         return None, "address" if unset else "failed"
     import learn
     fitting = subcheck.mark(subtitles, found)          # before ranking, so the order of sources can use NL-SUBS

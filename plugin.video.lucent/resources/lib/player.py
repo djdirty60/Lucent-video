@@ -257,6 +257,10 @@ def find(meta_out, params):
         meta_out["error"] = util.T("Geen scraper bereikbaar", "No scraper could be reached")
     elif problem == "address":
         meta_out["error"] = "address"
+    elif problem == "off":
+        meta_out["error"] = util.T("In je profiel '%s' staan al je scrapers uit. Zet er een aan of kies een ander profiel.",
+                                   "All your scrapers are switched off in your profile '%s'. Switch one on or pick another profile.") % (
+                                       __import__("ranking").active().get("name") or "")
     else:
         meta_out["sources"] = sources
 

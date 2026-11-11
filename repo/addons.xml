@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="0.35.8" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.35.9" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -79,14 +79,14 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt. Werkt zonder Seren.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.35.8: New setting "Counts as watched from (%)" under Playback (50-100%, 90% as before). Stop earlier and it is not marked as watched: you keep a resume point. Trakt, Simkl, WeTrakr and Floppy follow the same point.
+        <news>0.35.9: No more false "Set up a scraper first": when your scrapers are filled in, Lucent searches once more instead, and says so when your profile has them all switched off. The log tells per scraper what it did.
+0.35.8: New setting "Counts as watched from (%)" under Playback (50-100%, 90% as before). Stop earlier and it is not marked as watched: you keep a resume point. Trakt, Simkl, WeTrakr and Floppy follow the same point.
 0.35.7: Homey: the start signal now says what starts: start-film or start-serie, so a Homey Flow can set the room differently for a film and an episode.
 0.35.6: Homey cinema mode: a stream that does not know its length at the very start no longer stops the signals. Lucent waits a few seconds for it before it sends "start".
 0.35.5: "Reset resume position" in Kodi really sticks now: Lucent notices it at the next library update (Kodi does not always tell) and removes the point on Trakt too. A start of less than a minute no longer leaves a 1% resume point.
 0.35.4: WeTrakr: linking keeps waiting when the connection hiccups, the settings show "Linked with WeTrakr as …", and you hear why when WeTrakr refuses.
 0.35.3: Homey cinema mode works: Homey answers in plain text, which Lucent took for no answer. The test says why it fails, and a pasted webhook link is fine too.
-0.35.2: A thin white edge that follows the round corners for the chosen actor card.
-0.35.1: "Where do I know them from?" has a new look: dark cards with the posters of what you saw with that actor; nothing runs out of the card any more.</news>
+0.35.2: A thin white edge that follows the round corners for the chosen actor card.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>
