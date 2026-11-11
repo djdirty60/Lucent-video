@@ -1274,3 +1274,11 @@ msgstr ""
 msgctxt "#32416"
 msgid "Sends a test signal (tag 'test') to your Homey."
 msgstr ""
+
+msgctxt "#32254"
+msgid "Rows in 'Library and lists'"
+msgstr ""
+
+msgctxt "#32417"
+msgid "Choose which lists show in the window 'Library and lists'. A list a title is already on always shows, so you can take it off."
+msgstr ""

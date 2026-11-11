@@ -52,6 +52,7 @@ def _trakt_rows(kind, tmdb_id):
     def collect(add):
         trakt.call("sync/collection" + ("" if add else "/remove"), data=_trakt_body(kind, tmdb_id))
     collect.trakt_limit = "collection"
+    collect.key = "collection"
     rows = [(T("Trakt-collectie", "Trakt collection"), _in(tracker.pairs("collection_movie" if kind == "movie" else "collection_tv"), kind, tmdb_id), collect)]
     own = []
     for _owner, list_id, name in trakt.custom_lists("mine"):
@@ -59,6 +60,7 @@ def _trakt_rows(kind, tmdb_id):
             trakt.call("users/me/lists/%s/items%s" % (list_id, "" if add else "/remove"), data=_trakt_body(kind, tmdb_id))
             util.cache_drop(_list_key(list_id))
         change.trakt_list = (list_id, name)
+        change.key = "trakt:%s" % list_id
         pairs = _trakt_list_items(list_id)
         # a list that already holds this kind (films for a film, series for a series) or is empty comes first
         other = bool(pairs) and not any(k == _pair(kind, 0)[0] for k, _i in pairs)
@@ -92,6 +94,7 @@ def _simkl_rows(kind, tmdb_id):
             else:
                 simkl.call("sync/history/remove", data={bucket: [{"ids": simkl._ids(meta)}]})
             simkl.forget_lists()
+        change.key = "simkl:%s" % status
         rows.append((T(nl, en), now == status, change))
     return rows
 
@@ -118,6 +121,7 @@ def _mdb_rows(kind, tmdb_id):
             body = {("movies" if kind == "movie" else "shows"): [{"tmdb": int(tmdb_id)}]}
             util.http(mdblist._url("lists/%s/items/%s" % (list_id, "add" if add else "remove")), data=body)    # noqa: SLF001
             util.cache_drop("mdbitems%s" % list_id)
+        change.key = "mdb:%s" % list_id
         rows.append((T("MDBList: %s", "MDBList: %s") % name, _in(found, kind, tmdb_id), change))
     return rows
 
@@ -131,6 +135,7 @@ def rows_for(kind, tmdb_id):
     def watchlist(add):
         tracker.set_watchlist(meta, add)
     watchlist.trakt_limit = "watchlist"
+    watchlist.key = "watchlist"
     rows = [(T("Kijklijst", "Watchlist"), watch, watchlist)]
     account = tracker.active()
     for part in ((_trakt_rows,) if account is trakt else (_simkl_rows,) if account is simkl else ()) + ((_mdb_rows,) if mdblist.available() else ()):
@@ -138,9 +143,58 @@ def rows_for(kind, tmdb_id):
             rows += part(kind, tmdb_id)
         except util.HttpError as error:
             util.log("lists: %s" % error)
-    rows.append((T("Kodi-bibliotheek op dit apparaat", "Kodi library on this device"), library.has(kind, tmdb_id),
-                 lambda add: library.add_one(kind, tmdb_id) if add else library.remove_one(kind, tmdb_id, ask=False)))
+    def in_library(add):
+        if add:
+            library.add_one(kind, tmdb_id)
+        else:
+            library.remove_one(kind, tmdb_id, ask=False)
+    in_library.key = "library"
+    rows.append((T("Kodi-bibliotheek op dit apparaat", "Kodi library on this device"), library.has(kind, tmdb_id), in_library))
     return rows
+
+
+# ------------------------------------------------------------------ which rows you want to see
+HIDDEN = "lists_hidden.json"          # keys of the rows you switched off; new lists show up by themselves
+
+
+def hidden():
+    return set(util.load_json(HIDDEN, []))
+
+
+def all_choices():
+    """[(key, label)] of every row the window can show, without asking anything about one title."""
+    out = [("watchlist", T("Kijklijst", "Watchlist"))]
+    account = tracker.active()
+    try:
+        if account is trakt:
+            out.append(("collection", T("Trakt-collectie", "Trakt collection")))
+            out += [("trakt:%s" % list_id, T("Lijst: %s", "List: %s") % name)
+                    for _owner, list_id, name in sorted(trakt.custom_lists("mine"), key=lambda r: r[2].lower())]
+        elif account is simkl:
+            out += [("simkl:%s" % status, T(nl, en)) for status, nl, en in SIMKL_STATUS if status != "plantowatch"]
+        if mdblist.available():
+            out += [("mdb:%s" % list_id, T("MDBList: %s", "MDBList: %s") % name) for list_id, name in _mdb_static()]
+    except util.HttpError as error:
+        util.log("lists choose: %s" % error)
+    out.append(("library", T("Kodi-bibliotheek op dit apparaat", "Kodi library on this device")))
+    return out
+
+
+def choose():
+    """The setting 'Lists in Library and lists': tick the rows you want in the window."""
+    choices = all_choices()
+    off = hidden()
+    picked = xbmcgui.Dialog().multiselect(T("Welke regels wil je in 'Bibliotheek en lijsten'?", "Which rows do you want in 'Library and lists'?"),
+                                          [label for _key, label in choices],
+                                          preselect=[n for n, (key, _label) in enumerate(choices) if key not in off])
+    if picked is None:
+        return False
+    keep = {choices[n][0] for n in picked}
+    # rows that are not offered now (another account, a list that is gone) keep their choice
+    off = {key for key in off if key not in {k for k, _l in choices}} | {key for key, _l in choices if key not in keep}
+    util.save_json(HIDDEN, sorted(off))
+    util.notify(T("Opgeslagen", "Saved"))
+    return True
 
 
 def open_lists(kind, tmdb_id):
@@ -152,9 +206,18 @@ def open_lists(kind, tmdb_id):
     except util.HttpError as error:
         util.log("lists: %s" % error)
         return util.notify(T("Je account is niet bereikbaar", "Your account cannot be reached"))
-    picked = xbmcgui.Dialog().multiselect(title, [label for label, _on, _do in rows], preselect=[n for n, row in enumerate(rows) if row[1]])
+    off = hidden()
+    # a row you switched off still shows when this title is on it: else you could never take it off again
+    rows = [row for row in rows if row[1] or getattr(row[2], "key", None) not in off]
+    labels = [label for label, _on, _do in rows] + [T("Lijsten kiezen…", "Choose lists…")]
+    picked = xbmcgui.Dialog().multiselect(title, labels, preselect=[n for n, row in enumerate(rows) if row[1]])
     if picked is None:
         return None
+    if len(rows) in picked:                      # 'Choose lists…': first the changes, then the choice, then again
+        picked = [n for n in picked if n != len(rows)]
+        again = True
+    else:
+        again = False
     done, failed = [], []
     for number, (label, on, change) in enumerate(rows):
         wanted = number in picked
@@ -177,6 +240,8 @@ def open_lists(kind, tmdb_id):
         xbmcgui.Dialog().ok(title, "\n".join("%s: %s" % (label, why(status)) for label, status, _change in failed))
     elif done:
         util.notify(", ".join(done))
+    if again and choose():
+        return open_lists(kind, tmdb_id)
     return True
 
 

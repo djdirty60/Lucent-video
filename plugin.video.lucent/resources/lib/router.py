@@ -879,6 +879,9 @@ def run(argv):
             return xbmcgui.Dialog().ok("TorBox" if ok else T("Niet gelukt", "Failed"), text)
         if action == "test_floppy":
             return check_service(floppy, "Floppy")
+        if action == "lists_choose":
+            import lists
+            return lists.choose()
         if action == "test_homey":
             import homey
             return homey.check()

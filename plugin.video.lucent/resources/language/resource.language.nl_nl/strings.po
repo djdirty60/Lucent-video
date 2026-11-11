@@ -1274,3 +1274,11 @@ msgstr "Je Homey-ID (Homey-app > Instellingen > Algemeen) of het IP-adres van ee
 msgctxt "#32416"
 msgid "Sends a test signal (tag 'test') to your Homey."
 msgstr "Stuurt een testseintje (tag 'test') naar je Homey."
+
+msgctxt "#32254"
+msgid "Rows in 'Library and lists'"
+msgstr "Regels in 'Bibliotheek en lijsten'"
+
+msgctxt "#32417"
+msgid "Choose which lists show in the window 'Library and lists'. A list a title is already on always shows, so you can take it off."
+msgstr "Kies welke lijsten in het venster 'Bibliotheek en lijsten' staan. Staat een titel al op een lijst, dan zie je die lijst altijd, zodat je hem er weer af kunt halen."
