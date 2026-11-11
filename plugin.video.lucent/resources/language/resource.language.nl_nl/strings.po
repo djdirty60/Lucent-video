@@ -1268,8 +1268,8 @@ msgid "Your own subtitle with the English one under it in italics, as one subtit
 msgstr "Je eigen ondertitel met de Engelse er cursief onder, als één ondertitel. Alleen voor SRT-ondertitels."
 
 msgctxt "#32415"
-msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start, pauze, verder and einde to the Webhook 'lucent'."
-msgstr "Je Homey-ID (Homey-app > Instellingen > Algemeen) of het IP-adres van een Homey Pro in je netwerk. Lucent stuurt start, pauze, verder en einde naar de Webhook 'lucent'."
+msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start-film, start-serie, pauze, verder and einde to the Webhook 'lucent'."
+msgstr "Je Homey-ID (Homey-app > Instellingen > Algemeen) of het IP-adres van een Homey Pro in je netwerk. Lucent stuurt start-film, start-serie, pauze, verder en einde naar de Webhook 'lucent'."
 
 msgctxt "#32416"
 msgid "Sends a test signal (tag 'test') to your Homey."

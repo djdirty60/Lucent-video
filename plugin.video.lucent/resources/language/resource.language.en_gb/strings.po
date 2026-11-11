@@ -1268,7 +1268,7 @@ msgid "Your own subtitle with the English one under it in italics, as one subtit
 msgstr ""
 
 msgctxt "#32415"
-msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start, pauze, verder and einde to the Webhook 'lucent'."
+msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start-film, start-serie, pauze, verder and einde to the Webhook 'lucent'."
 msgstr ""
 
 msgctxt "#32416"

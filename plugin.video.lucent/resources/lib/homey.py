@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Homey cinema mode: a short signal to your Homey when a film or episode starts, pauses, goes on and ends. What
 happens (lights down, up a little, on again) you decide yourself in a Homey Flow with the trigger 'Webhook' and the
-event 'lucent'; the tag tells which moment it is: start, pauze, verder or einde.
+event 'lucent'; the tag tells which moment it is: start-film, start-serie, pauze, verder or einde.
 
 Setting 'homey_address' holds either your Homey ID (via Homey's cloud: https://webhook.homey.app/<id>/lucent) or
 the address of a Homey Pro in your own network (an IP address: http://<ip>/webhook?event=lucent). Nothing is sent
@@ -13,7 +13,7 @@ import urllib.parse
 import util
 
 EVENT = "lucent"
-TAGS = ("start", "pauze", "verder", "einde", "test")
+TAGS = ("start-film", "start-serie", "pauze", "verder", "einde", "test")
 
 
 def address():
@@ -70,9 +70,9 @@ def check():
     ok, reason = _send("test")
     if ok:
         return xbmcgui.Dialog().ok("Homey", T("Homey heeft het seintje ontvangen. Maak in Homey een Flow met de kaart "
-                                              "'Webhook', event 'lucent'. De tag is start, pauze, verder of einde.",
+                                              "'Webhook', event 'lucent'. De tag is start-film, start-serie, pauze, verder of einde.",
                                               "Homey received the signal. Make a Flow in Homey with the card 'Webhook', "
-                                              "event 'lucent'. The tag is start, pauze, verder or einde."))
+                                              "event 'lucent'. The tag is start-film, start-serie, pauze, verder or einde."))
     if reason.startswith("HTTP 404"):
         text = T("Homey kent dit adres niet (code 404). Controleer het Homey-ID. Bij een IP-adres: alleen een Homey Pro "
                  "(2023 of nieuwer) of Homey Pro mini heeft lokale webhooks.",

@@ -150,10 +150,23 @@ class Watcher(xbmc.Player):
                 return
         if total >= 600:
             self.cinema = True
-            homey.signal("start")
-            util.log("Homey: start sent")
+            tag = "start-serie" if self._is_episode() else "start-film"
+            homey.signal(tag)
+            util.log("Homey: %s sent" % tag)
         else:
             util.log("Homey: no start (shorter than 10 minutes or length unknown)")
+
+    def _is_episode(self):
+        """Film or episode: Lucent's own details, else what Kodi knows of the video that plays."""
+        meta = self.current or {}
+        if meta.get("kind"):
+            return meta["kind"] == "episode"
+        try:
+            if self.getVideoInfoTag().getMediaType() == "episode":
+                return True
+        except RuntimeError:
+            pass
+        return bool(xbmc.getInfoLabel("VideoPlayer.TVShowTitle"))
 
     def _cinema_end(self):
         self.pauses.resumed()
