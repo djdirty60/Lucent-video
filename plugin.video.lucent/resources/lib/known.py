@@ -44,7 +44,7 @@ def _cast(meta):
 
 
 def _seen_in(person_id, films, shows, this):
-    """Titles of this person that you watched: [(title, year)], newest first, without the title being watched."""
+    """Titles of this person that you watched: [(title, year, poster)], newest first, without the title being watched."""
     try:
         credits = tmdb.get("person/%s/combined_credits" % person_id, ttl=MONTH).get("cast") or []
     except util.HttpError:
@@ -57,7 +57,7 @@ def _seen_in(person_id, films, shows, this):
         done.add(key)
         if (key[0] == "movie" and key[1] in films) or (key[0] == "tv" and key[1] in shows):
             date = row.get("release_date") or row.get("first_air_date") or ""
-            out.append((row.get("title") or row.get("name") or "", date[:4]))
+            out.append((row.get("title") or row.get("name") or "", date[:4], tmdb.image(row.get("poster_path"), "w185")))
     out.sort(key=lambda t: t[1], reverse=True)
     return out
 
@@ -76,8 +76,7 @@ def find(meta):
     out = []
     for (_pid, name, role, thumb), titles in zip(cast, found):
         if titles:
-            out.append({"name": name, "role": role, "thumb": thumb,
-                        "titles": "[CR]".join("%s (%s)" % t if t[1] else t[0] for t in titles[:4])})
+            out.append({"name": name, "role": role, "thumb": thumb, "titles": titles})
     return out
 
 
@@ -85,14 +84,19 @@ class Known(dialogs.Base):
     def onInit(self):
         import xbmcgui
         self.fill({"head": T("Waar ken ik die van?", "Where do I know them from?"),
-                   "sub": T("uit jouw kijkgeschiedenis", "from your own history"),
-                   "seen": T("Je zag hem of haar in", "You saw them in")})
+                   "sub": T("Uit jouw kijkgeschiedenis", "From your own history")})
         rows = []
         for person in self.args["people"]:
-            item = xbmcgui.ListItem(person["name"], (T("als %s", "as %s") % person["role"]) if person["role"] else "", offscreen=True)
+            item = xbmcgui.ListItem(person["name"], person["role"], offscreen=True)
             item.setArt({"thumb": person["thumb"]})
-            item.setProperty("titles", person["titles"])
             item.setProperty("letter", person["name"][:1])
+            titles = person["titles"]
+            for n, (title, year, poster) in enumerate(titles[:4], start=1):
+                item.setProperty("t%d" % n, "%s (%s)" % (title, year) if year else title)
+                item.setProperty("p%d" % n, poster)
+            if len(titles) > 4:
+                item.setProperty("more", "+%d" % (len(titles) - 4))
+            item.setProperty("caption", ", ".join(t[0] for t in titles[:2]) + (" …" if len(titles) > 2 else ""))
             rows.append(item)
         self.getControl(100).addItems(rows)
         self.setFocusId(100)
