@@ -181,7 +181,8 @@ def menu(handle, params):
                    (T("Nieuwe series", "New series"), "new_tv"),
                    (T("Best beoordeeld", "Top rated"), "toprated_tv"), (T("Lopende series", "On the air"), "airing_tv"),
                    (T("Binnenkort", "Coming soon"), "upcoming_tv"), (T("Kalender: nieuwe afleveringen", "Calendar: new episodes"), "calendar"),
-                   (T("Nieuwe seizoenen aangekondigd", "New seasons announced"), "new_seasons")]
+                   (T("Nieuwe seizoenen aangekondigd", "New seasons announced"), "new_seasons"),
+                   (T("Op tijd voor het nieuwe seizoen", "In time for the new season"), "marathon")]
     rows = [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
     rows.append(items.folder(T("Genres", "Genres"), util.url_for(action="genres", type=params.get("type"))))
     rows.append(items.folder(T("Studio's", "Studios") if movie else T("Netwerken", "Networks"), util.url_for(action="studios", type=params.get("type"))))
@@ -517,6 +518,9 @@ def gather(params):
     elif name == "new_seasons":
         import newseason
         titles, content = newseason.titles(), "tvshows"
+    elif name == "marathon":
+        import marathon
+        titles, content = marathon.titles(), "tvshows"
     elif name == "coming_watchlist":
         import coming
         titles = coming.titles()
@@ -875,6 +879,18 @@ def run(argv):
             return xbmcgui.Dialog().ok("TorBox" if ok else T("Niet gelukt", "Failed"), text)
         if action == "test_floppy":
             return check_service(floppy, "Floppy")
+        if action == "test_homey":
+            import homey
+            return homey.check()
+        if action == "replay":
+            import replay
+            return replay.run()
+        if action == "dual_subs":
+            import dualsubs
+            return dualsubs.run_now()
+        if action == "marathon":
+            import marathon
+            return marathon.open_card(params["tmdb"])
         if action == "test_tvdb":
             import tvdb
             return tvdb.check()

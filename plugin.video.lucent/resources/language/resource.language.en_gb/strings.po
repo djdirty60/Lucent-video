@@ -1202,3 +1202,75 @@ msgstr ""
 msgctxt "#32410"
 msgid "Extras and specials of a series (TMDB's season 0) also go into the library, in the folder Specials."
 msgstr ""
+
+msgctxt "#32242"
+msgid "While watching: extras"
+msgstr ""
+
+msgctxt "#32243"
+msgid "At pause: where do I know them from?"
+msgstr ""
+
+msgctxt "#32244"
+msgid "Previous time on… after a long break"
+msgstr ""
+
+msgctxt "#32245"
+msgid "Button for 'What did they say?'"
+msgstr ""
+
+msgctxt "#32246"
+msgid "None"
+msgstr ""
+
+msgctxt "#32247"
+msgid "Long press left"
+msgstr ""
+
+msgctxt "#32248"
+msgid "Long press rewind"
+msgstr ""
+
+msgctxt "#32249"
+msgid "Red button (F1 on a keyboard)"
+msgstr ""
+
+msgctxt "#32250"
+msgid "Two subtitles at once (yours with English under it)"
+msgstr ""
+
+msgctxt "#32251"
+msgid "Homey cinema mode"
+msgstr ""
+
+msgctxt "#32252"
+msgid "Homey ID or IP address of your Homey Pro"
+msgstr ""
+
+msgctxt "#32253"
+msgid "Test Homey"
+msgstr ""
+
+msgctxt "#32411"
+msgid "When you pause for 2 seconds, cards show the actors and in which films and series from your own history you saw them before."
+msgstr ""
+
+msgctxt "#32412"
+msgid "Start an episode after three weeks or more: a short summary of the two episodes before it appears while Lucent looks for sources."
+msgstr ""
+
+msgctxt "#32413"
+msgid "This key goes 10 seconds back with the subtitle on for a moment. Lucent writes one small key file for it; None removes it again."
+msgstr ""
+
+msgctxt "#32414"
+msgid "Your own subtitle with the English one under it in italics, as one subtitle. Only for SRT subtitles."
+msgstr ""
+
+msgctxt "#32415"
+msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start, pauze, verder and einde to the Webhook 'lucent'."
+msgstr ""
+
+msgctxt "#32416"
+msgid "Sends a test signal (tag 'test') to your Homey."
+msgstr ""

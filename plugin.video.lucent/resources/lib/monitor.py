@@ -36,6 +36,8 @@ class Watcher(xbmc.Player):
         self.following = None     # the next episode, while it should still start
         self.auto_next = False    # start it when this video ends
         self.prefetched = False
+        import known
+        self.pauses = known.Pauses(self)
 
     def percent(self):
         return min(100.0, self.position * 100.0 / self.total) if self.total else 0.0
@@ -48,6 +50,14 @@ class Watcher(xbmc.Player):
 
     def onAVStarted(self):
         util.HOME.clearProperty("lucent.video.memory")
+        self.cinema = False
+        try:
+            if self.isPlayingVideo() and (self.getTotalTime() or 0) >= 600:      # a film or episode, not a trailer
+                import homey
+                homey.signal("start")
+                self.cinema = True
+        except RuntimeError:
+            pass
         raw = util.HOME.getProperty(player.HANDOFF)
         if not raw:
             self.current = None
@@ -113,9 +123,24 @@ class Watcher(xbmc.Player):
 
     def onPlayBackPaused(self):
         self._scrobble("pause")
+        if getattr(self, "cinema", False):
+            import homey
+            homey.signal("pauze")
+        self.pauses.paused(self.current)
 
     def onPlayBackResumed(self):
         self._scrobble("start")
+        self.pauses.resumed()
+        if getattr(self, "cinema", False):
+            import homey
+            homey.signal("verder")
+
+    def _cinema_end(self):
+        self.pauses.resumed()
+        if getattr(self, "cinema", False):
+            self.cinema = False
+            import homey
+            homey.signal("einde")
 
     def close_dialog(self):
         if self.dialog:
@@ -163,6 +188,7 @@ class Watcher(xbmc.Player):
                                                            episode=following["episode"], autoplay=1, **{"with": ",".join(meta.get("together") or [])}))
 
     def onPlayBackStopped(self):
+        self._cinema_end()
         meta = self.current
         if meta and meta.get("alternates") and self.total - self.position > BROKEN_BEFORE_END and player.link_is_dead(meta, self.position, self.total):
             position, self.current = self.position, None
@@ -196,6 +222,10 @@ class Watcher(xbmc.Player):
             self._try_elsewhere(meta, position)
             return
         go = bool(meta and self.following and self.auto_next) and not (meta or {}).get("bedtime_last")
+        if go:
+            self.pauses.resumed()           # the next episode follows: the lights stay as they are
+        else:
+            self._cinema_end()
         self.finish()
         if meta and meta.get("bedtime_last"):
             import bedtime
@@ -287,6 +317,13 @@ def run_count():
 
 
 class Events(xbmc.Monitor):
+    def onSettingsChanged(self):
+        try:
+            import replay
+            replay.apply_key()
+        except Exception as error:      # noqa: BLE001 - a key is never a reason for the service to stop
+            util.log("replay key: %s" % type(error).__name__)
+
     def onNotification(self, sender, method, data):
         if method == "VideoLibrary.OnUpdate":
             try:
@@ -366,6 +403,7 @@ def _tidy_watchlist(meta):
 
 def run():
     monitor = Events()
+    monitor.onSettingsChanged()
     watcher = Watcher()
     seconds = 0
     library.publish_status()

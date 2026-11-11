@@ -1202,3 +1202,75 @@ msgstr "Ook specials toevoegen (seizoen 0)"
 msgctxt "#32410"
 msgid "Extras and specials of a series (TMDB's season 0) also go into the library, in the folder Specials."
 msgstr "Extra afleveringen en specials van een serie (seizoen 0 bij TMDB) komen ook in de bibliotheek, in de map Specials."
+
+msgctxt "#32242"
+msgid "While watching: extras"
+msgstr "Extra's tijdens het kijken"
+
+msgctxt "#32243"
+msgid "At pause: where do I know them from?"
+msgstr "Bij pauze: waar ken ik die van?"
+
+msgctxt "#32244"
+msgid "Previous time on… after a long break"
+msgstr "Vorige keer bij… na een lange pauze"
+
+msgctxt "#32245"
+msgid "Button for 'What did they say?'"
+msgstr "Knop voor 'Wat zeiden ze?'"
+
+msgctxt "#32246"
+msgid "None"
+msgstr "Geen"
+
+msgctxt "#32247"
+msgid "Long press left"
+msgstr "Lang drukken op links"
+
+msgctxt "#32248"
+msgid "Long press rewind"
+msgstr "Lang drukken op terugspoelen"
+
+msgctxt "#32249"
+msgid "Red button (F1 on a keyboard)"
+msgstr "Rode knop (F1 op een toetsenbord)"
+
+msgctxt "#32250"
+msgid "Two subtitles at once (yours with English under it)"
+msgstr "Twee ondertitels tegelijk (jouw taal met Engels eronder)"
+
+msgctxt "#32251"
+msgid "Homey cinema mode"
+msgstr "Homey-bioscoopmodus"
+
+msgctxt "#32252"
+msgid "Homey ID or IP address of your Homey Pro"
+msgstr "Homey-ID of IP-adres van je Homey Pro"
+
+msgctxt "#32253"
+msgid "Test Homey"
+msgstr "Homey testen"
+
+msgctxt "#32411"
+msgid "When you pause for 2 seconds, cards show the actors and in which films and series from your own history you saw them before."
+msgstr "Pauzeer je 2 seconden, dan zie je onderin de acteurs en in welke films en series uit je eigen kijkgeschiedenis je ze eerder zag."
+
+msgctxt "#32412"
+msgid "Start an episode after three weeks or more: a short summary of the two episodes before it appears while Lucent looks for sources."
+msgstr "Start je na drie weken of langer een aflevering, dan zie je kort wat er in de twee afleveringen daarvoor gebeurde, terwijl Lucent bronnen zoekt."
+
+msgctxt "#32413"
+msgid "This key goes 10 seconds back with the subtitle on for a moment. Lucent writes one small key file for it; None removes it again."
+msgstr "Met deze knop ga je 10 seconden terug en staat de ondertitel even aan. Lucent maakt daar één klein knoppenbestand voor; Geen haalt het weer weg."
+
+msgctxt "#32414"
+msgid "Your own subtitle with the English one under it in italics, as one subtitle. Only for SRT subtitles."
+msgstr "Je eigen ondertitel met de Engelse er cursief onder, als één ondertitel. Alleen voor SRT-ondertitels."
+
+msgctxt "#32415"
+msgid "Your Homey ID (Homey app > Settings > General) or the IP address of a Homey Pro in your network. Lucent sends start, pauze, verder and einde to the Webhook 'lucent'."
+msgstr "Je Homey-ID (Homey-app > Instellingen > Algemeen) of het IP-adres van een Homey Pro in je netwerk. Lucent stuurt start, pauze, verder en einde naar de Webhook 'lucent'."
+
+msgctxt "#32416"
+msgid "Sends a test signal (tag 'test') to your Homey."
+msgstr "Stuurt een testseintje (tag 'test') naar je Homey."

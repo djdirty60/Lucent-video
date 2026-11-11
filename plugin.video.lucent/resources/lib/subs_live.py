@@ -869,6 +869,12 @@ def background():
                                   xbmcgui.NOTIFICATION_INFO, 3000)
     subs_extra.remember(release, source)
     subs_extra.unwant()
+    try:
+        import dualsubs
+        if dualsubs.wanted():
+            local = dualsubs.combine(local, mine)        # your language with the English one under it
+    except Exception as error:  # noqa: BLE001 - one subtitle is always better than none
+        log(f"two subtitles: {error}")
     ok = activate(local, mine)
     log(f"background: switched on {'and steady' if ok else 'but could not confirm it'}")
 

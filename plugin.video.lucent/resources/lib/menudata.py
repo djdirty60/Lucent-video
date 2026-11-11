@@ -46,6 +46,7 @@ MENU = {
     "list:airing_tv": ("broadcast", "tv", "Series waarvan nu nieuwe afleveringen komen.", "Series with new episodes now."),
     "list:upcoming_tv": ("clock", "tv", "Series die binnenkort beginnen.", "Series starting soon."),
     "list:calendar": ("calendar", "tv", "Nieuwe afleveringen van je series, per dag.", "New episodes of your series, by day."),
+    "list:marathon": ("clock", "tv", "Series waar je achterloopt, met een planning tot het nieuwe seizoen.", "Series you are behind with, planned up to the new season."),
     "list:new_seasons": ("megaphone", "tv", "Nieuwe seizoenen die aangekondigd zijn.", "New seasons that were announced."),
     "genres": ("tag", "discover", "Kies een genre.", "Choose a genre."),
     "studios": ("building", "discover", "Studio's en netwerken.", "Studios and networks."),

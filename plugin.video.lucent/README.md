@@ -18,6 +18,10 @@ These actions are public: any add-on or skin may call them with `RunPlugin(plugi
 | Button | Call |
 |---|---|
 | More options (without what an info page already has: library and lists, watched, watchlist, library, trailer, cast); add `&all=1` for every option | `action=title_menu&type=movie\|tvshow\|season\|episode&tmdb=<id>[&season=<n>][&episode=<n>][&all=1]` |
+| What did they say? (10 s back, subtitle on for a moment) | `action=replay` |
+| Two subtitles at once (yours with English under it) | `action=dual_subs` |
+| Marathon planner for one series | `action=marathon&tmdb=<id>` |
+| Series you are behind with before a new season (row) | `action=list&name=marathon` |
 | Play (choose the best source) | `action=play&type=movie&tmdb=<id>` or `action=play&type=episode&tmdb=<id>&season=<n>&episode=<n>` |
 | Choose a source yourself | the same, with `&select=1` |
 | Seasons of a series (a folder) | `ActivateWindow(Videos,plugin://plugin.video.lucent/?action=seasons&tmdb=<id>,return)` |

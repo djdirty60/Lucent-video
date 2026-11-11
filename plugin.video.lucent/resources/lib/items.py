@@ -103,6 +103,8 @@ def context(meta, watched):
         entries.append((util.T("Acteurs", "Cast"), "RunPlugin(%s)" % util.url_for(action="cast_popup", type=meta["kind"], tmdb=meta["tmdb"])))
         entries.append((util.T("Vergelijkbare titels", "Similar titles"), "Container.Update(%s)" % util.url_for(
             action="list", name="similar", type=meta["kind"], tmdb=meta["tmdb"])))
+        if meta["kind"] == "tvshow":
+            run(util.T("Marathonplanner", "Marathon planner"), action="marathon", tmdb=meta["tmdb"])
         import library
         if library.has(meta["kind"], meta["tmdb"]):
             run(util.T("Uit je bibliotheek halen", "Remove from your library"), action="library_remove", type=meta["kind"], tmdb=meta["tmdb"])

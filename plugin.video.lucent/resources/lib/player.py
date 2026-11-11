@@ -261,11 +261,17 @@ def find(meta_out, params):
         meta_out["sources"] = sources
 
 
-def search_with_screen(params):
-    """Shows the screen while searching. Returns (meta, sources), or None when cancelled or failed."""
+def search_with_screen(params, before=None):
+    """Shows the screen while searching. Returns (meta, sources), or None when cancelled or failed. 'before' runs right
+    after the search started (the 'previous time' recap), so the search goes on meanwhile."""
     out = {}
     worker = threading.Thread(target=find, args=(out, params), daemon=True)
     worker.start()
+    if before:
+        try:
+            before()
+        except Exception as error:          # noqa: BLE001 - a recap must never stop playback
+            util.log("before search: %s" % type(error).__name__)
     monitor = xbmc.Monitor()
     while worker.is_alive() and "ready" not in out and not monitor.waitForAbort(0.05):
         pass
@@ -324,8 +330,12 @@ def play(params, handle):
     others = together.ask(params)
     import prefetch
     meta, sources = prefetch.take(params) if params.get("select") != "1" else (None, None)
+    import lasttime
+    recap = lambda: lasttime.show(params, planned if params.get("type") == "episode" else None)     # noqa: E731
     if meta is None:
-        meta, sources = search_with_screen(params)
+        meta, sources = search_with_screen(params, before=recap)
+    else:
+        recap()
     if meta is None:
         if sources == "cancelled":
             return _fail(handle)
