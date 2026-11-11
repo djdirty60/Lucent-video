@@ -60,6 +60,8 @@ def fill_tag(item, meta, playcount=None, resume=None, last_played="", default_id
     if meta.get("tmdb_episode"):
         ids["tmdb_episode"] = meta["tmdb_episode"]
     tag.setUniqueIDs(ids, default_id if default_id in ids else "tmdb")
+    if kind != "movie" and meta.get("status"):
+        tag.setTvShowStatus(meta["status"])         # Ended, Continuing, Cancelled or In production
     if kind in ("season", "episode"):
         tag.setTvShowTitle(_plain(meta.get("show")))
         tag.setSeason(int(meta["season"]))

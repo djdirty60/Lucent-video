@@ -116,7 +116,8 @@ def listitem(show):
     if show.get("uniqueid"):
         tag.setUniqueIDs({k: str(v) for k, v in show["uniqueid"].items() if v})
     if show.get("status"):
-        tag.setTvShowStatus(show["status"])
+        from tmdb import show_status
+        tag.setTvShowStatus(show_status(show["status"]) or show["status"])   # same four words as everywhere else
     tag.setPlaycount(int(show.get("playcount") or 0))
     total, seen = int(show.get("episode") or 0), int(show.get("watchedepisodes") or 0)
     item.setProperty("TotalEpisodes", str(total))

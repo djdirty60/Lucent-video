@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="0.33.8" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.33.9" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -78,7 +78,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt. Werkt zonder Seren.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.33.8: "Set up a scraper first" no longer appears when your scrapers are set up but a search fails now and then: you see that the search failed, and the cause is written to the log. One scraper's error no longer stops the others.
+        <news>0.33.9: Series now pass their status to the skin: Ended, Continuing, Cancelled or In production. You see it in the info screen and as a coloured label in the lists and on Home, also for seasons and episodes.
+0.33.8: "Set up a scraper first" no longer appears when your scrapers are set up but a search fails now and then: you see that the search failed, and the cause is written to the log. One scraper's error no longer stops the others.
 0.33.7: Everything from 0.33.5 is back (0.33.6 was a step back to 0.33.0 that turned out not to be needed: the purple/green Dolby Vision picture came from the Kodi setting "Adjust display refresh rate", which Lucent Video never changes).
 0.33.5: Subtitle window: the language badge (like "EN") stays visible on the selected row.
 0.33.4: New, sharper icon (orange, with a play button). When Trakt says a list is full, Lucent reads your own limits from Trakt (VIP accounts also have a maximum per list) and shows the numbers, e.g. 1000 of 1000, and offers to make a new list (like "Movie collection 2") for the title.

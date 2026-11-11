@@ -112,6 +112,16 @@ def _english(raw, field):
     return ""
 
 
+# Series status in four words: Ended, Continuing, Cancelled or In production (the skin shows them with a colour).
+SHOW_STATUS = {"ended": "Ended", "returning series": "Continuing", "canceled": "Cancelled", "cancelled": "Cancelled",
+               "in production": "In production", "planned": "In production", "pilot": "In production"}
+
+
+def show_status(raw_status):
+    """TMDB status ('Returning Series', 'Canceled', ...) to Ended / Continuing / Cancelled / In production, or ''."""
+    return SHOW_STATUS.get(str(raw_status or "").strip().lower(), "")
+
+
 def details(kind, tmdb_id):
     """kind: movie or tvshow. Returns the normalised title, or None."""
     api_kind = "movie" if kind == "movie" else "tv"
@@ -154,6 +164,7 @@ def details(kind, tmdb_id):
         "runtime": (raw.get("runtime") if movie else runtimes[0]) or 0,
         "seasons": [s for s in raw.get("seasons") or [] if s.get("season_number", 0) > 0],
         "episodes": raw.get("number_of_episodes") or 0,
+        "status": "" if movie else show_status(raw.get("status")),
         "tvdb": str((raw.get("external_ids") or {}).get("tvdb_id") or ""),
         "mpaa": _mpaa(raw, movie),
         "trailer": _trailer(raw),
@@ -301,6 +312,7 @@ def episode_meta(show, raw):
         "mpaa": show.get("mpaa", ""),
         "cast": show.get("cast") or [],
         "show": show["title"],
+        "status": show.get("status", ""),
         "title": raw.get("name") or "",
         "season": raw["season_number"],
         "episode": raw["episode_number"],
