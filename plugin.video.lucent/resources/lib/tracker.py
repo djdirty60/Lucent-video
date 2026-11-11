@@ -147,6 +147,19 @@ def paused():
     return account.paused() if account else _local_paused()
 
 
+def forget_resume(meta):
+    """Kodi's 'Reset resume position' on a title in the library: forget where you stopped, here and on Trakt, so the
+    next library update does not put it back."""
+    key = "movie:%s" % meta["tmdb"] if meta["kind"] == "movie" else "ep:%s:%s:%s" % (meta["tmdb"], meta["season"], meta["episode"])
+    saved = util.load_json(PROGRESS, {})
+    if saved.pop(key, None) is not None:
+        util.save_json(PROGRESS, saved)
+    account = active()
+    if account and hasattr(account, "forget_playback"):
+        return account.forget_playback(meta)
+    return False
+
+
 def resume_percent(kind, tmdb_id, season=None, episode=None):
     for item in paused():
         if kind == "movie" and item.get("type") == "movie" and str(item["movie"]["ids"].get("tmdb")) == str(tmdb_id):

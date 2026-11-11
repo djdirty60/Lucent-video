@@ -406,6 +406,19 @@ def resume_percent(kind, tmdb, season=None, episode=None):
     return 0
 
 
+def forget_playback(meta):
+    """Removes the 'stopped here' point of this film or episode from your account (Kodi's 'Reset resume position')."""
+    removed = False
+    for item in cached("sync/playback", 0) or []:
+        if meta["kind"] == "movie" and item.get("type") == "movie" and str(item["movie"]["ids"].get("tmdb")) == str(meta["tmdb"]) \
+                or meta["kind"] == "episode" and item.get("type") == "episode" and str(item["show"]["ids"].get("tmdb")) == str(meta["tmdb"]) \
+                and item["episode"]["season"] == int(meta["season"]) and item["episode"]["number"] == int(meta["episode"]):
+            call("sync/playback/%s" % item["id"], method="DELETE")
+            removed = True
+    util.cache_drop("trakt" + "sync/playback")
+    return removed
+
+
 def set_watched(meta, watched):
     show = {"ids": {"tmdb": int(meta["tmdb"])}}
     if meta["kind"] == "movie":

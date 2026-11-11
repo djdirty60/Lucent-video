@@ -83,6 +83,42 @@ def _target(kind, item_id):
     return meta, int(details.get("playcount") or 0)
 
 
+def _resume_of(kind, item_id):
+    method, key, id_name = ("VideoLibrary.GetMovieDetails", "moviedetails", "movieid") if kind == "movie" else \
+        ("VideoLibrary.GetEpisodeDetails", "episodedetails", "episodeid")
+    answer = json.loads(xbmc.executeJSONRPC(json.dumps({"jsonrpc": "2.0", "id": 1, "method": method,
+                                                        "params": {id_name: item_id, "properties": ["resume"]}})))
+    return (((answer.get("result") or {}).get(key) or {}).get("resume") or {}).get("position") or 0
+
+
+def _maybe_reset(item):
+    """Kodi's 'Reset resume position': the title has no resume point in the library any more, while your account
+    (or this device) still has one. Forget it there too, else the next library update puts it back."""
+    import tracker
+    if xbmc.Monitor().waitForAbort(3) or xbmc.Player().isPlayingVideo():
+        return
+    try:
+        meta, _count = _target(item["type"], item["id"])
+        if not meta or _resume_of(item["type"], item["id"]):
+            return
+        key = "%s:%s:%s" % (meta["tmdb"], meta.get("season") or "", meta.get("episode") or "")
+        if time.time() - _recent.get(key, 0) < 60:
+            return                                   # Kodi tidying up right after a Lucent playback
+        import player
+        local = player.progress_key(meta) in util.load_json(player.LOCAL, {})
+        if not local and not tracker.resume_percent(meta["kind"], meta["tmdb"], meta.get("season"), meta.get("episode")):
+            return                                   # nothing to forget
+        import users
+        util.OVERRIDE_USER = users.MAIN
+        try:
+            tracker.forget_resume(meta)
+            util.log("library -> account: resume point of %s removed" % key)
+        finally:
+            util.OVERRIDE_USER = None
+    except (KeyError, RuntimeError, ValueError, util.HttpError) as error:
+        util.log("resume reset: %s" % type(error).__name__)
+
+
 def on_notification(method, data):
     """Kodi's VideoLibrary.OnUpdate: a title's playcount changed."""
     if method != "VideoLibrary.OnUpdate" or _is_quiet():
@@ -92,7 +128,11 @@ def on_notification(method, data):
     except ValueError:
         return
     item = info.get("item") or {}
-    if "playcount" not in info or item.get("type") not in ("movie", "episode"):
+    if item.get("type") not in ("movie", "episode"):
+        return
+    if "playcount" not in info:
+        if not info.get("added"):
+            threading.Thread(target=_maybe_reset, args=(item,), daemon=True).start()
         return
     def send():
         import tracker
