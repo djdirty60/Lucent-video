@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """Turns titles into Kodi list items, with the properties the Lucent skin reads."""
+import os
+import urllib.parse
+
 import xbmc
 import xbmcgui
 
@@ -144,7 +147,52 @@ def title_item(meta, watched=False, resume=None, last_played="", counts=None):
 def folder(label, url, icon="DefaultFolder.png"):
     item = xbmcgui.ListItem(label, offscreen=True)
     item.setArt({"icon": icon, "thumb": icon})
+    menu_look(item, url)
     return url, item, True
+
+
+_MEDIA = {}
+
+
+def _menu_media():
+    if "path" not in _MEDIA:
+        import xbmcvfs
+        _MEDIA["path"] = os.path.join(xbmcvfs.translatePath(util.ADDON.getAddonInfo("path")), "resources", "media", "menu")
+    return _MEDIA["path"]
+
+
+def menu_key(url):
+    """'list:continue', 'menu:movie', 'tools' ... from a plugin address (see menudata.py)."""
+    query = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(url).query))
+    action = query.get("action", "")
+    if action == "search" and query.get("query"):
+        return "search"
+    if action == "list" and query.get("page"):
+        return "page"
+    extra = query.get({"list": "name", "menu": "type", "search": "type", "traktlists": "kind", "mdblists": "kind"}.get(action, ""), "")
+    return "%s:%s" % (action, extra) if extra else action
+
+
+def menu_look(item, url):
+    """A card in the style of Lucent's menus (icon, colour, accent line) and a short explanation for the skin."""
+    import menudata
+    key = menu_key(url)
+    entry = menudata.MENU.get(key)
+    if entry:
+        icon, tint, nl, en = entry
+    elif key.split(":")[0] in menudata.FALLBACK:
+        (icon, tint), nl, en = menudata.FALLBACK[key.split(":")[0]], "", ""
+    else:
+        return
+    name = menudata.card_name(icon, tint)
+    folder_path = _menu_media()
+    wide, square, poster = (os.path.join(folder_path, name + end) for end in (".jpg", "_sq.jpg", "_poster.jpg"))
+    item.setArt({"thumb": square, "icon": square, "poster": poster, "landscape": wide,
+                 "fanart": os.path.join(folder_path, "fanart.jpg")})
+    text = util.T(nl, en) if nl else ""
+    if text:
+        item.getVideoInfoTag().setPlot(text)
+        item.setProperty("lucent.menu.info", text)
 
 
 def clock(seconds):

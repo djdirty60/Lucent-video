@@ -58,13 +58,6 @@ class Reorder:
     """OK picks up a row, up and down move it, OK puts it down. Used by the windows below."""
     picked = None
 
-    def pick_or_drop(self, control, size):
-        if self.picked is None:
-            self.picked = control.getSelectedPosition()
-        else:
-            self.picked = None
-        return size
-
     def follow(self, control, items):
         """Called after up or down: moves the picked row to where the cursor went."""
         target = control.getSelectedPosition()

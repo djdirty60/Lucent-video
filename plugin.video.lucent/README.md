@@ -17,7 +17,7 @@ These actions are public: any add-on or skin may call them with `RunPlugin(plugi
 
 | Button | Call |
 |---|---|
-| All options in one menu | `action=title_menu&type=movie\|tvshow\|season\|episode&tmdb=<id>[&season=<n>][&episode=<n>]` |
+| More options (without what an info page already has: library and lists, watched, watchlist, library, trailer, cast); add `&all=1` for every option | `action=title_menu&type=movie\|tvshow\|season\|episode&tmdb=<id>[&season=<n>][&episode=<n>][&all=1]` |
 | Play (choose the best source) | `action=play&type=movie&tmdb=<id>` or `action=play&type=episode&tmdb=<id>&season=<n>&episode=<n>` |
 | Choose a source yourself | the same, with `&select=1` |
 | Seasons of a series (a folder) | `ActivateWindow(Videos,plugin://plugin.video.lucent/?action=seasons&tmdb=<id>,return)` |
