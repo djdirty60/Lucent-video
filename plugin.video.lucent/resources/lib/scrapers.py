@@ -147,6 +147,13 @@ def search(meta, again=True):
         util.log("search: no answer (%s)" % ("nothing set up" if unset else "scrapers did not answer"))
         if unset:
             filled = configured()
+            for _ in range(3):                  # Kodi can give an empty setting for a moment while settings are saved
+                if filled:
+                    break
+                import xbmc
+                if xbmc.Monitor().waitForAbort(1):
+                    break
+                filled = configured()
             if filled:
                 switched_off = [n for n in filled if per.get(n, {}).get("off")]
                 if switched_off and len(switched_off) == len(filled):
