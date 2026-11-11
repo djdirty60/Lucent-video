@@ -137,6 +137,9 @@ def details(kind, tmdb_id):
         raw["overview"] = _english(raw, "overview")       # in the same answer: no second request
     if not raw.get("tagline"):
         raw["tagline"] = _english(raw, "tagline")
+    if not raw.get("overview") and not movie:                # TMDB has nothing: TheTVDB, with your own key
+        import tvdb
+        raw["overview"] = tvdb.fill_text((raw.get("external_ids") or {}).get("tvdb_id"))
     crew = raw.get("credits") or {}
     date = raw.get("release_date" if movie else "first_air_date") or ""
     runtimes = raw.get("episode_run_time") or [0]
@@ -298,7 +301,37 @@ def newest_on(provider, kind, page=1):
 
 
 def season(tmdb_id, number):
-    return get("tv/%s/season/%s" % (tmdb_id, number), ttl=6 * 3600)
+    """One season. Episodes without a description in your language get the English one of TMDB, and when that is
+    missing too the one of TheTVDB (only with your own TheTVDB key)."""
+    key_name = "tmdbseasonfull%s:%s:%s" % (tmdb_id, number, lang())
+    filled = util.cache_get(key_name, 6 * 3600)
+    if filled is not None:
+        return filled
+    data = get("tv/%s/season/%s" % (tmdb_id, number), ttl=6 * 3600)
+    rows = data.get("episodes") or []
+    if util.NL and (not data.get("overview") or any(not row.get("overview") for row in rows)):
+        try:
+            english = get("tv/%s/season/%s" % (tmdb_id, number), ttl=6 * 3600, language="en-US")
+        except util.HttpError as error:
+            util.log("season in English: %s" % error)
+            english = {}
+        by_number = {row.get("episode_number"): row for row in english.get("episodes") or []}
+        for row in rows:
+            other = by_number.get(row.get("episode_number")) or {}
+            if not row.get("overview") and other.get("overview"):
+                row["overview"] = other["overview"]
+            import tvdb
+            if (not row.get("name") or tvdb._generic(row["name"])) and other.get("name") and not tvdb._generic(other["name"]):     # noqa: SLF001
+                row["name"] = other["name"]
+        if not data.get("overview"):
+            data["overview"] = english.get("overview") or ""
+    if any(not row.get("overview") for row in rows):
+        import tvdb
+        if tvdb.available():
+            show = details("tvshow", tmdb_id) or {}
+            tvdb.fill_episodes(show.get("tvdb"), number, rows)
+    util.cache_set(key_name, data)
+    return data
 
 
 def episode_meta(show, raw):

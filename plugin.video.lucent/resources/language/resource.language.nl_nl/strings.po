@@ -1166,3 +1166,31 @@ msgstr "Je sleutel van Claude voor het vertalen. Het wordt niet getoond."
 msgctxt "#32406"
 msgid "Which Claude model translates. Empty = the default model."
 msgstr "Welk Claude-model vertaalt. Leeg = het standaardmodel."
+
+msgctxt "#32237"
+msgid "TheTVDB API key"
+msgstr "TheTVDB-API-sleutel"
+
+msgctxt "#32238"
+msgid "TheTVDB PIN (subscription)"
+msgstr "TheTVDB-pincode (abonnement)"
+
+msgctxt "#32239"
+msgid "TheTVDB (spare source of text)"
+msgstr "TheTVDB (reserve voor teksten)"
+
+msgctxt "#32240"
+msgid "Test TheTVDB"
+msgstr "TheTVDB testen"
+
+msgctxt "#32407"
+msgid "Your own key from thetvdb.com. Lucent then uses TheTVDB when TMDB has no description of an episode or series. Empty = off."
+msgstr "Je eigen sleutel van thetvdb.com. Dan gebruikt Lucent TheTVDB als TMDB geen beschrijving van een aflevering of serie heeft. Leeg = uit."
+
+msgctxt "#32408"
+msgid "The PIN of your TheTVDB subscription, when your key needs one. It is not shown."
+msgstr "De pincode van je TheTVDB-abonnement, als je sleutel daarom vraagt. Hij wordt niet getoond."
+
+msgctxt "#32409"
+msgid "Checks whether TheTVDB accepts your key and PIN."
+msgstr "Controleert of TheTVDB je sleutel en pincode accepteert."

@@ -1166,3 +1166,31 @@ msgstr ""
 msgctxt "#32406"
 msgid "Which Claude model translates. Empty = the default model."
 msgstr ""
+
+msgctxt "#32237"
+msgid "TheTVDB API key"
+msgstr ""
+
+msgctxt "#32238"
+msgid "TheTVDB PIN (subscription)"
+msgstr ""
+
+msgctxt "#32239"
+msgid "TheTVDB (spare source of text)"
+msgstr ""
+
+msgctxt "#32240"
+msgid "Test TheTVDB"
+msgstr ""
+
+msgctxt "#32407"
+msgid "Your own key from thetvdb.com. Lucent then uses TheTVDB when TMDB has no description of an episode or series. Empty = off."
+msgstr ""
+
+msgctxt "#32408"
+msgid "The PIN of your TheTVDB subscription, when your key needs one. It is not shown."
+msgstr ""
+
+msgctxt "#32409"
+msgid "Checks whether TheTVDB accepts your key and PIN."
+msgstr ""
