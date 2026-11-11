@@ -54,7 +54,8 @@ def put(params, titles, content, size=0):
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, _key(params) + ".json")
     with open(path + ".tmp", "w", encoding="utf-8") as handle:
-        json.dump({"at": time.time(), "titles": [_slim(t) for t in titles], "content": content, "size": size}, handle)
+        json.dump({"at": time.time(), "titles": [_slim(t) for t in titles], "content": content, "size": size,
+                   "params": {k: v for k, v in params.items() if k not in ("reload", "page")}, "used": time.time()}, handle)
     os.replace(path + ".tmp", path)
 
 
@@ -85,6 +86,42 @@ def mark_old(account_only=False):
     bump()
 
 
+def warm():
+    """Service, shortly after Kodi starts: rows that were on Home this week and are old are fetched now, so Home
+    shows fresh rows at once instead of fetching while you look. One new property value at the end."""
+    folder = _folder()
+    try:
+        names = [n for n in os.listdir(folder) if n.endswith(".json")]
+    except OSError:
+        return
+    import router
+    changed = False
+    for name in names:
+        if util.video_playing():
+            util.log("Home rows: a video started, the rest waits")
+            break
+        try:
+            with open(os.path.join(folder, name), encoding="utf-8") as handle:
+                entry = json.load(handle)
+        except (OSError, ValueError):
+            continue
+        params = entry.get("params")
+        if not params or time.time() - entry.get("used", entry.get("at", 0)) > 7 * 86400:
+            continue
+        size = entry.get("size") or 0
+        if not is_old(params, entry, size):
+            continue
+        try:
+            titles, content, _more = router.gather_row(params, size)
+        except Exception as error:      # noqa: BLE001 - the row is fetched when Home asks for it
+            util.log("warm %s: %s" % (params.get("name"), type(error).__name__))
+            continue
+        if titles:
+            changed = changed or not same(entry, titles, content)
+            put(params, titles, content, size)
+    if changed:
+        bump()
+    util.log("Home rows ready")
 
 
 def refresh_all():

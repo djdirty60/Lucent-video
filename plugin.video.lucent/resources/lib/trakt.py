@@ -95,9 +95,7 @@ def call(path, data=None, method=None, auth=True, retry=True):
 # watched shows with extended=progress (100 per page at most). Without these every series looked unwatched.
 WATCHED_SHOWS = "sync/watched/shows?extended=progress"
 SHOWS_ONLY = "sync/watched/shows?extended=noseasons"
-# Since April 2026 the watchlist, collection and list items also give only 100 without paging (Trakt discussion #681).
-PAGED = {"sync/watched/movies": 250, WATCHED_SHOWS: 100, SHOWS_ONLY: 250, "sync/playback": 250,
-         "sync/watchlist/movies": 250, "sync/watchlist/shows": 250, "sync/collection/movies": 250, "sync/collection/shows": 250}
+PAGED = {"sync/watched/movies": 250, WATCHED_SHOWS: 100, SHOWS_ONLY: 250, "sync/playback": 250}
 
 
 def cached(path, ttl=300):
@@ -355,7 +353,7 @@ def scrobble(state, meta, percent):
 
 def forget_lists():
     for path in ("sync/watched/movies", WATCHED_SHOWS, SHOWS_ONLY, "sync/playback", "sync/watchlist/movies",
-                 "sync/watchlist/shows", "sync/collection/movies", "sync/collection/shows"):
+                 "sync/watchlist/shows"):
         util.cache_drop("trakt" + path)
     util.cache_drop("nextup")
 

@@ -42,8 +42,6 @@ def send(handle, rows, content="", more=None):
     xbmcplugin.addDirectoryItems(handle, rows, len(rows))
     if content:
         xbmcplugin.setContent(handle, content)
-    else:                                       # a menu: in the order Lucent gives, no 'Date' or 'Name' sorting
-        xbmcplugin.addSortMethod(handle, xbmcplugin.SORT_METHOD_NONE)
     xbmcplugin.endOfDirectory(handle, cacheToDisc=False)
 
 
@@ -121,7 +119,6 @@ def _action(label, url, icon="DefaultAddonProgram.png"):
     item = xbmcgui.ListItem(label, offscreen=True)
     item.setArt({"icon": icon, "thumb": icon})
     item.setProperty("IsPlayable", "false")
-    items.menu_look(item, url)
     return url, item, False
 
 
@@ -202,7 +199,7 @@ def trakt_menu(handle, _params):
     rows = [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
     if tracker.has_lists():
         rows.append(items.folder(T("Mijn eigen lijsten", "My own lists"), util.url_for(action="traktlists", kind="mine")))
-        rows.append(items.folder(T("Lijsten die je leuk vindt", "Liked lists"), util.url_for(action="traktlists", kind="liked")))
+        rows.append(items.folder(T("Gelikete lijsten", "Liked lists"), util.url_for(action="traktlists", kind="liked")))
         rows.append(items.folder(T("Openbare lijsten", "Public lists"), util.url_for(action="publiclists")))
     if mdblist.available():
         rows.append(items.folder("MDBList", util.url_for(action="mdblistmenu")))
@@ -282,7 +279,7 @@ def floppy_lists(handle, _params):
 
 def mdblist_menu(handle, _params):
     send(handle, [items.folder(label, util.url_for(action="mdblists", kind=kind)) for label, kind in
-                  ((T("Mijn lijsten", "My lists"), "mine"), (T("Lijsten die je leuk vindt", "Liked lists"), "liked"), (T("Toplijsten", "Top lists"), "top"), (T("Lijst zoeken", "Search lists"), "search"))])
+                  ((T("Mijn lijsten", "My lists"), "mine"), (T("Gelikete lijsten", "Liked lists"), "liked"), (T("Toplijsten", "Top lists"), "top"), (T("Lijst zoeken", "Search lists"), "search"))])
 
 
 def mdblists(handle, params):
@@ -651,13 +648,6 @@ def set_watched(params):
     xbmc.executebuiltin("Container.Refresh")
 
 
-def _action_of(command):
-    """The action=... of a RunPlugin/PlayMedia/Container.Update command, or ''."""
-    import urllib.parse
-    inner = command[command.find("(") + 1:-1]
-    return dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(inner).query)).get("action", "")
-
-
 def title_menu(params):
     """All of Lucent Video's options for one title, as one menu (for a '...' button on the skin's info page; works for
     titles from other add-ons too): choose source, ready for tonight, watched, intro, library and lists, trailer, cast,
@@ -676,12 +666,6 @@ def title_menu(params):
     entries = items.context(meta, seen)
     if meta["kind"] in ("movie", "tvshow"):
         entries.insert(0, (T("Bibliotheek en lijsten", "Library and lists"), "RunPlugin(%s)" % util.url_for(action="lists", type=meta["kind"], tmdb=meta["tmdb"])))
-        if params.get("all") != "1":
-            # the info page already has buttons for these (Library and lists covers watchlist and library):
-            # 'More' only shows what is not on the page yet
-            on_page = {"lists", "watched", "watchlist", "trailer", "cast_popup", "library_add", "library_remove"}
-            trailer = lambda command: command.startswith("PlayMedia(") and "select=1" not in command     # noqa: E731
-            entries = [entry for entry in entries if _action_of(entry[1]) not in on_page and not trailer(entry[1])]
     picked = xbmcgui.Dialog().contextmenu([label for label, _command in entries])
     if picked >= 0:
         command = entries[picked][1]
