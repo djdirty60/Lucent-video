@@ -166,6 +166,7 @@ def details(kind, tmdb_id):
         "studios": [s["name"] for s in (raw.get("production_companies") or raw.get("networks") or [])[:3]],
         "runtime": (raw.get("runtime") if movie else runtimes[0]) or 0,
         "seasons": [s for s in raw.get("seasons") or [] if s.get("season_number", 0) > 0],
+        "specials": next((s for s in raw.get("seasons") or [] if s.get("season_number") == 0 and s.get("episode_count")), None),
         "episodes": raw.get("number_of_episodes") or 0,
         "status": "" if movie else show_status(raw.get("status")),
         "tvdb": str((raw.get("external_ids") or {}).get("tvdb_id") or ""),

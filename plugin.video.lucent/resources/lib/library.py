@@ -258,7 +258,10 @@ def _load_show(row):
     if not show:
         return tmdb_id, None, []
     seasons, complete = [], True
-    for entry in show["seasons"]:
+    wanted = list(show["seasons"])
+    if show.get("specials") and util.setting("library_specials").lower() != "false":
+        wanted.append(show["specials"])             # season 0: extras, making-ofs and specials
+    for entry in wanted:
         try:
             seasons += [e for e in tmdb.season(tmdb_id, entry["season_number"]).get("episodes") or [] if tmdb.aired(e.get("air_date"))]
         except util.HttpError:
@@ -285,7 +288,7 @@ def write_show(tmdb_id, show, episodes, folder, added, skips, seen=None):
     for raw in episodes:
         if kept_out(skips, tmdb_id, raw["season_number"], raw["episode_number"]):
             continue
-        season_dir = "Season %02d" % raw["season_number"]
+        season_dir = "Specials" if raw["season_number"] == 0 else "Season %02d" % raw["season_number"]
         name = "%s - S%02dE%02d" % (folder, raw["season_number"], raw["episode_number"])
         os.makedirs(os.path.join(root, season_dir), exist_ok=True)
         strm = util.url_for(action="play", type="episode", tmdb=tmdb_id, season=raw["season_number"],
@@ -789,7 +792,7 @@ def skip(tmdb_id, season, episode=None):
     util.save_json(SKIPS, skips)
     folder = util.load_json(FOLDERS, {}).get("show:%s" % tmdb_id)
     if folder:
-        season_dir = os.path.join(SHOWS, folder, "Season %02d" % season)
+        season_dir = os.path.join(SHOWS, folder, "Specials" if season == 0 else "Season %02d" % season)
         if episode in (None, ""):
             shutil.rmtree(season_dir, ignore_errors=True)
             _remove_from_kodi(season_dir)

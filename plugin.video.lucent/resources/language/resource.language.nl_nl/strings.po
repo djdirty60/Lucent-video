@@ -1194,3 +1194,11 @@ msgstr "De pincode van je TheTVDB-abonnement, als je sleutel daarom vraagt. Hij 
 msgctxt "#32409"
 msgid "Checks whether TheTVDB accepts your key and PIN."
 msgstr "Controleert of TheTVDB je sleutel en pincode accepteert."
+
+msgctxt "#32241"
+msgid "Also add specials (season 0)"
+msgstr "Ook specials toevoegen (seizoen 0)"
+
+msgctxt "#32410"
+msgid "Extras and specials of a series (TMDB's season 0) also go into the library, in the folder Specials."
+msgstr "Extra afleveringen en specials van een serie (seizoen 0 bij TMDB) komen ook in de bibliotheek, in de map Specials."
