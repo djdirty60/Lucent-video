@@ -88,8 +88,11 @@ def _hash(row):
 
 def fetch(meta, name="CocoScrapers"):
     """Returns None when the pack or a debrid service is missing, else a list of sources."""
-    if not installed(name) or not debrid.active() or not meta.get("imdb"):
+    if not installed(name) or not debrid.active():
         return None
+    if not meta.get("imdb"):                # set up, but this title has no IMDb number: no results, not 'not set up'
+        util.log("%s: no IMDb number for this title" % name)
+        return []
     try:
         providers = _providers(name)
     except Exception as error:                              # a broken pack must never stop Lucent

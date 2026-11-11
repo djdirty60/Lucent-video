@@ -103,11 +103,15 @@ def search(meta):
     _reset_live()
     main = [n for n in order if not per.get(n, {}).get("fallback")]
     spare = [n for n in order if per.get(n, {}).get("fallback")]
-    found, answered, unset = _run(main, profile, meta) if main else ([], False, False)
+    found, answered, unset = _run(main, profile, meta) if main else ([], False, True)
     if not found and spare:
-        extra, answered_spare, _ = _run(spare, profile, meta)
-        found, answered = extra, answered or answered_spare
+        extra, answered_spare, unset_spare = _run(spare, profile, meta)
+        found, answered, unset = extra, answered or answered_spare, unset and unset_spare
+    elif spare:
+        unset = False                      # the reserve scrapers did not run, so they may well be set up
     if not answered and not found:
+        # 'address' (= 'set up a scraper first') only when not one scraper, main or reserve, is set up
+        util.log("search: no answer (%s)" % ("nothing set up" if unset else "scrapers did not answer"))
         return None, "address" if unset else "failed"
     import learn
     fitting = subcheck.mark(subtitles, found)          # before ranking, so the order of sources can use NL-SUBS
