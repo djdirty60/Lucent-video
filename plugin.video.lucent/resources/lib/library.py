@@ -125,7 +125,8 @@ def movie_nfo(meta, added):
 
 
 def show_nfo(show):
-    return HEAD + "<tvshow>\n" + base_block(show) + "</tvshow>\n"
+    # <status>: Ended, Continuing, Cancelled or In production. A changed .nfo is refreshed, so existing series get it too.
+    return HEAD + "<tvshow>\n" + base_block(show) + tag("status", show.get("status")) + "</tvshow>\n"
 
 
 def episode_nfo(show, raw, added):
