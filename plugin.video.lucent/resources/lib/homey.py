@@ -17,7 +17,10 @@ TAGS = ("start", "pauze", "verder", "einde", "test")
 
 
 def address():
-    return util.setting("homey_address").strip()
+    """The Homey ID or IP address; a pasted webhook link gives its ID."""
+    value = util.setting("homey_address").strip().strip("/")
+    found = re.search(r"webhook\.homey\.app/([^/?#\s]+)", value)
+    return found.group(1) if found else value.replace(" ", "")
 
 
 def url_for(tag):
@@ -31,15 +34,24 @@ def url_for(tag):
 
 
 def _send(tag):
+    """True when Homey took the signal (any 2xx). Homey answers with plain text, not JSON, so only the status counts.
+    Returns (ok, reason) - the reason never holds the address."""
+    import urllib.error
+    import urllib.request
     url = url_for(tag)
     if not url:
-        return False
+        return False, ""
+    request = urllib.request.Request(url, headers={"User-Agent": "Lucent-Video"})
     try:
-        util.http(url, timeout=5)
-        return True
-    except util.HttpError as error:
-        util.log("Homey %s: %s" % (tag, error))       # never the address: it holds your Homey ID
-        return False
+        with urllib.request.urlopen(request, timeout=6) as response:
+            response.read(512)
+            return 200 <= response.status < 300, str(response.status)
+    except urllib.error.HTTPError as error:
+        util.log("Homey %s: HTTP %s" % (tag, error.code))
+        return False, "HTTP %s" % error.code
+    except (urllib.error.URLError, OSError, ValueError) as error:
+        util.log("Homey %s: %s" % (tag, type(error).__name__))
+        return False, type(error).__name__
 
 
 def signal(tag):
@@ -55,12 +67,22 @@ def check():
     if not address():
         return xbmcgui.Dialog().ok("Homey", T("Vul eerst je Homey-ID of het IP-adres van je Homey Pro in.",
                                               "Enter your Homey ID or the IP address of your Homey Pro first."))
-    if _send("test"):
+    ok, reason = _send("test")
+    if ok:
         return xbmcgui.Dialog().ok("Homey", T("Homey heeft het seintje ontvangen. Maak in Homey een Flow met de kaart "
                                               "'Webhook', event 'lucent'. De tag is start, pauze, verder of einde.",
                                               "Homey received the signal. Make a Flow in Homey with the card 'Webhook', "
                                               "event 'lucent'. The tag is start, pauze, verder or einde."))
-    return xbmcgui.Dialog().ok(T("Niet gelukt", "Failed"), T("Homey gaf geen antwoord. Controleer het Homey-ID (of het IP-adres) "
-                                                              "en of Homey aan staat.",
-                                                              "Homey did not answer. Check the Homey ID (or the IP address) "
-                                                              "and that Homey is on."))
+    if reason.startswith("HTTP 404"):
+        text = T("Homey kent dit adres niet (code 404). Controleer het Homey-ID. Bij een IP-adres: alleen een Homey Pro "
+                 "(2023 of nieuwer) of Homey Pro mini heeft lokale webhooks.",
+                 "Homey does not know this address (code 404). Check the Homey ID. With an IP address: only a Homey Pro "
+                 "(2023 or newer) or Homey Pro mini has local webhooks.")
+    elif reason.startswith("HTTP"):
+        text = T("Homey weigerde het seintje (%s). Controleer het Homey-ID of het IP-adres.", "Homey refused the signal (%s). "
+                 "Check the Homey ID or the IP address.") % reason
+    else:
+        text = T("Geen verbinding met Homey (%s). Controleer het Homey-ID of het IP-adres, en of Homey aan staat en in "
+                 "hetzelfde netwerk zit.", "No connection with Homey (%s). Check the Homey ID or the IP address, and that "
+                 "Homey is on and in the same network.") % reason
+    return xbmcgui.Dialog().ok(T("Niet gelukt", "Failed"), text)
