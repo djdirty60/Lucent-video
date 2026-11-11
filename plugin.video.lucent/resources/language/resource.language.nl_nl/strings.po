@@ -1282,3 +1282,59 @@ msgstr "Regels in 'Bibliotheek en lijsten'"
 msgctxt "#32417"
 msgid "Choose which lists show in the window 'Library and lists'. A list a title is already on always shows, so you can take it off."
 msgstr "Kies welke lijsten in het venster 'Bibliotheek en lijsten' staan. Staat een titel al op een lijst, dan zie je die lijst altijd, zodat je hem er weer af kunt halen."
+
+msgctxt "#32255"
+msgid "TorBox"
+msgstr "TorBox"
+
+msgctxt "#32256"
+msgid "Real-Debrid"
+msgstr "Real-Debrid"
+
+msgctxt "#32257"
+msgid "AllDebrid"
+msgstr "AllDebrid"
+
+msgctxt "#32258"
+msgid "Premiumize"
+msgstr "Premiumize"
+
+msgctxt "#32259"
+msgid "WeTrakr (next to your account)"
+msgstr "WeTrakr (naast je account)"
+
+msgctxt "#32260"
+msgid "Linked with WeTrakr as"
+msgstr "Gekoppeld met WeTrakr als"
+
+msgctxt "#32261"
+msgid "Link WeTrakr account"
+msgstr "WeTrakr-account koppelen"
+
+msgctxt "#32262"
+msgid "Unlink WeTrakr account"
+msgstr "WeTrakr-account loskoppelen"
+
+msgctxt "#32418"
+msgid "The WeTrakr account that also gets what you watch."
+msgstr "Het WeTrakr-account dat ook krijgt wat je kijkt."
+
+msgctxt "#32419"
+msgid "Link WeTrakr with a code on your phone. Trakt stays your main account; WeTrakr also gets what you watch, ratings and 'watched'."
+msgstr "Koppel WeTrakr met een code op je telefoon. Trakt blijft je hoofdaccount; WeTrakr krijgt ook wat je kijkt, je beoordelingen en 'bekeken'."
+
+msgctxt "#32420"
+msgid "Removes the WeTrakr link from this device."
+msgstr "Haalt de koppeling met WeTrakr weg van dit apparaat."
+
+msgctxt "#32263"
+msgid "Gemini"
+msgstr "Gemini"
+
+msgctxt "#32264"
+msgid "OpenRouter"
+msgstr "OpenRouter"
+
+msgctxt "#32265"
+msgid "Claude"
+msgstr "Claude"

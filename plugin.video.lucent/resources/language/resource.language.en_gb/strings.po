@@ -1282,3 +1282,59 @@ msgstr ""
 msgctxt "#32417"
 msgid "Choose which lists show in the window 'Library and lists'. A list a title is already on always shows, so you can take it off."
 msgstr ""
+
+msgctxt "#32255"
+msgid "TorBox"
+msgstr ""
+
+msgctxt "#32256"
+msgid "Real-Debrid"
+msgstr ""
+
+msgctxt "#32257"
+msgid "AllDebrid"
+msgstr ""
+
+msgctxt "#32258"
+msgid "Premiumize"
+msgstr ""
+
+msgctxt "#32259"
+msgid "WeTrakr (next to your account)"
+msgstr ""
+
+msgctxt "#32260"
+msgid "Linked with WeTrakr as"
+msgstr ""
+
+msgctxt "#32261"
+msgid "Link WeTrakr account"
+msgstr ""
+
+msgctxt "#32262"
+msgid "Unlink WeTrakr account"
+msgstr ""
+
+msgctxt "#32418"
+msgid "The WeTrakr account that also gets what you watch."
+msgstr ""
+
+msgctxt "#32419"
+msgid "Link WeTrakr with a code on your phone. Trakt stays your main account; WeTrakr also gets what you watch, ratings and 'watched'."
+msgstr ""
+
+msgctxt "#32420"
+msgid "Removes the WeTrakr link from this device."
+msgstr ""
+
+msgctxt "#32263"
+msgid "Gemini"
+msgstr ""
+
+msgctxt "#32264"
+msgid "OpenRouter"
+msgstr ""
+
+msgctxt "#32265"
+msgid "Claude"
+msgstr ""

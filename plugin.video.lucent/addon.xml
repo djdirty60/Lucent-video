@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="0.34.3" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.35.0" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -78,7 +78,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt. Werkt zonder Seren.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.34.3: Choose which lists show in "Library and lists" (row "Choose lists…" in the window, or Settings > General). A list the title is already on always shows.
+        <news>0.35.0: WeTrakr next to Trakt: link it in Settings > Account; what you watch, "watched" and ratings also go to WeTrakr. In the settings every debrid service (and every AI service) has its own block with its name above it.
+0.34.3: Choose which lists show in "Library and lists" (row "Choose lists…" in the window, or Settings > General). A list the title is already on always shows.
 0.34.2: The pause cards wait until the player menu is closed. The subtitle window has a row "Two languages at once".
 0.34.1: "Reset resume position" in the Kodi library now also forgets the point on Trakt and in Lucent, so it no longer comes back after a restart.
 0.34.0: Six new things.
@@ -87,9 +88,7 @@
 - Previous time on: after three weeks or more, a short summary of the two episodes before, while Lucent looks for sources.
 - Homey cinema mode: start, pause, go on and end go to a Homey Flow (Webhook "lucent").
 - What did they say? 10 seconds back with the subtitle on for a moment, on a key you choose.
-- Two subtitles at once: yours with English under it.
-0.33.13: "Set up a scraper first" only when really no scraper is set up: not when a reserve scraper (like AIOStreams) did not answer, and not when CocoScrapers finds a title without an IMDb number.
-0.33.12: Specials (season 0) of your series also go into the Kodi library, in the folder Specials (setting in Library, on by default).</news>
+- Two subtitles at once: yours with English under it.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

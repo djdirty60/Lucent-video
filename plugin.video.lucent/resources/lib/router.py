@@ -879,6 +879,12 @@ def run(argv):
             return xbmcgui.Dialog().ok("TorBox" if ok else T("Niet gelukt", "Failed"), text)
         if action == "test_floppy":
             return check_service(floppy, "Floppy")
+        if action == "wetrakr_login":
+            import wetrakr
+            return wetrakr.login()
+        if action == "wetrakr_logout":
+            import wetrakr
+            return wetrakr.logout()
         if action == "lists_choose":
             import lists
             return lists.choose()

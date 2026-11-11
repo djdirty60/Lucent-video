@@ -127,6 +127,9 @@ def rate(kind, tmdb_id, value, send=True):
     rows = util.load_json(ROWS, {})
     rows["at"] = 0
     util.save_json(ROWS, rows)
+    if send and value is not None:
+        import wetrakr
+        wetrakr.rate(kind, tmdb_id, {2: 9, 1: 7, -1: 3}[value])
     if send and value is not None and util.setting("kompas_trakt").lower() != "false" and tracker.active() is not None and tracker.name() == "Trakt":
         import trakt
         bucket = "movies" if kind == "movie" else "shows"

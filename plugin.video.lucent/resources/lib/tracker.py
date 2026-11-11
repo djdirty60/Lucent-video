@@ -203,6 +203,8 @@ def set_watched(meta, watched):
         account.set_watched(meta, watched)
     else:
         mark_local(meta, watched)
+    import wetrakr
+    wetrakr.watched(meta, watched)
     util.cache_drop("nextup")
 
 
@@ -242,6 +244,8 @@ def scrobble(state, meta, percent, position=0, total=0):
     if account:
         account.scrobble(state, meta, percent)
     floppy.scrobble(state, meta, position, total)
+    import wetrakr
+    wetrakr.scrobble(state, meta, percent, total)
 
 
 def tidy_watchlist(meta):
