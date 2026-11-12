@@ -28,6 +28,8 @@ def fill_tag(item, meta, playcount=None, resume=None, last_played="", default_id
     kind = meta["kind"]
     tag.setMediaType({"movie": "movie", "tvshow": "tvshow", "season": "season", "episode": "episode"}[kind])
     tag.setTitle(_plain(meta.get("title")))
+    if meta.get("original_title") and meta["original_title"] != meta.get("title"):
+        tag.setOriginalTitle(meta["original_title"])
     tag.setPlot(_plain(meta.get("plot")))
     tag.setTagLine(_plain(meta.get("reason") or meta.get("tagline")))
     tag.setMpaa(_plain(meta.get("mpaa")))

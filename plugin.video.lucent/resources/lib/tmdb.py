@@ -112,6 +112,31 @@ def _english(raw, field):
     return ""
 
 
+def _latin(text):
+    """True when every letter of the text is in a Latin script (the skin's font has those; it has no Malayalam, Thai,
+    Chinese, Arabic and the like: those letters show as 'NO GLYPH' blocks)."""
+    import unicodedata
+    for char in text or "":
+        if char.isalpha() and "LATIN" not in unicodedata.name(char, ""):
+            return False
+    return True
+
+
+def readable_title(raw, field):
+    """The title in your language; when TMDB has no translation and gives the original in a non-Latin script, the
+    English title instead (and the original one stays as original title)."""
+    title = raw.get(field) or ""
+    if _latin(title):
+        return title
+    english = _english(raw, field)
+    if english and _latin(english):
+        return english
+    for row in ((raw.get("alternative_titles") or {}).get("titles") or (raw.get("alternative_titles") or {}).get("results") or []):
+        if row.get("iso_3166_1") in ("US", "GB") and row.get("title") and _latin(row["title"]):
+            return row["title"]
+    return title
+
+
 # Series status in four words: Ended, Continuing, Cancelled or In production (the skin shows them with a colour).
 SHOW_STATUS = {"ended": "Ended", "returning series": "Continuing", "canceled": "Cancelled", "cancelled": "Cancelled",
                "in production": "In production", "planned": "In production", "pilot": "In production"}
@@ -147,7 +172,7 @@ def details(kind, tmdb_id):
         "kind": kind,
         "tmdb": str(raw["id"]),
         "imdb": raw.get("imdb_id") or (raw.get("external_ids") or {}).get("imdb_id") or "",
-        "title": raw.get("title" if movie else "name") or "",
+        "title": readable_title(raw, "title" if movie else "name"),
         "original_title": raw.get("original_title" if movie else "original_name") or "",
         "year": _year(date),
         "premiered": date,
@@ -364,7 +389,7 @@ def season(tmdb_id, number):
         return filled
     data = get("tv/%s/season/%s" % (tmdb_id, number), ttl=6 * 3600)
     rows = data.get("episodes") or []
-    if util.NL and (not data.get("overview") or any(not row.get("overview") for row in rows)):
+    if util.NL and (not data.get("overview") or any(not row.get("overview") or not _latin(row.get("name")) for row in rows)):
         try:
             english = get("tv/%s/season/%s" % (tmdb_id, number), ttl=6 * 3600, language="en-US")
         except util.HttpError as error:
@@ -376,7 +401,8 @@ def season(tmdb_id, number):
             if not row.get("overview") and other.get("overview"):
                 row["overview"] = other["overview"]
             import tvdb
-            if (not row.get("name") or tvdb._generic(row["name"])) and other.get("name") and not tvdb._generic(other["name"]):     # noqa: SLF001
+            if (not row.get("name") or tvdb._generic(row["name"]) or not _latin(row["name"])) and other.get("name") \
+                    and not tvdb._generic(other["name"]) and _latin(other["name"]):     # noqa: SLF001
                 row["name"] = other["name"]
         if not data.get("overview"):
             data["overview"] = english.get("overview") or ""
