@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="0.38.4" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.38.5" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -79,12 +79,12 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.38.4: Titles without a translation in your language and in a non-Latin script (Malayalam, Thai, Chinese, Arabic …) show the English title instead of NO GLYPH blocks; the original stays as original title. Same for episode names.
+        <news>0.38.5: New list "Continue and next up" (action=list&amp;name=watching): what you stopped halfway and the next episode of each series you watch in one row, newest first, one item per series.
+0.38.4: Titles without a translation in your language and in a non-Latin script (Malayalam, Thai, Chinese, Arabic …) show the English title instead of NO GLYPH blocks; the original stays as original title. Same for episode names.
 0.38.3: New episodes no longer come a day early: an American episode airs there in the evening, the next day here. Series from America now count from the day after the air date (library, calendar, next up, messages). Setting under Library.
 0.38.2: Pausing never sends anything to TheIntroDB. Adding a missing intro is now a button of its own (action=intro_mark on the player screen): press it where the intro begins and where it ends.
 0.38.1: Skip intro has all of TheIntroDB's functions now: the credits too (with an episode that ends with them the button becomes Next episode), how long the button stays, landing a little later or earlier, a Wrong button to report bad times, and adding a missing intro (the last two with your own key).
-0.38.0: Skip intro is built in: with TheIntroDB's data Lucent shows a card at the bottom right for the intro, the recap and the preview, with Skip and Watch. Per part: off, a button, or by itself with a countdown. The separate TheIntroDB add-on is not needed any more: Lucent asks once to switch it off and takes over its settings.
-0.37.1: Similar series on the info page of skin 2.0 open as series again (the skin asks with type=tv).</news>
+0.38.0: Skip intro is built in: with TheIntroDB's data Lucent shows a card at the bottom right for the intro, the recap and the preview, with Skip and Watch. Per part: off, a button, or by itself with a countdown. The separate TheIntroDB add-on is not needed any more: Lucent asks once to switch it off and takes over its settings.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

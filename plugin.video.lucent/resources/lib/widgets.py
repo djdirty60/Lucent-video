@@ -14,7 +14,7 @@ import time
 import util
 
 PROPERTY = "lucent.video.widgets"
-ACCOUNT = ("continue", "continue_movie", "continue_episode", "nextup", "watchlist_movie", "watchlist_tv", "collection_movie",
+ACCOUNT = ("continue", "continue_movie", "continue_episode", "nextup", "watching", "watchlist_movie", "watchlist_tv", "collection_movie",
            "collection_tv", "traktlist", "floppylist", "mdblist", "calendar", "tonight", "alerts", "new_seasons", "marathon", "coming_watchlist")
 ACCOUNT_AGE = 30 * 60
 OTHER_AGE = 6 * 3600
