@@ -36,6 +36,8 @@ def tags_of(source):
             tags.add(tag)
     if tags & {"fel", "p7", "dv2"}:
         tags.add("dv")
+    if tags & {"fel", "p7"}:
+        tags.add("hdr")                     # Dolby Vision profile 7 always has an HDR10 base layer
     if tags & {"hdr10plus"}:
         tags.add("hdr")
     tags.add({"4K": "4k", "1440p": "1440p", "1080p": "1080p", "720p": "720p"}.get(source.get("resolution"), "sd"))
@@ -225,22 +227,80 @@ def _size_key(rule_id, source):
     return -(source.get("size") or 0) if rule_id == "largest" else (source.get("size") or 0)
 
 
-def _points(order, tags):
-    """Points of one group: the best match counts in full, every other match for half. A rule higher in the group is
-    worth more (the top one 10, the last one a little)."""
-    n = len(order)
-    found = [10.0 * (n - pos) / n for pos, rule in enumerate(order) if _match(rule, tags)]
+# Points per choice, from the research (TRaSH Guides / Vidhin's scores, see 'Bronnen rangschikken van goed naar slecht').
+# Picture adds up (HDR + Dolby Vision + IMAX ...); every other group counts only its best match.
+VALUES = {
+    "visual": {"fel": 200, "p7": 0, "dv2": 1000, "dv": 1000, "hdr10plus": 100, "hdr": 500, "hlg": 0, "sdr": 0, "imax": 300, "10bit": 100},
+    "source": {"remux": 1900, "bluray": 1750, "web": 1650, "hdtv": 500, "dvd": 300, "cam": 0},
+    "audio": {"atmos": 3000, "truehd": 2750, "dtsx": 4500, "dtsma": 2500, "dtshd": 2000, "dts": 1250, "ddplus": 1750, "dd": 750,
+              "aac": 1000, "opus": 250},
+    "speed": {"cached": 1000, "uncached": 0},
+    "language": {"nl": 1000, "nlsubs": 800, "multi": 500},
+    "channels": {"71": 100, "51": 100, "20": 0},
+    "codec": {"hevc": 100, "av1": 0, "avc": 50},
+}
+SCALE = {"visual": 1500, "source": 1900, "audio": 5000, "speed": 1000, "language": 1000, "channels": 100, "codec": 100}
+STACKS = ("visual",)
+TRUEHD_ATMOS = 5000
+# Red flags: always below every other source (or hidden with the filters).
+RED_GENERATED = re.compile(r"(?:^|[ ._\-\[(])(?:BiTOR|VECTOR|VisionXpert)(?=$|[ ._\-\])])", re.I)
+
+
+def _factor(position):
+    """Your order inside a group still counts: the top choice in full, each step lower 5 % less (at least 55 %)."""
+    return max(0.55, 1.0 - 0.05 * position)
+
+
+def _points(group_id, order, tags):
+    """(points 0..~14, the choice that counted most) of one group."""
+    values = VALUES.get(group_id)
+    if values is None:                                      # a group without values: by place, as before
+        n = len(order)
+        found = [(10.0 * (n - pos) / n, rule) for pos, rule in enumerate(order) if _match(rule, tags)]
+        return (max(found)[0], max(found)[1]) if found else (0.0, None)
+    found = [(values.get(rule, 0) * _factor(pos), rule) for pos, rule in enumerate(order) if _match(rule, tags)]
+    if group_id == "audio" and "atmos" in tags:
+        place = order.index("atmos") if "atmos" in order else len(order)
+        if tags & {"truehd"}:
+            found.append((TRUEHD_ATMOS * _factor(place), "atmos"))
     if not found:
         return 0.0, None
     best = max(found)
-    return best + 0.5 * (sum(found) - best), order[[10.0 * (n - p) / n for p in range(n)].index(best)]
+    total = sum(v for v, _r in found) if group_id in STACKS else best[0]
+    return 10.0 * total / SCALE[group_id], best[1]
 
 
-def _order_key(source, tags, profile, scraper_order):
-    """Smaller sorts first. The group on top decides on its own (usually resolution: 4K always above 1080p). Every
-    other group gives points, a group higher in the list counts more; so Dolby Vision + IMAX + Atmos together beat
-    'only Blu-ray'. Size and scraper only decide between sources with the same points."""
-    key, why, total, tie = [], [], 0.0, []
+def red_flag(source, tags, kind="movie"):
+    """True for what is never the better choice: CAM/TS, upscales, 3D, burned-in subtitles, home-made Dolby Vision or
+    HDR10+, H.264 10-bit, and a 4K or 1080p file far too small for what it says it is."""
+    if tags & {"cam", "upscale", "3d", "hardcoded"}:
+        return True
+    name = source.get("name") or ""
+    if RED_GENERATED.search(name) and tags & {"dv", "hdr10plus"}:
+        return True
+    if "avc" in tags and "10bit" in tags:
+        return True
+    size = source.get("size") or 0
+    if size:
+        floor = {("movie", "4k"): 4.0, ("movie", "1080p"): 1.3, ("episode", "4k"): 1.2, ("episode", "1080p"): 0.35}
+        limit = floor.get(("movie" if kind == "movie" else "episode", "4k" if "4k" in tags else "1080p" if "1080p" in tags else ""))
+        if limit and size < limit * 1073741824:
+            return True
+    return False
+
+
+def _order_key(source, tags, profile, scraper_order, kind="movie"):
+    """Smaller sorts first.
+    1. Red flags always go below everything else.
+    2. The group on top decides on its own (usually resolution: 4K above 1080p; 4K in SDR counts as 1080p).
+    3. Every other group gives points from the research values; a group higher in your list counts more, and inside
+       a group your own order still counts. Picture adds up (Dolby Vision + HDR + IMAX), sound counts its best track
+       (TrueHD Atmos above TrueHD above DD+). So Dolby Vision + IMAX + Atmos beat 'only Blu-ray'.
+    4. Size and scraper only decide between equal points."""
+    flagged = red_flag(source, tags, kind)
+    key, why, total, tie = [1 if flagged else 0], [], 0.0, []
+    if flagged:
+        why.append((T("Rode vlag", "Red flag"), T("Onderaan", "At the bottom")))
     groups = profile["groups"]
     scored = [g for g in groups[1:] if g["id"] not in ("size", "scraper")]
     for number, group in enumerate(groups, 1):
@@ -252,13 +312,16 @@ def _order_key(source, tags, profile, scraper_order):
                 tie.append(_size_key(group["order"][0], source))
             continue
         if number == 1:
-            position = next((n for n, r in enumerate(group["order"]) if _match(r, tags)), len(group["order"]))
+            looked = tags
+            if group["id"] == "resolution" and "4k" in tags and "sdr" in tags and not tags & {"hdr", "dv"}:
+                looked = (tags - {"4k"}) | {"1080p"}               # 4K without HDR: no better than good 1080p
+            position = next((n for n, r in enumerate(group["order"]) if _match(r, looked)), len(group["order"]))
             key.append(position)
             if position < len(group["order"]):
                 why.append((RULES[group["order"][position]][0], T("Regel %d", "Rule %d") % number))
             continue
         weight = len(scored) - scored.index(group)
-        points, best = _points(group["order"], tags)
+        points, best = _points(group["id"], group["order"], tags)
         total += weight * points
         if best:
             why.append((RULES[best][0], T("Regel %d", "Rule %d") % number))
@@ -289,7 +352,7 @@ def apply(sources, profile, kind="movie", scraper_order=None):
         if profile["scrapers"].get("dedupe", True) and fingerprint in seen:
             continue
         seen.add(fingerprint)
-        key, why = _order_key(source, tags, profile, scraper_order)
+        key, why = _order_key(source, tags, profile, scraper_order, kind)
         kept.append((key, position, dict(source, why=why)))
     if profile.get("as_is"):
         kept = [([], row[1], dict(row[2], why=[])) for row in kept]
