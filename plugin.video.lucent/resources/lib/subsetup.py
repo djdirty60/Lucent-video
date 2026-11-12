@@ -99,7 +99,7 @@ def skip_auto():
 def toggle_skip_auto():
     """All three parts by itself, or all three back to a button."""
     value = "1" if skip_auto() else "2"
-    for kind in ("intro", "recap", "preview"):
+    for kind in ("intro", "recap", "preview", "credits"):
         xbmcaddon.Addon(util.ADDON_ID).setSetting("skip_%s" % kind, value)
 
 
@@ -112,7 +112,7 @@ def skip_state():
     if skipper.old_addon_on():
         return T("De losse TheIntroDB-add-on staat nog aan; zolang blijft Lucent's eigen knop uit",
                  "The separate TheIntroDB add-on is still on; until it is off, Lucent's own button stays off")
-    names = {"intro": T("Intro", "Intro"), "recap": T("Terugblik", "Recap"), "preview": T("Preview", "Preview")}
+    names = {"intro": T("Intro", "Intro"), "recap": T("Terugblik", "Recap"), "preview": T("Preview", "Preview"), "credits": T("Aftiteling", "Credits")}
     return "  ·  ".join("%s: %s" % (names[k], _mode_name(v)) for k, v in _modes().items())
 
 
@@ -146,7 +146,8 @@ def skip_actions():
     if skipper.old_addon_on():
         out.append((T("Losse TheIntroDB-add-on uitzetten (instellingen overnemen)", "Switch off the separate TheIntroDB add-on (take over its settings)"),
                     _switch_old_off))
-    names = {"intro": T("Intro", "Intro"), "recap": T("Terugblik ('eerder in...')", "Recap ('previously on...')"), "preview": T("Preview", "Preview")}
+    names = {"intro": T("Intro", "Intro"), "recap": T("Terugblik ('eerder in...')", "Recap ('previously on...')"), "preview": T("Preview", "Preview"),
+             "credits": T("Aftiteling", "Credits")}
     for kind, value in _modes().items():
         out.append(("%s: %s" % (names[kind], _mode_name(value)), lambda k=kind: _cycle(k)))
     out.append((T("Alles in de instellingen", "Everything in the settings"),
@@ -154,12 +155,12 @@ def skip_actions():
     return out
 
 
-INTRO_SKIP = T("Lucent Video weet via TheIntroDB waar de intro, de terugblik ('eerder in...') en de preview van een aflevering beginnen en "
-               "eindigen. Komt er een langs, dan verschijnt rechtsonder een kaartje met 'Overslaan' en 'Kijken'. Per stuk kies je: uit, "
+INTRO_SKIP = T("Lucent Video weet via TheIntroDB waar de intro, de terugblik ('eerder in...'), de aftiteling en de preview van een aflevering of "
+               "film beginnen en eindigen. Komt er een langs, dan verschijnt rechtsonder een kaartje met 'Overslaan' en 'Kijken'. Per stuk kies je: uit, "
                "een knop, of vanzelf (dan telt het kaartje af). Per serie kan het ook: kies 'Intro vanzelf overslaan' in het menu van een serie.[CR]"
                "Een aparte add-on of een API-sleutel is niet nodig.",
-               "Through TheIntroDB, Lucent Video knows where the intro, the recap ('previously on...') and the preview of an episode start "
-               "and end. When one comes along, a card with 'Skip' and 'Watch' appears at the bottom right. Per part you choose: off, a "
+               "Through TheIntroDB, Lucent Video knows where the intro, the recap ('previously on...'), the credits and the preview of an "
+               "episode or film start and end. When one comes along, a card with 'Skip' and 'Watch' appears at the bottom right. Per part you choose: off, a "
                "button, or by itself (the card then counts down). It can also be done per series: choose 'Skip intro by itself' in the "
                "menu of a series.[CR]No separate add-on or API key is needed.")
 

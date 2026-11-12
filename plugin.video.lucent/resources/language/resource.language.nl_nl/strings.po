@@ -1406,5 +1406,45 @@ msgid "How many seconds the card counts down before it skips by itself. Press Wa
 msgstr "Hoeveel seconden het kaartje aftelt voordat het vanzelf overslaat. Druk op Kijken om te blijven."
 
 msgctxt "#32428"
-msgid "Not needed. With your own key from theintrodb.org you may ask more often a day."
-msgstr "Niet nodig. Met een eigen sleutel van theintrodb.org mag je vaker per dag vragen."
+msgid "Not needed. With your own key from theintrodb.org you may ask more often a day, report wrong times and add a missing intro."
+msgstr "Niet nodig. Met een eigen sleutel van theintrodb.org mag je vaker per dag vragen, foute tijden melden en een ontbrekende intro aanmelden."
+
+msgctxt "#32277"
+msgid "Credits"
+msgstr "Aftiteling"
+
+msgctxt "#32278"
+msgid "Button stays (seconds, 0 = until the part is over)"
+msgstr "Knop blijft staan (seconden, 0 = tot het stuk voorbij is)"
+
+msgctxt "#32279"
+msgid "Land a little later or earlier (seconds)"
+msgstr "Iets later of eerder uitkomen (seconden)"
+
+msgctxt "#32280"
+msgid "'Wrong' button (with your own key)"
+msgstr "Knop 'Klopt niet' (met eigen sleutel)"
+
+msgctxt "#32281"
+msgid "Add a missing intro at a pause (with your own key)"
+msgstr "Ontbrekende intro aanmelden bij een pauze (met eigen sleutel)"
+
+msgctxt "#32429"
+msgid "The credits at the end. With an episode that ends with its credits, the button becomes Next episode. Films with a scene after the credits are left alone."
+msgstr "De aftiteling aan het eind. Bij een aflevering die met de aftiteling eindigt, wordt de knop Volgende aflevering. Films met een scène na de aftiteling worden overgeslagen."
+
+msgctxt "#32430"
+msgid "How long the Skip button stays when it does not skip by itself. 0: until the part is over."
+msgstr "Hoe lang de knop Overslaan blijft staan als hij niet vanzelf overslaat. 0: tot het stuk voorbij is."
+
+msgctxt "#32431"
+msgid "TheIntroDB's ends can be a little early or late. Plus: land later, minus: land earlier."
+msgstr "De eindtijden van TheIntroDB kunnen iets te vroeg of te laat zijn. Plus: later uitkomen, min: eerder."
+
+msgctxt "#32432"
+msgid "Times not right? Press Wrong on the card and TheIntroDB hears it. Only with your own TheIntroDB key."
+msgstr "Kloppen de tijden niet? Druk op Klopt niet op het kaartje en TheIntroDB hoort het. Alleen met een eigen TheIntroDB-sleutel."
+
+msgctxt "#32433"
+msgid "When TheIntroDB has no intro yet: pause where the intro begins and where it ends (in the first 10 minutes) and Lucent sends it. Only with your own TheIntroDB key."
+msgstr "Heeft TheIntroDB nog geen intro: pauzeer waar de intro begint en waar hij eindigt (in de eerste 10 minuten) en Lucent stuurt hem op. Alleen met een eigen TheIntroDB-sleutel."

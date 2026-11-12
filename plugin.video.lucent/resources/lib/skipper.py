@@ -18,13 +18,13 @@ import util
 
 T = util.T
 OLD = "plugin.video.tidb"
-KINDS = ("intro", "recap", "preview")
+KINDS = ("intro", "recap", "preview", "credits")
 OFF, BUTTON, AUTO = 0, 1, 2
 ASKED = "skip_migrated.json"
 
 
 def _names():
-    return {"intro": T("Intro", "Intro"), "recap": T("Terugblik", "Recap"), "preview": T("Preview", "Preview")}
+    return {"intro": T("Intro", "Intro"), "recap": T("Terugblik", "Recap"), "preview": T("Preview", "Preview"), "credits": T("Aftiteling", "Credits")}
 
 
 def old_addon_on():
@@ -41,6 +41,22 @@ def mode(kind, meta=None):
         if introskip.series_auto(meta["tmdb"]):
             return AUTO
     return value
+
+
+def offset():
+    """Seconds added to the end of a part when skipping (TheIntroDB's ends can be a little early or late)."""
+    try:
+        return max(-5.0, min(5.0, float(util.setting("skip_offset") or 0)))
+    except ValueError:
+        return 0.0
+
+
+def show_seconds():
+    """How long a button (not 'by itself') stays; 0 = until the part is over."""
+    try:
+        return max(0, int(util.setting("skip_show") or 0))
+    except ValueError:
+        return 0
 
 
 def wait_seconds():
@@ -63,7 +79,7 @@ class Card(dialogs.Base):
         self.setFocusId(10)
 
     def onClick(self, control):
-        self.result = "skip" if control == 10 else "watch"
+        self.result = {10: "skip", 12: "report"}.get(control, "watch")
         self.close()
 
     def onAction(self, action):
@@ -106,6 +122,12 @@ class Watch:
         if not total:
             return
         parts = tidb.segments(meta, total)
+        if "credits" in parts and meta.get("kind") == "movie":
+            import credits
+            if any(credits.stingers(meta["tmdb"])):
+                parts.pop("credits")                        # 'Stay seated' says it there; no skipping past that scene
+        self.parts = parts
+        self.player.skip_parts = parts                       # for adding a missing intro at a pause (Marker)
         todo = sorted((start, end, kind) for kind in wanted for start, end in parts.get(kind) or [])
         if not todo:
             return
@@ -126,23 +148,47 @@ class Watch:
                 if self.monitor.waitForAbort(min(30.0, max(0.5, start - now - 0.3))):
                     return
 
+    def _next_episode(self):
+        """(season, episode) of the next aired episode, or None."""
+        meta = self.meta
+        if meta.get("kind") != "episode":
+            return None
+        import tmdb
+        season, episode = int(meta["season"]), int(meta["episode"])
+        for number, after in ((season, episode), (season + 1, 0)):
+            try:
+                rows = tmdb.season(meta["tmdb"], number).get("episodes") or []
+            except Exception:  # noqa: BLE001
+                rows = []
+            for row in rows:
+                if row.get("episode_number", 0) > after and tmdb.aired(row.get("air_date")):
+                    return number, row["episode_number"]
+        return None
+
     def _offer(self, kind, start, end, total):
-        target = end if end is not None else max(0.0, total - 1)
+        to_end = end is None or end >= total - 15
+        following = self._next_episode() if kind in ("credits", "preview") and to_end else None
+        target = (end if end is not None else total - 1) + offset()
+        target = min(target, total - 1)
         auto = mode(kind, self.meta) == AUTO
         names = _names()
-        props = {"kicker": "%s · %s" % (names[kind], _clock(target - start)), "skip": T("Overslaan", "Skip"), "watch": T("Kijken", "Watch"),
-                 "sub": T("Druk op OK om over te slaan", "Press OK to skip")}
-        seconds = wait_seconds()
+        skip_label = T("Volgende aflevering", "Next episode") if following else T("Overslaan", "Skip")
+        props = {"kicker": "%s · %s" % (names[kind], _clock(target - start)), "skip": skip_label, "watch": T("Kijken", "Watch"),
+                 "sub": T("Druk op OK om over te slaan", "Press OK to skip") if not following else
+                 T("S%dE%d staat klaar", "S%dE%d is ready") % following,
+                 "report": T("Klopt niet", "Wrong") if util.setting("tidb_key") and util.setting("skip_report").lower() != "false" else ""}
+        seconds, shown = wait_seconds(), show_seconds()
         if auto:
             props["sub"] = T("Slaat over in %d sec", "Skips in %d sec") % seconds
         card = dialogs._open(Card, "lucent_skip.xml", props=props)        # noqa: SLF001 - same add-on
         state = {"open": True}
 
         def watch():
-            left = seconds
+            left, gone = seconds, 0
             while state["open"]:
                 if self.monitor.waitForAbort(1) or not self._same():
                     break
+                gone += 1
                 now = self._now()
                 if now is None or now >= target - 1 or now < start - 2:   # the part is over, or you went back
                     break
@@ -152,6 +198,8 @@ class Watch:
                         card.result = "skip"
                         break
                     card.setProperty("sub", T("Slaat over in %d sec", "Skips in %d sec") % left)
+                elif shown and gone >= shown:
+                    break
             if state["open"]:
                 card.close()
 
@@ -161,12 +209,114 @@ class Watch:
         state["open"] = False
         result = card.result
         del card
-        if result == "skip" and self._same():
-            try:
-                self.player.seekTime(target)
-                util.log("skip: %s skipped to %d" % (kind, target))
-            except RuntimeError:
-                pass
+        if result == "report":
+            threading.Thread(target=report, args=(self.meta,), daemon=True).start()
+            return
+        if result != "skip" or not self._same():
+            return
+        if following:
+            self.player.following = {"season": following[0], "episode": following[1]}
+            util.log("skip: %s, on to S%dE%d" % (kind, following[0], following[1]))
+            self.player.play_next(self.meta)
+            return
+        try:
+            self.player.seekTime(target)
+            util.log("skip: %s skipped to %d" % (kind, target))
+        except RuntimeError:
+            pass
+
+
+# ------------------------------------------------------------------ report wrong times, add a missing intro
+def _ids(meta):
+    body = {"type": "movie" if meta.get("kind") == "movie" else "tv", "tmdb_id": int(meta["tmdb"])}
+    if meta.get("kind") == "episode":
+        body.update(season=int(meta["season"]), episode=int(meta["episode"]))
+    return body
+
+
+def _post(path, body):
+    import json
+    import urllib.error
+    import urllib.request
+    request = urllib.request.Request(tidb.API.rsplit("/", 1)[0] + path, data=json.dumps(body).encode("utf-8"), method="POST",
+                                     headers={"Content-Type": "application/json", "Accept": "application/json", "User-Agent": "Lucent-Video",
+                                              "Authorization": "Bearer %s" % util.setting("tidb_key")})
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            response.read()
+            return True, ""
+    except urllib.error.HTTPError as error:
+        try:
+            reason = json.loads(error.read().decode("utf-8")).get("error") or ""
+        except Exception:  # noqa: BLE001
+            reason = ""
+        return False, reason or "HTTP %s" % error.code
+    except Exception as error:      # noqa: BLE001
+        return False, type(error).__name__
+
+
+def report(meta):
+    """'Wrong': tells TheIntroDB the times of this film or episode are not right (needs your own key)."""
+    ok, reason = _post("/flag-vote", _ids(meta))
+    if ok or "already" in reason.lower():
+        util.notify(T("Gemeld bij TheIntroDB. Dank je!", "Reported to TheIntroDB. Thank you!"))
+    else:
+        util.notify(T("Melden lukte niet (%s)", "Reporting failed (%s)") % reason)
+
+
+class Marker:
+    """Adding a missing intro (setting 'skip_submit', needs your own key): pause where the intro begins, then where it
+    ends; Lucent asks both times and sends it to TheIntroDB. Only in the first 10 minutes and when TheIntroDB has no
+    intro for this video yet."""
+    WINDOW = 600
+
+    def __init__(self):
+        self.start, self.done = None, False
+
+    def reset(self):
+        self.start, self.done = None, False
+
+    def paused(self, player, meta, parts):
+        if self.done or not meta or meta.get("kind") not in ("movie", "episode") or (parts or {}).get("intro"):
+            return False
+        if util.setting("skip_submit").lower() != "true" or not util.setting("tidb_key"):
+            return False
+        try:
+            now, total = player.getTime(), player.getTotalTime()
+        except RuntimeError:
+            return False
+        if now > self.WINDOW:
+            return False
+        if self.start is None or now <= self.start:
+            if _ask(T("Intro aanmelden", "Add the intro"), T("Begint de intro hier? (%s)", "Does the intro begin here? (%s)") % _clock(now),
+                    T("Begin markeren", "Mark start")):
+                self.start = now
+                util.notify(T("Begin gemarkeerd. Pauzeer straks waar de intro eindigt.", "Start marked. Pause where the intro ends."))
+            return True
+        length = now - self.start
+        if not _ask(T("Intro aanmelden", "Add the intro"), T("Eindigt de intro hier? (%s, %d sec lang)", "Does the intro end here? (%s, %d sec long)")
+                    % (_clock(now), length), T("Einde markeren", "Mark end")):
+            return True
+        if not 5 <= length <= 200:
+            util.notify(T("Een intro duurt 5 tot 200 seconden. Probeer het opnieuw.", "An intro lasts 5 to 200 seconds. Try again."))
+            self.start = None
+            return True
+        body = dict(_ids(meta), segment="intro", start_sec=round(self.start, 1), end_sec=round(now, 1))
+        if 300 <= total <= 21600:
+            body["video_duration_ms"] = int(total * 1000)
+        ok, reason = _post("/submit", body)
+        util.notify(T("Intro aangemeld bij TheIntroDB. Dank je!", "Intro sent to TheIntroDB. Thank you!") if ok
+                    else T("Aanmelden lukte niet (%s)", "Sending failed (%s)") % reason)
+        self.done, self.start = ok, None
+        return True
+
+
+def _ask(kicker, text, yes):
+    card = dialogs._open(Card, "lucent_skip.xml", props={"kicker": kicker, "sub": text, "skip": yes, "watch": T("Nee", "No"), "report": ""})  # noqa: SLF001
+    card.doModal()
+    result = card.result
+    del card
+    return result == "skip"
 
 
 # ------------------------------------------------------------------ from the separate TheIntroDB add-on
@@ -216,6 +366,13 @@ def take_over():
         else:
             value = BUTTON
         own.setSetting("skip_%s" % kind, str(value))
+    try:
+        own.setSetting("skip_offset", str(max(-5, min(5, int(old.getSetting("skip_offset") or 0)))))
+        own.setSetting("skip_show", str(max(0, int(old.getSetting("button_display_seconds") or 0))))
+    except ValueError:
+        pass
+    own.setSetting("skip_submit", "true" if (old.getSetting("enable_submissions") or "").lower() == "true" else "false")
+    own.setSetting("skip_report", "false" if (old.getSetting("hide_report_button") or "").lower() == "true" else "true")
     key = (old.getSetting("introdb_api_key") or "").strip()
     if key and not util.setting("tidb_key"):
         own.setSetting("tidb_key", key)

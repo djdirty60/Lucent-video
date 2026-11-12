@@ -41,6 +41,9 @@ class Watcher(xbmc.Player):
         self.started_at = 0.0
         self.paused_at = 0.0
         self.recapping = False    # the 'back after a long pause' screen is open: its own pause and play are not events
+        import skipper
+        self.marker = skipper.Marker()  # adding a missing intro to TheIntroDB at a pause
+        self.skip_parts = None
 
     def percent(self):
         return min(100.0, self.position * 100.0 / self.total) if self.total else 0.0
@@ -56,6 +59,8 @@ class Watcher(xbmc.Player):
         self.cinema = False
         self.video_number += 1
         self.started_at, self.paused_at, self.recapping = time.time(), 0.0, False
+        self.marker.reset()
+        self.skip_parts = None
         threading.Thread(target=self._cinema_start, daemon=True).start()
         raw = util.HOME.getProperty(player.HANDOFF)
         if not raw:
@@ -133,7 +138,16 @@ class Watcher(xbmc.Player):
         if getattr(self, "cinema", False):
             import homey
             homey.signal("pauze")
-        self.pauses.paused(self.current)
+        threading.Thread(target=self._paused_extra, args=(self.current,), daemon=True).start()
+
+    def _paused_extra(self, meta):
+        """At a pause: first the chance to add a missing intro (only when switched on), else 'Where do I know them from?'."""
+        try:
+            if self.skip_parts is not None and self.marker.paused(self, meta, self.skip_parts):
+                return
+        except Exception as error:      # noqa: BLE001
+            util.log("intro marker: %s" % type(error).__name__)
+        self.pauses.paused(meta)
 
     def onPlayBackResumed(self):
         if self.recapping:
