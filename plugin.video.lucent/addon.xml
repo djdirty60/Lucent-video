@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="0.37.0" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.37.1" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -78,13 +78,13 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.37.0: Stay seated: when a film has a scene during or after the credits (TMDB), a card says so as the credits begin (TheIntroDB). Homey gets the new tag "aftiteling" at the credits of a film without such a scene, to bring the lights up. Back after a pause of 5 minutes or more: the last lines spoken appear first, with Go on and 30 sec back.
+        <news>0.37.1: Similar series on the info page of skin 2.0 open as series again (the skin asks with type=tv).
+0.37.0: Stay seated: when a film has a scene during or after the credits (TMDB), a card says so as the credits begin (TheIntroDB). Homey gets the new tag "aftiteling" at the credits of a film without such a scene, to bring the lights up. Back after a pause of 5 minutes or more: the last lines spoken appear first, with Go on and 30 sec back.
 0.36.1: Before "Set up a scraper first", Lucent reads your scraper settings a few more times over three seconds: Kodi can hand out an empty setting for a moment while settings are being saved.
 0.36.0: The "One Skip button: Seren or TheIntroDB" choice is gone (it showed twice): TheIntroDB is the one skip button. Every mention of Seren is taken out.
 0.35.9: No more false "Set up a scraper first": when your scrapers are filled in, Lucent searches once more instead, and says so when your profile has them all switched off. The log tells per scraper what it did.
 0.35.8: New setting "Counts as watched from (%)" under Playback (50-100%, 90% as before). Stop earlier and it is not marked as watched: you keep a resume point. Trakt, Simkl, WeTrakr and Floppy follow the same point.
-0.35.7: Homey: the start signal now says what starts: start-film or start-serie, so a Homey Flow can set the room differently for a film and an episode.
-0.35.6: Homey cinema mode: a stream that does not know its length at the very start no longer stops the signals. Lucent waits a few seconds for it before it sends "start".</news>
+0.35.7: Homey: the start signal now says what starts: start-film or start-serie, so a Homey Flow can set the room differently for a film and an episode.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

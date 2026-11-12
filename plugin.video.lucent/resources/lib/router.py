@@ -565,7 +565,7 @@ def gather(params):
     elif name == "provider":
         titles, more = tmdb.newest_on(params["provider"], params.get("type", "all"), page)
     elif name == "similar":
-        kind = params.get("type")
+        kind = "movie" if params.get("type") == "movie" else "tvshow"           # the skin sends type=tv, Lucent type=tvshow
         titles, more = tmdb.listing("%s/%s/recommendations" % ("movie" if kind == "movie" else "tv", params["tmdb"]), kind, page)
     elif name == "continue":
         titles = continue_titles()
