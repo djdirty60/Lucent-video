@@ -225,21 +225,45 @@ def _size_key(rule_id, source):
     return -(source.get("size") or 0) if rule_id == "largest" else (source.get("size") or 0)
 
 
+def _points(order, tags):
+    """Points of one group: the best match counts in full, every other match for half. A rule higher in the group is
+    worth more (the top one 10, the last one a little)."""
+    n = len(order)
+    found = [10.0 * (n - pos) / n for pos, rule in enumerate(order) if _match(rule, tags)]
+    if not found:
+        return 0.0, None
+    best = max(found)
+    return best + 0.5 * (sum(found) - best), order[[10.0 * (n - p) / n for p in range(n)].index(best)]
+
+
 def _order_key(source, tags, profile, scraper_order):
-    """Smaller sorts first."""
-    key, why = [], []
-    for number, group in enumerate(profile["groups"], 1):
+    """Smaller sorts first. The group on top decides on its own (usually resolution: 4K always above 1080p). Every
+    other group gives points, a group higher in the list counts more; so Dolby Vision + IMAX + Atmos together beat
+    'only Blu-ray'. Size and scraper only decide between sources with the same points."""
+    key, why, total, tie = [], [], 0.0, []
+    groups = profile["groups"]
+    scored = [g for g in groups[1:] if g["id"] not in ("size", "scraper")]
+    for number, group in enumerate(groups, 1):
         if group["id"] == "scraper":
-            key.append(scraper_order.index(source.get("scraper")) if source.get("scraper") in scraper_order else 99)
+            tie.append(scraper_order.index(source.get("scraper")) if source.get("scraper") in scraper_order else 99)
             continue
         if group["id"] == "size":
             if group["order"]:
-                key.append(_size_key(group["order"][0], source))
+                tie.append(_size_key(group["order"][0], source))
             continue
-        position = next((n for n, r in enumerate(group["order"]) if _match(r, tags)), len(group["order"]))
-        key.append(position)
-        if position < len(group["order"]):
-            why.append((RULES[group["order"][position]][0], T("Regel %d", "Rule %d") % number))
+        if number == 1:
+            position = next((n for n, r in enumerate(group["order"]) if _match(r, tags)), len(group["order"]))
+            key.append(position)
+            if position < len(group["order"]):
+                why.append((RULES[group["order"][position]][0], T("Regel %d", "Rule %d") % number))
+            continue
+        weight = len(scored) - scored.index(group)
+        points, best = _points(group["order"], tags)
+        total += weight * points
+        if best:
+            why.append((RULES[best][0], T("Regel %d", "Rule %d") % number))
+    key.append(-round(total, 3))
+    key += tie
     wanted = [g.lower() for g in profile["filters"].get("prefer_groups") or []]
     group = release_group(source)
     key.append(0 if group and group.lower() in wanted else 1)
