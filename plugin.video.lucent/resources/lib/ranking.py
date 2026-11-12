@@ -74,11 +74,13 @@ HIDE_CHOICES = ["cam", "upscale", "3d", "av1", "uncached", "hardcoded"]
 STATE_NAMES = {"pref": T("Voorkeur", "Preferred"), "need": T("Verplicht", "Required"), "hide": T("Verbergen", "Hide"), "off": T("Uit", "Off")}
 
 
-def _preset(name, about, rules, hide=None, tags=None, first=None, **limits):
+def _preset(name, about, rules, hide=None, tags=None, first=None, lead=None, **limits):
     filters = {"hide": hide or [], "size_movie": [0, 0], "size_episode": [0, 0], "min_res": "", "max_per_res": 0, "prefer_groups": [], "hide_groups": []}
     filters.update(limits)
     groups = default_groups(rules)
     groups.sort(key=lambda g: 0 if g["id"] == first else 1)
+    if lead:                                    # these groups first, in this order (e.g. picture before source)
+        groups.sort(key=lambda g: lead.index(g["id"]) if g["id"] in lead else len(lead))
     return {"name": name, "about": about, "tags": tags or [], "filters": filters, "groups": groups, "scrapers": {"order": [], "per": {}, "dedupe": True, "wait": 30}}
 
 
@@ -95,9 +97,9 @@ def presets():
     return {
         "aio": dict(_preset(T("Zoals AIOStreams", "As AIOStreams"), T("Niets veranderen aan de volgorde.", "Leave the order alone."), []), as_is=True),
         "fel": _preset(T("FEL eerst", "FEL first"), T("Voor een speler die FEL aankan.", "For a player that handles FEL."), ["4k", "remux", "fel", "p7", "atmos", "truehd", "cached"], ["cam"],
-                       tags=["4K", "Remux", "P7 / FEL", "Atmos"]),
+                       tags=["4K", "Remux", "P7 / FEL", "Atmos"], lead=["resolution", "visual", "source"]),
         "best": _preset(T("Beste kwaliteit", "Best quality"), T("Grootste en mooiste bestand.", "Largest and best file."), ["4k", "remux", "dv", "truehd", "largest"], ["cam", "upscale"],
-                        tags=["4K", "Remux", "DV", T("Lossless geluid", "Lossless sound")]),
+                        tags=["4K", "Remux", "DV", T("Lossless geluid", "Lossless sound")], lead=["resolution", "visual", "source"]),
         "small": _preset(T("Snel en zuinig", "Fast and small"), T("Kleine bestanden, start snel.", "Small files, quick to start."), ["1080p", "web", "cached", "smallest"], ["cam"],
                          tags=["1080p", "WEB-DL", T("Onder 10 GB", "Under 10 GB")], size_movie=[0, 10], size_episode=[0, 4]),
         "dutch": _preset(T("Alleen Nederlands", "Dutch first"), T("Nederlandse audio of ondertitels.", "Dutch audio or subtitles."), ["nl", "nlsubs", "4k", "1080p"], ["cam"],
@@ -128,10 +130,29 @@ def _complete(profile):
     return profile
 
 
+OLD_GROUP_ORDER = ["resolution", "source", "visual", "audio", "speed", "language", "size", "scraper"]
+
+
+def _picture_first(profile_id, profile):
+    """'FEL first' and 'Best quality' put Picture before Source since 0.38.9 (a Blu-ray encode with only HDR no longer
+    beats a WEB-DL with Dolby Vision). A saved copy whose groups are still in the old built-in order gets the same;
+    a copy whose groups you moved yourself is left alone."""
+    if profile_id not in ("fel", "best"):
+        return profile
+    ids = [g.get("id") for g in profile.get("groups") or [] if g.get("id") not in ("channels", "codec")]
+    if ids == OLD_GROUP_ORDER:
+        groups = profile["groups"]
+        source = next(g for g in groups if g.get("id") == "source")
+        visual = next(g for g in groups if g.get("id") == "visual")
+        a, b = groups.index(source), groups.index(visual)
+        groups[a], groups[b] = visual, source
+    return profile
+
+
 def all_profiles():
     """Built-in ones first, your edits on top. {id: profile}"""
     out = presets()
-    out.update({k: _complete(v) for k, v in _store()["profiles"].items()})
+    out.update({k: _picture_first(k, _complete(v)) for k, v in _store()["profiles"].items()})
     return out
 
 
