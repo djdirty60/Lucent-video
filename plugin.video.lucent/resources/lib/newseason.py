@@ -36,7 +36,7 @@ def run():
     today = datetime.date.today().isoformat()
     for show in _followed():
         try:
-            raw = tmdb.get("tv/%s" % show, ttl=12 * 3600)
+            raw = tmdb.show_here(show)
         except util.HttpError:
             continue
         coming = raw.get("next_episode_to_air") or {}

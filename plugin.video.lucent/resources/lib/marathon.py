@@ -38,7 +38,7 @@ def _premiere(raw, today):
 def plan(tmdb_id, pace=None):
     """Everything the card shows, or None when there is nothing to catch up."""
     today = datetime.date.today()
-    raw = tmdb.get("tv/%s" % tmdb_id, ttl=12 * 3600)
+    raw = tmdb.show_here(tmdb_id)
     season_new, date_new = _premiere(raw, today.isoformat())
     watched = tracker.watched_episodes().get(str(tmdb_id), {})
     last = max(watched) if watched else (0, 0)

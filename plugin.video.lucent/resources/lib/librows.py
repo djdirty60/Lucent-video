@@ -63,7 +63,7 @@ def new_seasons():
 
     def load(pair):
         try:
-            return pair[0], tmdb.get("tv/%s" % pair[1], ttl=12 * 3600)
+            return pair[0], tmdb.show_here(pair[1])
         except util.HttpError:
             return pair[0], None
     with ThreadPoolExecutor(max_workers=8) as pool:

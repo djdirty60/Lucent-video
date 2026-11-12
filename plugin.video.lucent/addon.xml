@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="0.38.2" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.38.3" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -78,12 +78,11 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.38.2: Pausing never sends anything to TheIntroDB. Adding a missing intro is now a button of its own (action=intro_mark on the player screen): press it where the intro begins and where it ends.
+        <news>0.38.3: New episodes no longer come a day early: an American episode airs there in the evening, the next day here. Series from America now count from the day after the air date (library, calendar, next up, messages). Setting under Library.
+0.38.2: Pausing never sends anything to TheIntroDB. Adding a missing intro is now a button of its own (action=intro_mark on the player screen): press it where the intro begins and where it ends.
 0.38.1: Skip intro has all of TheIntroDB's functions now: the credits too (with an episode that ends with them the button becomes Next episode), how long the button stays, landing a little later or earlier, a Wrong button to report bad times, and adding a missing intro (the last two with your own key).
 0.38.0: Skip intro is built in: with TheIntroDB's data Lucent shows a card at the bottom right for the intro, the recap and the preview, with Skip and Watch. Per part: off, a button, or by itself with a countdown. The separate TheIntroDB add-on is not needed any more: Lucent asks once to switch it off and takes over its settings.
-0.37.1: Similar series on the info page of skin 2.0 open as series again (the skin asks with type=tv).
-0.37.0: Stay seated: when a film has a scene during or after the credits (TMDB), a card says so as the credits begin (TheIntroDB). Homey gets the new tag "aftiteling" at the credits of a film without such a scene, to bring the lights up. Back after a pause of 5 minutes or more: the last lines spoken appear first, with Go on and 30 sec back.
-0.36.1: Before "Set up a scraper first", Lucent reads your scraper settings a few more times over three seconds: Kodi can hand out an empty setting for a moment while settings are being saved.</news>
+0.37.1: Similar series on the info page of skin 2.0 open as series again (the skin asks with type=tv).</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

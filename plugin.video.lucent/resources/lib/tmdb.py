@@ -213,7 +213,12 @@ def find(kind, imdb=None, tvdb=None):
 def on_air(tmdb_id):
     """(last aired, next to air) episodes of a series, as dicts or None."""
     raw = get("tv/%s" % tmdb_id, ttl=6 * 3600)
-    return raw.get("last_episode_to_air"), raw.get("next_episode_to_air")
+    last, coming = raw.get("last_episode_to_air"), raw.get("next_episode_to_air")
+    last, coming = (dict(last) if last else None), (dict(coming) if coming else None)
+    _shift([e for e in (last, coming) if e], tmdb_id)
+    if last and not aired(last.get("air_date")):              # here it is not out yet: it is the coming one
+        last, coming = None, last
+    return last, coming
 
 
 def person_titles(person, page_size=40):
@@ -301,10 +306,59 @@ def newest_on(provider, kind, page=1):
     return sorted(titles, key=lambda m: m.get("premiered") or "", reverse=True), more
 
 
+# Air dates from TMDB are dates in the country of the series. An American episode airs there in the evening, which is
+# the next day in Europe: Lucent then counts it from the next day (setting 'episode_day': 0 automatic, 1 the air date,
+# 2 always a day later).
+LATE_COUNTRIES = {"US", "CA", "MX", "BR", "AR", "CO", "CL", "PE", "VE"}
+
+
+def day_later(tmdb_id):
+    try:
+        choice = int(util.setting("episode_day") or 0)
+    except ValueError:
+        choice = 0
+    if choice in (1, 2):
+        return choice == 2
+    try:
+        countries = set(get("tv/%s" % tmdb_id, ttl=7 * DAY).get("origin_country") or [])
+    except util.HttpError:
+        return False
+    return bool(countries & LATE_COUNTRIES)
+
+
+def _later(date, days=1):
+    try:
+        return (datetime.date.fromisoformat(date[:10]) + datetime.timedelta(days=days)).isoformat()
+    except (TypeError, ValueError):
+        return date
+
+
+def _shift(rows, tmdb_id):
+    """Air dates as the day the episode can be watched here."""
+    if rows and day_later(tmdb_id):
+        for row in rows:
+            if row and row.get("air_date") and not row.get("air_date_there"):
+                row["air_date_there"] = row["air_date"]
+                row["air_date"] = _later(row["air_date"])
+    return rows
+
+
+def show_here(tmdb_id, ttl=12 * 3600):
+    """The series' raw TMDB details with the dates of its coming and last episode and of its seasons as the day they can
+    be watched here (see day_later)."""
+    raw = dict(get("tv/%s" % tmdb_id, ttl=ttl))
+    if day_later(tmdb_id):
+        for key in ("next_episode_to_air", "last_episode_to_air"):
+            if raw.get(key):
+                raw[key] = _shift([dict(raw[key])], tmdb_id)[0]
+        raw["seasons"] = _shift([dict(x) for x in raw.get("seasons") or []], tmdb_id)
+    return raw
+
+
 def season(tmdb_id, number):
     """One season. Episodes without a description in your language get the English one of TMDB, and when that is
     missing too the one of TheTVDB (only with your own TheTVDB key)."""
-    key_name = "tmdbseasonfull%s:%s:%s" % (tmdb_id, number, lang())
+    key_name = "tmdbseasonfull%s:%s:%s:%d" % (tmdb_id, number, lang(), day_later(tmdb_id))
     filled = util.cache_get(key_name, 6 * 3600)
     if filled is not None:
         return filled
@@ -331,6 +385,7 @@ def season(tmdb_id, number):
         if tvdb.available():
             show = details("tvshow", tmdb_id) or {}
             tvdb.fill_episodes(show.get("tvdb"), number, rows)
+    _shift(rows, tmdb_id)
     util.cache_set(key_name, data)
     return data
 

@@ -1442,3 +1442,22 @@ msgctxt "#32432"
 msgid "Times not right? Press Wrong on the card and TheIntroDB hears it. Only with your own TheIntroDB key."
 msgstr "Kloppen de tijden niet? Druk op Klopt niet op het kaartje en TheIntroDB hoort het. Alleen met een eigen TheIntroDB-sleutel."
 
+msgctxt "#32282"
+msgid "New episodes count from"
+msgstr "Nieuwe afleveringen tellen vanaf"
+
+msgctxt "#32283"
+msgid "Automatic (American series a day later)"
+msgstr "Automatisch (Amerikaanse series een dag later)"
+
+msgctxt "#32284"
+msgid "The air date"
+msgstr "De uitzenddag"
+
+msgctxt "#32285"
+msgid "Always a day later"
+msgstr "Altijd een dag later"
+
+msgctxt "#32434"
+msgid "An American episode airs there in the evening, which is the next day here. Automatic: series from America count from the next day, other series from the air date. This goes for the library, the calendar, next up and the messages."
+msgstr "Een Amerikaanse aflevering wordt daar 's avonds uitgezonden, hier is dat de volgende dag. Automatisch: series uit Amerika tellen vanaf de dag erna, andere series vanaf de uitzenddag. Dit geldt voor de bibliotheek, de kalender, volgende aflevering en de meldingen."
