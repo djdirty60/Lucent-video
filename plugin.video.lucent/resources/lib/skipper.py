@@ -265,10 +265,9 @@ def report(meta):
 
 
 class Marker:
-    """Adding a missing intro (setting 'skip_submit', needs your own key): pause where the intro begins, then where it
-    ends; Lucent asks both times and sends it to TheIntroDB. Only in the first 10 minutes and when TheIntroDB has no
-    intro for this video yet."""
-    WINDOW = 600
+    """Adding a missing intro to TheIntroDB with a button (action=intro_mark, for the player screen): press it where the
+    intro begins and again where it ends; Lucent asks to be sure and sends it. Pausing never does anything here.
+    Needs your own TheIntroDB key; only when TheIntroDB has no intro for this video yet."""
 
     def __init__(self):
         self.start, self.done = None, False
@@ -276,31 +275,31 @@ class Marker:
     def reset(self):
         self.start, self.done = None, False
 
-    def paused(self, player, meta, parts):
-        if self.done or not meta or meta.get("kind") not in ("movie", "episode") or (parts or {}).get("intro"):
-            return False
-        if util.setting("skip_submit").lower() != "true" or not util.setting("tidb_key"):
-            return False
+    def press(self, player, meta, parts):
+        if not meta or meta.get("kind") not in ("movie", "episode"):
+            return util.notify(T("Alleen bij films en afleveringen van Lucent", "Only with films and episodes of Lucent"))
+        if not util.setting("tidb_key"):
+            return util.notify(T("Vul eerst je TheIntroDB-sleutel in (Intro overslaan)", "Fill in your TheIntroDB key first (Skip intro)"))
+        if (parts or {}).get("intro"):
+            return util.notify(T("TheIntroDB kent deze intro al. Kloppen de tijden niet? Druk op Klopt niet.",
+                                 "TheIntroDB knows this intro already. Times wrong? Press Wrong."))
+        if self.done:
+            return util.notify(T("De intro van deze video is al aangemeld", "The intro of this video was sent already"))
         try:
             now, total = player.getTime(), player.getTotalTime()
         except RuntimeError:
-            return False
-        if now > self.WINDOW:
-            return False
+            return
         if self.start is None or now <= self.start:
-            if _ask(T("Intro aanmelden", "Add the intro"), T("Begint de intro hier? (%s)", "Does the intro begin here? (%s)") % _clock(now),
-                    T("Begin markeren", "Mark start")):
-                self.start = now
-                util.notify(T("Begin gemarkeerd. Pauzeer straks waar de intro eindigt.", "Start marked. Pause where the intro ends."))
-            return True
+            self.start = now
+            return util.notify(T("Begin van de intro: %s. Druk nog een keer waar hij eindigt.", "Start of the intro: %s. Press again where it ends.") % _clock(now))
         length = now - self.start
-        if not _ask(T("Intro aanmelden", "Add the intro"), T("Eindigt de intro hier? (%s, %d sec lang)", "Does the intro end here? (%s, %d sec long)")
-                    % (_clock(now), length), T("Einde markeren", "Mark end")):
-            return True
         if not 5 <= length <= 200:
-            util.notify(T("Een intro duurt 5 tot 200 seconden. Probeer het opnieuw.", "An intro lasts 5 to 200 seconds. Try again."))
             self.start = None
-            return True
+            return util.notify(T("Een intro duurt 5 tot 200 seconden. Begin opnieuw.", "An intro lasts 5 to 200 seconds. Start again."))
+        if not _ask(T("Intro aanmelden", "Add the intro"), T("Van %s tot %s (%d sec) naar TheIntroDB sturen?", "Send %s to %s (%d sec) to TheIntroDB?")
+                    % (_clock(self.start), _clock(now), length), T("Versturen", "Send")):
+            self.start = None
+            return
         body = dict(_ids(meta), segment="intro", start_sec=round(self.start, 1), end_sec=round(now, 1))
         if 300 <= total <= 21600:
             body["video_duration_ms"] = int(total * 1000)
@@ -308,7 +307,6 @@ class Marker:
         util.notify(T("Intro aangemeld bij TheIntroDB. Dank je!", "Intro sent to TheIntroDB. Thank you!") if ok
                     else T("Aanmelden lukte niet (%s)", "Sending failed (%s)") % reason)
         self.done, self.start = ok, None
-        return True
 
 
 def _ask(kicker, text, yes):
@@ -371,7 +369,6 @@ def take_over():
         own.setSetting("skip_show", str(max(0, int(old.getSetting("button_display_seconds") or 0))))
     except ValueError:
         pass
-    own.setSetting("skip_submit", "true" if (old.getSetting("enable_submissions") or "").lower() == "true" else "false")
     own.setSetting("skip_report", "false" if (old.getSetting("hide_report_button") or "").lower() == "true" else "true")
     key = (old.getSetting("introdb_api_key") or "").strip()
     if key and not util.setting("tidb_key"):

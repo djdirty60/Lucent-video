@@ -857,6 +857,8 @@ def run(argv):
         if action == "newseason_now":
             import newseason
             return newseason.run()
+        if action == "intro_mark":                    # button on the player screen: start / end of a missing intro
+            return util.HOME.setProperty("lucent.video.intromark", "1")
         if action == "introskip":
             import introskip
             return introskip.toggle(params["tmdb"])

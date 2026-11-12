@@ -1425,9 +1425,6 @@ msgctxt "#32280"
 msgid "'Wrong' button (with your own key)"
 msgstr "Knop 'Klopt niet' (met eigen sleutel)"
 
-msgctxt "#32281"
-msgid "Add a missing intro at a pause (with your own key)"
-msgstr "Ontbrekende intro aanmelden bij een pauze (met eigen sleutel)"
 
 msgctxt "#32429"
 msgid "The credits at the end. With an episode that ends with its credits, the button becomes Next episode. Films with a scene after the credits are left alone."
@@ -1445,6 +1442,3 @@ msgctxt "#32432"
 msgid "Times not right? Press Wrong on the card and TheIntroDB hears it. Only with your own TheIntroDB key."
 msgstr "Kloppen de tijden niet? Druk op Klopt niet op het kaartje en TheIntroDB hoort het. Alleen met een eigen TheIntroDB-sleutel."
 
-msgctxt "#32433"
-msgid "When TheIntroDB has no intro yet: pause where the intro begins and where it ends (in the first 10 minutes) and Lucent sends it. Only with your own TheIntroDB key."
-msgstr "Heeft TheIntroDB nog geen intro: pauzeer waar de intro begint en waar hij eindigt (in de eerste 10 minuten) en Lucent stuurt hem op. Alleen met een eigen TheIntroDB-sleutel."

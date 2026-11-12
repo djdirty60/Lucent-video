@@ -138,16 +138,7 @@ class Watcher(xbmc.Player):
         if getattr(self, "cinema", False):
             import homey
             homey.signal("pauze")
-        threading.Thread(target=self._paused_extra, args=(self.current,), daemon=True).start()
-
-    def _paused_extra(self, meta):
-        """At a pause: first the chance to add a missing intro (only when switched on), else 'Where do I know them from?'."""
-        try:
-            if self.skip_parts is not None and self.marker.paused(self, meta, self.skip_parts):
-                return
-        except Exception as error:      # noqa: BLE001
-            util.log("intro marker: %s" % type(error).__name__)
-        self.pauses.paused(meta)
+        self.pauses.paused(self.current)
 
     def onPlayBackResumed(self):
         if self.recapping:
@@ -377,6 +368,9 @@ class Watcher(xbmc.Player):
     def tick(self):
         if not self.current or not self.isPlayingVideo():
             return
+        if util.HOME.getProperty("lucent.video.intromark"):          # the button 'Mark intro' (action=intro_mark)
+            util.HOME.clearProperty("lucent.video.intromark")
+            threading.Thread(target=self.marker.press, args=(self, self.current, self.skip_parts or {}), daemon=True).start()
         try:
             self.position = self.getTime()
             self.total = self.getTotalTime() or self.total
