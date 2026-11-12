@@ -13,9 +13,6 @@ import util
 
 T = util.T
 SUBS = subconf.SUBS_ADDON
-SKIP = "plugin.video.tidb"            # TheIntroDB: skip intro, recap, credits and preview
-SKIP_REPO = "repository.tidb.repo"    # its repository, in the Lucent repository
-SKIP_KINDS = ("intro", "recap", "preview")
 
 
 def has(addon_id):
@@ -85,105 +82,86 @@ INTRO_SUBS = T("Lucent Ondertitels vraagt OpenSubtitles, SubDL en Podnapisi tege
                "English subtitles. Under 'Spoken language' you choose which sound a film starts with.")
 
 
-# ------------------------------------------------------------------ skip intro
+# ------------------------------------------------------------------ skip intro (built into Lucent, skipper.py)
+def _modes():
+    import skipper
+    return {k: skipper.mode(k) for k in skipper.KINDS}
+
+
+def _mode_name(value):
+    return (T("uit", "off"), T("knop", "button"), T("vanzelf", "by itself"))[value]
+
+
 def skip_auto():
-    try:
-        addon = xbmcaddon.Addon(SKIP)
-        return all(addon.getSetting("auto_skip_%s" % kind) == "true" for kind in SKIP_KINDS)
-    except Exception:          # noqa: BLE001 - not installed
-        return False
+    return all(value == 2 for value in _modes().values())
 
 
 def toggle_skip_auto():
-    try:
-        addon = xbmcaddon.Addon(SKIP)
-        value = "false" if skip_auto() else "true"
-        for kind in SKIP_KINDS:
-            addon.setSetting("auto_skip_%s" % kind, value)
-        # Lucent Video's own choice per series puts TheIntroDB's setting back for other series: keep that in step
-        data = util.load_json("intro_skip.json", {})
-        if "default" in data:
-            data["default"] = {"auto_skip_%s" % k: value for k in SKIP_KINDS}
-            util.save_json("intro_skip.json", data)
-    except Exception as error:      # noqa: BLE001
-        util.log("skip by itself: %s" % type(error).__name__)
-    subconf.publish()
+    """All three parts by itself, or all three back to a button."""
+    value = "1" if skip_auto() else "2"
+    for kind in ("intro", "recap", "preview"):
+        xbmcaddon.Addon(util.ADDON_ID).setSetting("skip_%s" % kind, value)
 
 
 def install_skip():
-    """TheIntroDB is not in Kodi's own repository: first its repository (in the Lucent repository), then the add-on."""
-    def go():
-        monitor = xbmc.Monitor()
-        if not has(SKIP_REPO):
-            install(SKIP_REPO)
-            for _ in range(120):
-                if has(SKIP_REPO) or monitor.waitForAbort(1):
-                    break
-            if not has(SKIP_REPO):
-                xbmcgui.Dialog().ok("TheIntroDB", T("De repository van TheIntroDB kon niet worden geïnstalleerd. Werk de Lucent-repository bij "
-                                                    "(Add-ons › Controleren op updates) en probeer het opnieuw.",
-                                                    "The TheIntroDB repository could not be installed. Update the Lucent repository "
-                                                    "(Add-ons › Check for updates) and try again."))
-                return
-            xbmc.executebuiltin("UpdateAddonRepos")
-            monitor.waitForAbort(6)
-        install(SKIP)
-    threading.Thread(target=go, daemon=True).start()
-
-
-def skip_key():
-    """TheIntroDB needs no API key; a wrong one makes every lookup fail."""
-    try:
-        return xbmcaddon.Addon(SKIP).getSetting("introdb_api_key").strip()
-    except Exception:          # noqa: BLE001
-        return ""
-
-
-def clear_skip_key():
-    try:
-        addon = xbmcaddon.Addon(SKIP)
-        addon.setSetting("introdb_api_key", "")
-        addon.setSetting("test_api_key_now", "false")
-    except Exception as error:      # noqa: BLE001
-        util.log("skip key: %s" % type(error).__name__)
+    util.notify(T("Intro overslaan zit nu in Lucent Video zelf", "Skip intro is now built into Lucent Video"))
 
 
 def skip_state():
-    if not has(SKIP):
-        return T("TheIntroDB is nog niet geïnstalleerd", "TheIntroDB is not installed")
-    if skip_key():
-        return T("Er staat een API-sleutel ingevuld. TheIntroDB heeft die niet nodig, en een verkeerde sleutel houdt de knop tegen: haal hem weg",
-                 "An API key is filled in. TheIntroDB does not need one, and a wrong key stops the button: remove it")
-    line = T("Slaat intro, terugblik en preview zelf over", "Skips intro, recap and preview by itself") if skip_auto() \
-        else T("Laat een knop 'Overslaan' zien", "Shows a 'Skip' button")
-    return line
+    import skipper
+    if skipper.old_addon_on():
+        return T("De losse TheIntroDB-add-on staat nog aan; zolang blijft Lucent's eigen knop uit",
+                 "The separate TheIntroDB add-on is still on; until it is off, Lucent's own button stays off")
+    names = {"intro": T("Intro", "Intro"), "recap": T("Terugblik", "Recap"), "preview": T("Preview", "Preview")}
+    return "  ·  ".join("%s: %s" % (names[k], _mode_name(v)) for k, v in _modes().items())
 
 
 def skip_short():
-    """For the skin: 'Button' or 'Skips by itself' (TheIntroDB), or that it is not installed."""
-    if not has(SKIP):
-        return T("Niet geïnstalleerd", "Not installed")
-    return T("Vanzelf overslaan", "Skips by itself") if skip_auto() else T("Knop", "Button")
+    """For the skin: 'Button', 'Skips by itself', 'Off' or 'Mixed'."""
+    values = set(_modes().values())
+    if values == {2}:
+        return T("Vanzelf overslaan", "Skips by itself")
+    if values == {0}:
+        return T("Uit", "Off")
+    if values == {1}:
+        return T("Knop", "Button")
+    return T("Gemengd", "Mixed")
+
+
+def _cycle(kind):
+    import skipper
+    value = (skipper.mode(kind) + 1) % 3
+    xbmcaddon.Addon(util.ADDON_ID).setSetting("skip_%s" % kind, str(value))
+
+
+def _switch_old_off():
+    import skipper
+    skipper.take_over()
+    rpc("Addons.SetAddonEnabled", {"addonid": skipper.OLD, "enabled": False})
 
 
 def skip_actions():
-    if not has(SKIP):
-        return [(T("TheIntroDB installeren", "Install TheIntroDB"), install_skip)]
-    out = [(T("API-sleutel weghalen", "Remove API key"), clear_skip_key)] if skip_key() else []
-    out.append((T("Vanzelf overslaan: aan", "Skip by itself: on") if skip_auto() else T("Vanzelf overslaan: uit", "Skip by itself: off"),
-                toggle_skip_auto))
-    out.append((T("Instellingen van TheIntroDB", "TheIntroDB settings"), lambda: xbmc.executebuiltin("Addon.OpenSettings(%s)" % SKIP)))
+    import skipper
+    out = []
+    if skipper.old_addon_on():
+        out.append((T("Losse TheIntroDB-add-on uitzetten (instellingen overnemen)", "Switch off the separate TheIntroDB add-on (take over its settings)"),
+                    _switch_old_off))
+    names = {"intro": T("Intro", "Intro"), "recap": T("Terugblik ('eerder in...')", "Recap ('previously on...')"), "preview": T("Preview", "Preview")}
+    for kind, value in _modes().items():
+        out.append(("%s: %s" % (names[kind], _mode_name(value)), lambda k=kind: _cycle(k)))
+    out.append((T("Alles in de instellingen", "Everything in the settings"),
+                lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.lucent/?action=settings&section=skip)")))
     return out
 
 
-INTRO_SKIP = T("TheIntroDB weet waar de intro, de terugblik ('eerder in...') en de preview van een aflevering beginnen en eindigen. "
-               "Komt er een langs, dan verschijnt rechtsonder een knop 'Overslaan'. Zet 'Vanzelf overslaan' aan en hij springt zonder te vragen. "
-               "Per serie kan het ook: kies 'Intro vanzelf overslaan' in het menu van een serie.[CR]"
-               "TheIntroDB werkt voor afleveringen van de meeste bekende series, niet voor films. Een API-sleutel is niet nodig.",
-               "TheIntroDB knows where the intro, the recap ('previously on...') and the preview of an episode start and end. "
-               "When one comes along, a 'Skip' button appears at the bottom right. Switch on 'Skip by itself' and it jumps without asking. "
-               "It can also be done per series: choose 'Skip intro by itself' in the menu of a series.[CR]"
-               "TheIntroDB works for episodes of most well-known series, not for films. It needs no API key.")
+INTRO_SKIP = T("Lucent Video weet via TheIntroDB waar de intro, de terugblik ('eerder in...') en de preview van een aflevering beginnen en "
+               "eindigen. Komt er een langs, dan verschijnt rechtsonder een kaartje met 'Overslaan' en 'Kijken'. Per stuk kies je: uit, "
+               "een knop, of vanzelf (dan telt het kaartje af). Per serie kan het ook: kies 'Intro vanzelf overslaan' in het menu van een serie.[CR]"
+               "Een aparte add-on of een API-sleutel is niet nodig.",
+               "Through TheIntroDB, Lucent Video knows where the intro, the recap ('previously on...') and the preview of an episode start "
+               "and end. When one comes along, a card with 'Skip' and 'Watch' appears at the bottom right. Per part you choose: off, a "
+               "button, or by itself (the card then counts down). It can also be done per series: choose 'Skip intro by itself' in the "
+               "menu of a series.[CR]No separate add-on or API key is needed.")
 
 
 # ------------------------------------------------------------------ the wizard

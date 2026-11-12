@@ -1065,7 +1065,7 @@ msgid "Keeps descriptions like [door opens] in the subtitle when translating."
 msgstr ""
 
 msgctxt "#32382"
-msgid "Skip intros and recaps by themselves with TheIntroDB."
+msgid "Skip intros, recaps and previews: built into Lucent Video, with data from TheIntroDB."
 msgstr ""
 
 msgctxt "#32383"
@@ -1355,4 +1355,56 @@ msgstr ""
 
 msgctxt "#32423"
 msgid "Paused for 5 minutes or longer? When you press play, the last lines that were spoken appear first, with Go on and 30 sec back."
+msgstr ""
+
+msgctxt "#32269"
+msgid "Intro"
+msgstr ""
+
+msgctxt "#32270"
+msgid "Recap ('previously on')"
+msgstr ""
+
+msgctxt "#32271"
+msgid "Preview"
+msgstr ""
+
+msgctxt "#32272"
+msgid "Off"
+msgstr ""
+
+msgctxt "#32273"
+msgid "Button"
+msgstr ""
+
+msgctxt "#32274"
+msgid "By itself"
+msgstr ""
+
+msgctxt "#32275"
+msgid "Countdown for 'by itself' (seconds)"
+msgstr ""
+
+msgctxt "#32276"
+msgid "TheIntroDB key (optional)"
+msgstr ""
+
+msgctxt "#32424"
+msgid "The opening titles of an episode or film: off, a Skip button, or skipped by itself after a short countdown."
+msgstr ""
+
+msgctxt "#32425"
+msgid "The 'previously on' part at the start of an episode."
+msgstr ""
+
+msgctxt "#32426"
+msgid "The look at the next episode at the end."
+msgstr ""
+
+msgctxt "#32427"
+msgid "How many seconds the card counts down before it skips by itself. Press Watch to stay."
+msgstr ""
+
+msgctxt "#32428"
+msgid "Not needed. With your own key from theintrodb.org you may ask more often a day."
 msgstr ""

@@ -1065,8 +1065,8 @@ msgid "Keeps descriptions like [door opens] in the subtitle when translating."
 msgstr "Houdt bij het vertalen beschrijvingen als [deur gaat open] in de ondertitel."
 
 msgctxt "#32382"
-msgid "Skip intros and recaps by themselves with TheIntroDB."
-msgstr "Intro's en samenvattingen vanzelf overslaan met TheIntroDB."
+msgid "Skip intros, recaps and previews: built into Lucent Video, with data from TheIntroDB."
+msgstr "Intro's, terugblikken en previews overslaan: zit in Lucent Video zelf, met gegevens van TheIntroDB."
 
 msgctxt "#32383"
 msgid "Set up skipping intros step by step."
@@ -1356,3 +1356,55 @@ msgstr "Heeft een film een scène tijdens of na de aftiteling, dan zegt een kaar
 msgctxt "#32423"
 msgid "Paused for 5 minutes or longer? When you press play, the last lines that were spoken appear first, with Go on and 30 sec back."
 msgstr "Heb je 5 minuten of langer op pauze gestaan? Als je op afspelen drukt, zie je eerst de laatste zinnen die gezegd werden, met Verder en 30 sec terug."
+
+msgctxt "#32269"
+msgid "Intro"
+msgstr "Intro"
+
+msgctxt "#32270"
+msgid "Recap ('previously on')"
+msgstr "Terugblik ('eerder in')"
+
+msgctxt "#32271"
+msgid "Preview"
+msgstr "Preview"
+
+msgctxt "#32272"
+msgid "Off"
+msgstr "Uit"
+
+msgctxt "#32273"
+msgid "Button"
+msgstr "Knop"
+
+msgctxt "#32274"
+msgid "By itself"
+msgstr "Vanzelf"
+
+msgctxt "#32275"
+msgid "Countdown for 'by itself' (seconds)"
+msgstr "Aftellen bij 'vanzelf' (seconden)"
+
+msgctxt "#32276"
+msgid "TheIntroDB key (optional)"
+msgstr "TheIntroDB-sleutel (niet nodig)"
+
+msgctxt "#32424"
+msgid "The opening titles of an episode or film: off, a Skip button, or skipped by itself after a short countdown."
+msgstr "De begintitels van een aflevering of film: uit, een knop Overslaan, of vanzelf overslaan na kort aftellen."
+
+msgctxt "#32425"
+msgid "The 'previously on' part at the start of an episode."
+msgstr "Het stukje 'eerder in' aan het begin van een aflevering."
+
+msgctxt "#32426"
+msgid "The look at the next episode at the end."
+msgstr "Het vooruitblikje op de volgende aflevering aan het eind."
+
+msgctxt "#32427"
+msgid "How many seconds the card counts down before it skips by itself. Press Watch to stay."
+msgstr "Hoeveel seconden het kaartje aftelt voordat het vanzelf overslaat. Druk op Kijken om te blijven."
+
+msgctxt "#32428"
+msgid "Not needed. With your own key from theintrodb.org you may ask more often a day."
+msgstr "Niet nodig. Met een eigen sleutel van theintrodb.org mag je vaker per dag vragen."

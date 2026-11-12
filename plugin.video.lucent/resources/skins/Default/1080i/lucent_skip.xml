@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Skip intro / recap / preview: card at the bottom right (skipper.py) -->
+<window type="dialog">
+<defaultcontrol always="true">10</defaultcontrol>
+<animation effect="slide" start="60,0" end="0,0" time="300" tween="cubic" easing="out">WindowOpen</animation><animation effect="fade" start="0" end="100" time="300">WindowOpen</animation><animation effect="fade" end="0" time="200">WindowClose</animation>
+<controls>
+<control type="group"><left>1010</left><top>870</top><width>830</width><height>120</height>
+<control type="image"><left>-36</left><top>-36</top><width>902</width><height>192</height><texture border="88">lucent/panel_shadow.png</texture><colordiffuse>B3000000</colordiffuse></control>
+<control type="image"><left>0</left><top>0</top><width>830</width><height>120</height><texture border="48">lucent/panel.png</texture><colordiffuse>panel</colordiffuse></control>
+<control type="image"><left>0</left><top>0</top><width>830</width><height>120</height><texture border="48">lucent/panel_edge.png</texture><colordiffuse>hairline</colordiffuse></control>
+<control type="label"><left>32</left><top>24</top><width>380</width><height>34</height><font>font_caps</font><textcolor>lavender</textcolor><aligny>center</aligny><label>$INFO[Window.Property(kicker)]</label></control>
+<control type="label"><left>32</left><top>60</top><width>380</width><height>36</height><font>font_tiny</font><textcolor>text2</textcolor><aligny>center</aligny><label>$INFO[Window.Property(sub)]</label></control>
+<control type="button" id="10"><left>420</left><top>28</top><width>200</width><height>64</height><font>font_label_bold</font><align>center</align><aligny>center</aligny><textcolor>text</textcolor><focusedcolor>on_focus</focusedcolor><texturefocus border="30" colordiffuse="focus">lucent/pill60.png</texturefocus><texturenofocus border="30" colordiffuse="glass_strong">lucent/pill60.png</texturenofocus><pulseonselect>false</pulseonselect><onright>11</onright><label>$INFO[Window.Property(skip)]</label></control><control type="button" id="11"><left>632</left><top>28</top><width>170</width><height>64</height><font>font_label_bold</font><align>center</align><aligny>center</aligny><textcolor>text</textcolor><focusedcolor>on_focus</focusedcolor><texturefocus border="30" colordiffuse="focus">lucent/pill60.png</texturefocus><texturenofocus border="30" colordiffuse="glass_strong">lucent/pill60.png</texturenofocus><pulseonselect>false</pulseonselect><onleft>10</onleft><label>$INFO[Window.Property(watch)]</label></control>
+</control>
+</controls>
+</window>

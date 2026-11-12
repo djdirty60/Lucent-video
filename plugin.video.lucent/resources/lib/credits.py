@@ -8,9 +8,6 @@
 
 Where the credits begin comes from TheIntroDB (no key needed). One small lookup at the start of the film; after that
 the thread only sleeps until the credits: nothing runs while you watch."""
-import json
-import urllib.request
-
 import xbmc
 
 import dialogs
@@ -19,7 +16,6 @@ import util
 
 T = util.T
 DURING, AFTER = 179431, 179430                 # TMDB keyword ids
-TIDB = "https://api.theintrodb.org/v4/media?tmdb_id=%s"
 MONTH = 30 * 86400
 SHOW_FOR = 15                                  # seconds the card stays
 
@@ -40,21 +36,10 @@ def stingers(tmdb_id):
     return (DURING in ids or "duringcreditsstinger" in names), (AFTER in ids or "aftercreditsstinger" in names)
 
 
-def credits_start(tmdb_id, total):
+def credits_start(meta, total):
     """Second at which the credits begin (TheIntroDB), or None."""
-    key = "tidbcredits%s" % tmdb_id
-    data = util.cache_get(key, 7 * 86400)
-    if data is None:
-        request = urllib.request.Request(TIDB % tmdb_id, headers={"User-Agent": "Lucent-Video", "Accept": "application/json"})
-        try:
-            with urllib.request.urlopen(request, timeout=8) as response:
-                data = json.loads(response.read().decode("utf-8"))
-        except Exception as error:      # noqa: BLE001 - 404 = not in TheIntroDB; nothing to show then
-            util.log("credits: TheIntroDB %s" % type(error).__name__)
-            data = {}
-        util.cache_set(key, data)
-    for row in (data or {}).get("credits") or []:
-        start = (row.get("start_ms") or 0) / 1000.0
+    import tidb
+    for start, _end in tidb.segments(meta, total).get("credits") or []:
         if total * 0.5 < start < total:                   # a credits block in the second half of this video
             return start
     return None
@@ -126,7 +111,7 @@ class Watch:
         if total < 600:
             return
         during, after = stingers(meta["tmdb"]) if wanted() else (False, False)
-        start = credits_start(meta["tmdb"], total)
+        start = credits_start(meta, total)
         if start is None:
             util.log("credits: TheIntroDB does not know where the credits of %s begin" % meta["tmdb"])
             return

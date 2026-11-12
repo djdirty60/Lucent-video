@@ -73,6 +73,8 @@ class Watcher(xbmc.Player):
         self.total = self.getTotalTime() or 0.0
         import credits
         threading.Thread(target=credits.Watch(self, dict(now), self.video_number).run, daemon=True).start()
+        import skipper
+        threading.Thread(target=skipper.Watch(self, dict(now), self.video_number).run, daemon=True).start()
         if now.get("resume"):
             self.seekTime(float(now["resume"]))
             self.position = float(now["resume"])
@@ -506,5 +508,8 @@ def run():
                 threading.Thread(target=kompas.run, daemon=True).start()
             if seconds >= 300 and seconds % 300 == 0 and not watcher.isPlaying() and alerts.due():
                 threading.Thread(target=alerts.run, daemon=True).start()
+            if seconds >= 45 and seconds % 120 == 45 and not watcher.isPlaying():
+                import skipper
+                threading.Thread(target=skipper.migrate_once, daemon=True).start()
         except Exception as error:  # noqa: BLE001  a failing tick must never stop the service
             util.log("tick: %s" % type(error).__name__, xbmc.LOGERROR)
