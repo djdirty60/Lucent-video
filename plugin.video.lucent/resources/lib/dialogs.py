@@ -3,7 +3,6 @@
 import os
 import threading
 
-import xbmc
 import xbmcgui
 import xbmcvfs
 
@@ -378,5 +377,3 @@ def link_dialog(service, url, code, qr_url=None):
     return _open(TraktLink, "lucent_trakt.xml", props=props), picture
 
 
-def wait(seconds):
-    xbmc.Monitor().waitForAbort(seconds)

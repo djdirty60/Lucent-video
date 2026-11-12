@@ -7,17 +7,8 @@ T = util.T
 FILE = "intro_skip.json"
 
 
-def available():
-    return True
-
-
 def series_auto(show):
     return bool(util.load_json(FILE, {}).get("series", {}).get(str(show)))
-
-
-def prepare(meta):
-    """Nothing to prepare any more: Lucent skips by itself (kept so older calls do no harm)."""
-    return
 
 
 def toggle(show):

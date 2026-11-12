@@ -347,10 +347,6 @@ def _recs(key):
     return _results("%s/%s/recommendations" % (api, tmdb_id), kind)
 
 
-def _row(entries):
-    return [[r[1]["kind"], r[1]["id"], r[2]] for r in entries]
-
-
 def build_rows(taste=None):
     taste = taste or profile(fresh=True)
     skip = _seen() | {k for k, v in ratings().items() if v is not None} | resting()

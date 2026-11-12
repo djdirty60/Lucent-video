@@ -403,9 +403,6 @@ msgctxt "#32148"
 msgid "Easynews"
 msgstr ""
 
-msgctxt "#32149"
-msgid "Debrid"
-msgstr ""
 
 msgctxt "#32150"
 msgid "MDBList"
@@ -692,17 +689,8 @@ msgid "Set up skip intro (step by step)"
 msgstr ""
 
 
-msgctxt "#32225"
-msgid "Skip by itself: on/off"
-msgstr ""
 
-msgctxt "#32226"
-msgid "Install TheIntroDB"
-msgstr ""
 
-msgctxt "#32227"
-msgid "TheIntroDB settings"
-msgstr ""
 
 msgctxt "#32228"
 msgid "While playing"
@@ -1072,18 +1060,9 @@ msgctxt "#32383"
 msgid "Set up skipping intros step by step."
 msgstr ""
 
-msgctxt "#32384"
-msgid "Installs the TheIntroDB add-on, which knows where intros start and end."
-msgstr ""
-
-msgctxt "#32385"
-msgid "On: the intro is skipped by itself. Off: you get a Skip button."
-msgstr ""
 
 
-msgctxt "#32387"
-msgid "Opens the settings of TheIntroDB."
-msgstr ""
+
 
 msgctxt "#32388"
 msgid "Your Trakt collection in the Kodi library, with ticks for what you watched."

@@ -157,11 +157,6 @@ def fetch(meta):
     return convert(raw)
 
 
-def describe(source):
-    parts = [source["resolution"]] + source["badges"] + [size_text(source["size"]), source["service"]]
-    return " · ".join(p for p in parts if p)
-
-
 def check():
     """For the Test button: (ok, text). Never shows the address."""
     base = base_url(util.setting("manifest_url"))

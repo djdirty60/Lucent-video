@@ -13,7 +13,6 @@ import urllib.parse
 import util
 
 EVENT = "lucent"
-TAGS = ("start-film", "start-serie", "pauze", "verder", "aftiteling", "einde", "test")
 
 
 def address():

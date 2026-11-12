@@ -208,7 +208,6 @@ class Watch:
         card.doModal()
         state["open"] = False
         result = card.result
-        del card
         if result == "report":
             threading.Thread(target=report, args=(self.meta,), daemon=True).start()
             return

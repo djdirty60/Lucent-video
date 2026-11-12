@@ -89,13 +89,8 @@ class Watcher(xbmc.Player):
 
     def _series_streams(self, meta):
         import streammem
-        import introskip
         if streammem.has_memory(meta):
             util.HOME.setProperty("lucent.video.memory", "1")      # the general language rules (subwatch.py) step aside
-        try:
-            introskip.prepare(meta)
-        except Exception as error:      # noqa: BLE001
-            util.log("intro skip: %s" % type(error).__name__)
         if not xbmc.Monitor().waitForAbort(7) and self.current is meta:
             try:
                 streammem.apply(meta)

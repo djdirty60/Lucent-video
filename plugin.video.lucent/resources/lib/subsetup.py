@@ -2,7 +2,6 @@
 """The setup steps 'Subtitles' and 'Skip intro' (taken over from the Lucent skin), as short wizards:
 action=subs_setup and action=skip_setup. Each shows what is done and offers the next steps."""
 import json
-import threading
 
 import xbmc
 import xbmcaddon
