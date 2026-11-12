@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="0.38.6" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="0.38.7" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -78,7 +78,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>0.38.6: "Continue and next episode" (name=watching) is for series only: half-watched films stay in their own row.
+        <news>0.38.7: Continue watching has its own place: under Films "Continue watching" (films), under Series "Continue and next episode" at the top. They are no longer loose on the main menu.
+0.38.6: "Continue and next episode" (name=watching) is for series only: half-watched films stay in their own row.
 0.38.5: New list "Continue and next up" (action=list&amp;name=watching): what you stopped halfway and the next episode of each series you watch in one row, newest first, one item per series.
 0.38.4: Titles without a translation in your language and in a non-Latin script (Malayalam, Thai, Chinese, Arabic …) show the English title instead of NO GLYPH blocks; the original stays as original title. Same for episode names.
 0.38.3: New episodes no longer come a day early: an American episode airs there in the evening, the next day here. Series from America now count from the day after the air date (library, calendar, next up, messages). Setting under Library.

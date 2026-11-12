@@ -134,9 +134,6 @@ def home(handle, _params):
                       items.folder(T("Instellingen en hulp", "Settings and help"), util.url_for(action="tools"), "DefaultAddonProgram.png")])
         return
     rows = [
-        items.folder(T("Verder kijken", "Continue watching"), util.url_for(action="list", name="continue"), "DefaultInProgressShows.png"),
-        items.folder(T("Volgende afleveringen", "Next up"), util.url_for(action="list", name="nextup"), "DefaultTVShows.png"),
-        items.folder(T("Verder kijken en volgende aflevering", "Continue and next episode"), util.url_for(action="list", name="watching"), "DefaultTVShows.png"),
         items.folder(T("Films", "Movies"), util.url_for(action="menu", type="movie"), "DefaultMovies.png"),
         items.folder(T("Series", "Shows"), util.url_for(action="menu", type="tvshow"), "DefaultTVShows.png"),
         items.folder(T("Kompas", "Kompas"), util.url_for(action="kompasmenu"), "DefaultAddonsRecentlyUpdated.png"),
@@ -185,7 +182,13 @@ def menu(handle, params):
                    (T("Binnenkort", "Coming soon"), "upcoming_tv"), (T("Kalender: nieuwe afleveringen", "Calendar: new episodes"), "calendar"),
                    (T("Nieuwe seizoenen aangekondigd", "New seasons announced"), "new_seasons"),
                    (T("Op tijd voor het nieuwe seizoen", "In time for the new season"), "marathon")]
-    rows = [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
+    # what you are watching first: films half watched, or series you stopped halfway and their next episode
+    if movie:
+        rows = [items.folder(T("Verder kijken", "Continue watching"), util.url_for(action="list", name="continue_movie"), "DefaultInProgressShows.png")]
+    else:
+        rows = [items.folder(T("Verder kijken en volgende aflevering", "Continue and next episode"), util.url_for(action="list", name="watching"),
+                             "DefaultInProgressShows.png")]
+    rows += [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
     rows.append(items.folder(T("Genres", "Genres"), util.url_for(action="genres", type=params.get("type"))))
     rows.append(items.folder(T("Studio's", "Studios") if movie else T("Netwerken", "Networks"), util.url_for(action="studios", type=params.get("type"))))
     rows.append(items.folder(T("Per decennium", "By decade"), util.url_for(action="decades", type=params.get("type"))))

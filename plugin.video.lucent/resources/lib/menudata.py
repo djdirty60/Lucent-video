@@ -12,6 +12,10 @@ TINTS = {"watch": "#4b2d6b", "film": "#5a3a22", "tv": "#1d3a5c", "kompas": "#3d2
 MENU = {
     # Home
     "list:continue": ("play", "watch", "Verder waar je gebleven was, films en afleveringen.", "Pick up where you left off."),
+    "list:continue_movie": ("play", "watch", "De films die je half gekeken hebt.", "Films you stopped halfway."),
+    "list:continue_episode": ("play", "watch", "Afleveringen die je half gekeken hebt.", "Episodes you stopped halfway."),
+    "list:watching": ("next", "watch", "Half gekeken afleveringen en de volgende aflevering van elke serie die je kijkt.",
+                      "Episodes you stopped halfway and the next episode of every series you watch."),
     "list:nextup": ("next", "watch", "De volgende aflevering van elke serie die je kijkt.", "The next episode of every series you watch."),
     "menu:movie": ("film", "film", "Trending, populair, genres, studio's en meer.", "Trending, popular, genres, studios and more."),
     "menu:tvshow": ("tv", "tv", "Trending, nieuwe seizoenen, de kalender en meer.", "Trending, new seasons, the calendar and more."),
