@@ -136,7 +136,7 @@ def home(handle, _params):
     rows = [
         items.folder(T("Verder kijken", "Continue watching"), util.url_for(action="list", name="continue"), "DefaultInProgressShows.png"),
         items.folder(T("Volgende afleveringen", "Next up"), util.url_for(action="list", name="nextup"), "DefaultTVShows.png"),
-        items.folder(T("Verder kijken en volgende", "Continue and next up"), util.url_for(action="list", name="watching"), "DefaultTVShows.png"),
+        items.folder(T("Verder kijken en volgende aflevering", "Continue and next episode"), util.url_for(action="list", name="watching"), "DefaultTVShows.png"),
         items.folder(T("Films", "Movies"), util.url_for(action="menu", type="movie"), "DefaultMovies.png"),
         items.folder(T("Series", "Shows"), util.url_for(action="menu", type="tvshow"), "DefaultTVShows.png"),
         items.folder(T("Kompas", "Kompas"), util.url_for(action="kompasmenu"), "DefaultAddonsRecentlyUpdated.png"),
@@ -384,8 +384,9 @@ def next_up_titles():
 
 
 def watching_titles():
-    """'Continue watching' and 'Next up' in one row: what you stopped halfway (films and episodes with a resume point)
-    and the next unseen episode of each series you watch, newest first over both, one item per series."""
+    """'Continue watching' and 'Next up' for series in one row: episodes you stopped halfway and the next unseen
+    episode of each series you watch, newest first over both, one item per series. Films are not in it: they have
+    their own row (continue_movie)."""
     def stamp(text):
         return str(text or "").replace("T", " ")[:19]
 
@@ -395,7 +396,7 @@ def watching_titles():
         return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(row.get("at") or 0)) if row.get("at") else ""
 
     try:
-        resumes = [r for r in tracker.paused() if r.get("type") in ("movie", "episode")]
+        resumes = [r for r in tracker.paused() if r.get("type") == "episode"]
     except util.HttpError:
         resumes = []
     try:
@@ -409,14 +410,11 @@ def watching_titles():
     rows, shows = [], set()
     for row in sorted(resumes, key=when, reverse=True):
         try:
-            if row["type"] == "movie":
-                rows.append((when(row), ("movie", row["movie"]["ids"]["tmdb"], None, None), row.get("progress") or 0))
-            else:
-                show = str(row["show"]["ids"]["tmdb"])
-                if show in shows:
-                    continue                                   # one item per series: the newest
-                shows.add(show)
-                rows.append((when(row), ("episode", show, row["episode"]["season"], row["episode"]["number"]), row.get("progress") or 0))
+            show = str(row["show"]["ids"]["tmdb"])
+            if show in shows:
+                continue                                   # one item per series: the newest
+            shows.add(show)
+            rows.append((when(row), ("episode", show, row["episode"]["season"], row["episode"]["number"]), row.get("progress") or 0))
         except (KeyError, TypeError):
             continue
     for show, season, episode in following:
