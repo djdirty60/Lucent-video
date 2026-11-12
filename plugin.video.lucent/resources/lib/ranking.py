@@ -11,14 +11,14 @@ import util
 T = util.T
 FILE = "profiles.json"
 MARKS = r"(?:^|[ ._\-\[(])%s(?=$|[ ._\-\])])"
-FROM_FLAG = {"DV": "dv", "DV2": "dv2", "HDR": "hdr", "HLG": "hlg", "SDR": "sdr", "3D": "3d", "aio_FEL": "fel", "aio_P7": "p7", "aio_IMAX": "imax",
+FROM_FLAG = {"DV": "dv", "DV2": "dv2", "HDR": "hdr", "HLG": "hlg", "SDR": "sdr", "3D": "3d", "aio_FEL": "fel", "aio_P7": "p7", "aio_IMAX": "imax", "aio_10BIT": "10bit",
              "REMUX": "remux", "BLURAY": "bluray", "WEB": "web", "HDTV": "hdtv", "DVDRIP": "dvd", "CAM": "cam", "SCR": "cam", "ATMOS": "atmos",
              "TRUEHD": "truehd", "DTS-X": "dtsx", "DTS-HDMA": "dtsma", "DTS-HD": "dtshd", "DTS": "dts", "DD+": "ddplus", "DD": "dd", "AAC": "aac",
              "OPUS": "opus", "7.1": "71", "5.1": "51", "2.0": "20", "aio_NL": "nl", "aio_MULTI": "multi", "aio_NL-SUBS": "nlsubs", "HEVC": "hevc",
              "AVC": "avc", "AV1": "av1"}
 BY_NAME = {"remux": "REMUX", "bluray": "(?:BLU-?RAY|BDRIP|BRRIP)", "web": "WEB(?:-?DL|-?RIP)?", "hdtv": "HDTV", "cam": "(?:CAM|HDCAM|HDTS|TS|TELESYNC|TC|SCREENER|SCR)",
            "dv": "(?:DV|DOVI|DOLBY[ ._]?VISION)", "dv2": "DV2", "fel": "FEL", "p7": "(?:DV[ ._-]?)?P7", "hdr10plus": r"HDR10(?:\+|PLUS)", "hdr": r"HDR(?:10)?", "hlg": "HLG",
-           "sdr": "SDR", "3d": "3D", "imax": "IMAX", "atmos": "ATMOS", "truehd": "TRUEHD", "dtsx": "DTS[-.:]?X", "dtsma": "DTS[-. ]?HD[-. ]?MA", "dtshd": "DTS[-. ]?HD",
+           "sdr": "SDR", "3d": "3D", "imax": "IMAX", "10bit": r"(?:10[- ]?BIT|HI10P?)", "atmos": "ATMOS", "truehd": "TRUEHD", "dtsx": "DTS[-.:]?X", "dtsma": "DTS[-. ]?HD[-. ]?MA", "dtshd": "DTS[-. ]?HD",
            "dts": "DTS", "ddplus": r"(?:DDP|DD\+|EAC3)", "dd": "(?:DD|AC3)", "aac": "AAC", "opus": "OPUS", "hevc": "(?:HEVC|X265|H[. ]?265)", "avc": "(?:AVC|X264|H[. ]?264)",
            "av1": "AV1", "upscale": "(?:UPSCALED?|REGRADED?|AI[. ]?UPSCALE)", "hardcoded": "(?:HC|HARDCODED|HARDSUBS?)", "nl": "(?:DUTCH|NLD?(?![-. ]?SUBS?))", "71": r"7[. ]1", "51": r"5[. ]1", "20": r"2[. ]0", "multi": "MULTI", "nlsubs": "(?:NL[. ]?SUBS?|DUTCH[. ]?SUBS?)"}
 COMPILED = {tag: re.compile(MARKS % pattern, re.I) for tag, pattern in BY_NAME.items()}
@@ -55,7 +55,7 @@ RULES = {
     "4k": ("4K", ["4k"]), "1440p": ("1440p", ["1440p"]), "1080p": ("1080p", ["1080p"]), "720p": ("720p", ["720p"]), "sd": ("SD", ["sd"]),
     "remux": ("Remux", ["remux"]), "bluray": ("Blu-ray", ["bluray"]), "web": ("WEB-DL", ["web"]), "hdtv": ("HDTV", ["hdtv"]), "dvd": ("DVD", ["dvd"]), "cam": ("CAM / TS", ["cam"]),
     "felp7": ("P7 / FEL", ["fel", "p7"]), "fel": ("FEL", ["fel"]), "p7": ("P7 (MEL)", ["p7"]), "dv2": ("Dolby Vision 2", ["dv2"]), "dvany": ("Dolby Vision", ["dv"]), "dv": ("Dolby Vision", ["dv"]),
-    "hdr10plus": ("HDR10+", ["hdr10plus"]), "hdr": ("HDR10", ["hdr"]), "hlg": ("HLG", ["hlg"]), "sdr": ("SDR", ["sdr"]), "3d": ("3D", ["3d"]), "imax": ("IMAX", ["imax"]),
+    "hdr10plus": ("HDR10+", ["hdr10plus"]), "hdr": ("HDR10", ["hdr"]), "hlg": ("HLG", ["hlg"]), "sdr": ("SDR", ["sdr"]), "3d": ("3D", ["3d"]), "imax": ("IMAX", ["imax"]), "10bit": ("10-bit", ["10bit"]),
     "lossless": ("TrueHD / DTS-HD", ["truehd", "dtsx", "dtsma", "dtshd"]), "atmos": ("Atmos", ["atmos"]), "truehd": ("TrueHD", ["truehd"]), "dtsx": ("DTS:X", ["dtsx"]), "dtsma": ("DTS-HD MA", ["dtsma"]),
     "dtshd": ("DTS-HD", ["dtshd"]), "dts": ("DTS", ["dts"]), "ddplus": ("Dolby Digital Plus", ["ddplus"]), "dd": ("Dolby Digital", ["dd"]), "aac": ("AAC", ["aac"]), "opus": ("Opus", ["opus"]),
     "71": ("7.1", ["71"]), "51": ("5.1", ["51"]), "20": ("Stereo", ["20"]), "hevc": ("HEVC", ["hevc"]), "avc": ("H.264", ["avc"]), "av1": ("AV1", ["av1"]),
@@ -65,8 +65,9 @@ RULES = {
     "largest": (T("Grootste bestand", "Largest file"), []), "smallest": (T("Kleinste bestand", "Smallest file"), []),
 }
 GROUPS = [("resolution", T("Resolutie", "Resolution"), ["4k", "1440p", "1080p", "720p", "sd"]), ("source", T("Bron", "Source"), ["remux", "bluray", "web", "hdtv", "dvd", "cam"]),
-          ("visual", T("Beeld", "Picture"), ["fel", "p7", "dv2", "dv", "hdr10plus", "hdr", "hlg", "sdr"]), ("audio", T("Geluid", "Sound"), ["atmos", "truehd", "dtsx", "dtsma", "dtshd", "dts", "ddplus", "dd", "aac", "opus"]),
+          ("visual", T("Beeld", "Picture"), ["fel", "p7", "dv2", "dv", "hdr10plus", "hdr", "hlg", "sdr", "imax", "10bit"]), ("audio", T("Geluid", "Sound"), ["atmos", "truehd", "dtsx", "dtsma", "dtshd", "dts", "ddplus", "dd", "aac", "opus"]),
           ("speed", T("Direct speelbaar", "Ready to play"), ["cached", "uncached"]), ("language", T("Taal", "Language"), ["nl", "nlsubs", "multi"]), ("size", T("Grootte", "Size"), ["largest", "smallest"]),
+          ("channels", T("Kanalen", "Channels"), ["71", "51", "20"]), ("codec", "Codec", ["hevc", "av1", "avc"]),
           ("scraper", "Scraper", [])]
 GROUP_NAMES = {g[0]: g[1] for g in GROUPS}
 HIDE_CHOICES = ["cam", "upscale", "3d", "av1", "uncached", "hardcoded"]
@@ -110,10 +111,27 @@ def _store():
     return util.load_json(FILE, {"active": "aio", "profiles": {}})
 
 
+def _complete(profile):
+    """A saved profile from an older version: new choices are added at the end of their group and new groups at the end,
+    so what you set up keeps its order and nothing jumps ahead of it."""
+    groups = profile.get("groups")
+    if not isinstance(groups, list):
+        return profile
+    known = {g.get("id"): g for g in groups}
+    for group, _label, inner in GROUPS:
+        if group not in known:
+            groups.append({"id": group, "order": list(inner)})
+            continue
+        order = known[group].setdefault("order", [])
+        if group not in ("size", "scraper"):
+            order += [r for r in inner if r not in order]
+    return profile
+
+
 def all_profiles():
     """Built-in ones first, your edits on top. {id: profile}"""
     out = presets()
-    out.update(_store()["profiles"])
+    out.update({k: _complete(v) for k, v in _store()["profiles"].items()})
     return out
 
 

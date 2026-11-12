@@ -46,7 +46,7 @@ def with_headers(url, hints):
 
 
 VISUAL = {"DV": ["DV"], "DV ONLY": ["DV"], "HDR+DV": ["DV", "HDR"], "HDR": ["HDR"], "HDR10": ["HDR"], "HDR10+": ["HDR"], "HDR ONLY": ["HDR"],
-          "HLG": ["HDR"], "SDR": ["SDR"], "3D": ["3D"]}
+          "HLG": ["HDR"], "SDR": ["SDR"], "3D": ["3D"], "10BIT": ["aio_10BIT"]}
 AUDIO = {"ATMOS": "ATMOS", "TRUEHD": "TRUEHD", "DTS:X": "DTS-X", "DTS-HD MA": "DTS-HDMA", "DTS-HD": "DTS-HD", "DTS-ES": "DTS", "DTS": "DTS",
          "DD+": "DD+", "DD": "DD", "AAC": "AAC", "OPUS": "OPUS"}
 QUALITY = {"BLURAY REMUX": "REMUX", "BLURAY": "BLURAY", "WEB-DL": "WEB", "WEBRIP": "WEB", "HDTV": "HDTV", "CAM": "CAM", "TS": "CAM", "TC": "CAM",
