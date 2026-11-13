@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta3" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="1.0.0~beta4" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -79,11 +79,11 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 3: Lucent now has its own Trakt app with production access: linking Trakt needs no Client ID or secret any more. Linked before? Link Trakt once more (Lucent says so). Your own Client ID in the expert settings still wins.
+        <news>1.0.0 beta 4: Episodes tell the skin how many episodes their season has, how many are left and whether it is the season finale (lucent.season.count / left / finale), and carry tvshow.tmdb_id.
+1.0.0 beta 3: Lucent now has its own Trakt app with production access: linking Trakt needs no Client ID or secret any more. Linked before? Link Trakt once more (Lucent says so). Your own Client ID in the expert settings still wins.
 1.0.0 beta 2: Subtitles are built in: Lucent Video asks OpenSubtitles, SubDL and Podnapisi itself, so no separate subtitle add-on is needed any more (Podnapisi works without an account; keys under Subtitles). Other subtitle add-ons you install are still asked too. The keys of Lucent Subtitles are taken over once.
 1.0.0 beta 1: The first beta. The whole add-on was checked: every menu and list, playing, pausing and stopping were tested in Kodi without errors. Unused code and texts were removed, and the skip card no longer trips over its own countdown. From here on: fixes only.
-0.40.0: Order of sources with researched points (TRaSH Guides): red flags (CAM, upscales, 3D, burned-in subtitles, home-made Dolby Vision, far too small files) always at the bottom; 4K in SDR counts as 1080p; picture adds up (Dolby Vision + HDR + IMAX), sound counts its best track (TrueHD Atmos highest). Your own order of groups and choices still counts.
-0.39.0: Order of sources with points: the top group (usually resolution) still decides on its own, every other group gives points and a higher group counts more. So Dolby Vision + IMAX + Atmos together beat a source that is only Blu-ray. Size and scraper decide between equal points.</news>
+0.40.0: Order of sources with researched points (TRaSH Guides): red flags (CAM, upscales, 3D, burned-in subtitles, home-made Dolby Vision, far too small files) always at the bottom; 4K in SDR counts as 1080p; picture adds up (Dolby Vision + HDR + IMAX), sound counts its best track (TrueHD Atmos highest). Your own order of groups and choices still counts.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

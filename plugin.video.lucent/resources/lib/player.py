@@ -39,9 +39,12 @@ def title_meta(kind, tmdb_id, season=None, episode=None):
     show = tmdb.details("tvshow", tmdb_id)
     if not show:
         return None
-    for raw in tmdb.season(tmdb_id, season).get("episodes") or []:
+    rows = tmdb.season(tmdb_id, season).get("episodes") or []
+    for raw in rows:
         if raw["episode_number"] == int(episode):
-            return tmdb.episode_meta(show, raw)
+            meta = tmdb.episode_meta(show, raw)
+            meta["season_count"] = max(meta.get("season_count") or 0, len(rows))   # the season itself is fresher
+            return meta
     return None
 
 

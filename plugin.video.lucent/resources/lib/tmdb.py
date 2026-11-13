@@ -443,6 +443,8 @@ def episode_meta(show, raw):
         "genres": show["genres"],
         "studios": show["studios"],
         "runtime": raw.get("runtime") or show["runtime"],
+        "season_count": next((s.get("episode_count") or 0 for s in show.get("seasons") or []
+                              if s.get("season_number") == raw["season_number"]), 0),
     }
 
 

@@ -694,7 +694,7 @@ def seasons(handle, params):
 def episodes(handle, params):
     show = tmdb.details("tvshow", params["tmdb"])
     raw_list = tmdb.season(params["tmdb"], params["season"]).get("episodes") or []
-    titles = [tmdb.episode_meta(show, raw) for raw in raw_list if tmdb.aired(raw.get("air_date"))] if show else []
+    titles = [dict(tmdb.episode_meta(show, raw), season_count=len(raw_list)) for raw in raw_list if tmdb.aired(raw.get("air_date"))] if show else []
     send_titles(handle, titles, "episodes")
 
 

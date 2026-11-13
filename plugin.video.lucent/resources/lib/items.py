@@ -116,6 +116,22 @@ def context(meta, watched):
     return entries
 
 
+def season_props(item, meta):
+    """For the skin's posters: how many episodes this season has, how many come after this one, and whether this is the
+    season finale. Nothing when the number of episodes is not known (specials have none)."""
+    item.setProperty("tvshow.tmdb_id", str(meta["tmdb"]))
+    count = int(meta.get("season_count") or 0)
+    number = int(meta.get("episode") or 0)
+    if not count or not number or not int(meta.get("season") or 0) or number > count:
+        return
+    item.setProperty("lucent.season.count", str(count))
+    left = count - number
+    if left:
+        item.setProperty("lucent.season.left", util.T("nog %d", "%d left") % left)
+    else:
+        item.setProperty("lucent.season.finale", "1")
+
+
 def title_item(meta, watched=False, resume=None, last_played="", counts=None):
     """Returns (url, ListItem, is_folder). The label is the plain title: the skin does the rest."""
     kind = meta["kind"]
@@ -134,6 +150,8 @@ def title_item(meta, watched=False, resume=None, last_played="", counts=None):
         item.setProperty("trakt_id", meta["trakt_id"])
     if meta.get("tmdb_episode"):
         item.setProperty("tmdb_episode_id", meta["tmdb_episode"])
+    if kind == "episode":
+        season_props(item, meta)
     if meta.get("mdb_average"):
         item.setProperty("mdblist_score", str(int(meta["mdb_average"])))
     if counts:
