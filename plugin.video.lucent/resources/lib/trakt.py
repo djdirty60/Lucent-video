@@ -20,7 +20,10 @@ COLLECTIONS = {"watchlist_movie": ("sync/watchlist/movies", "movie"), "watchlist
 
 
 def client():
-    return apikeys.trakt_id(), util.setting("trakt_secret") or keys.TRAKT_CLIENT_SECRET
+    """(Client ID, secret). Lucent's own Trakt app has no secret; an old one filled in is only used with your own app."""
+    cid = apikeys.trakt_id()
+    secret = util.setting("trakt_secret") or keys.TRAKT_CLIENT_SECRET
+    return cid, "" if cid == keys.TRAKT_CLIENT_ID else secret
 
 
 def account():
@@ -28,13 +31,35 @@ def account():
 
 
 def logged_in():
-    return bool(account().get("access_token"))
+    """Linked with the Trakt app in use. A login made with another (older) Trakt app does not count: Trakt only
+    accepts a login with the app that made it, so you link once more."""
+    saved = account()
+    return bool(saved.get("access_token")) and _made_with(saved) == client()[0]
+
+
+def _made_with(saved):
+    """The Client ID a login was made with. Logins from before 1.0.0 beta 3 do not say: they were made with the Client ID
+    you filled in yourself, never with Lucent's own Trakt app."""
+    cid = client()[0]
+    return saved.get("client_id") or ("" if cid == keys.TRAKT_CLIENT_ID else cid)
+
+
+def needs_relink():
+    saved = account()
+    return bool(saved.get("access_token")) and _made_with(saved) != client()[0]
+
+
+def relink_notice():
+    """Once per start of Kodi: the Trakt login belongs to another Trakt app, link once more."""
+    if needs_relink():
+        util.notify(util.T("Koppel Trakt opnieuw: Lucent heeft een nieuwe Trakt-app", "Link Trakt again: Lucent has a new Trakt app"))
 
 
 def _store(token):
     token["expires_at"] = time.time() + int(token.get("expires_in") or 86400)
     previous = account()
     token["user"] = previous.get("user", "")
+    token["client_id"] = client()[0]                      # which Trakt app this login belongs to (the skin reads it too)
     util.save_json(FILE, token)
     return token
 

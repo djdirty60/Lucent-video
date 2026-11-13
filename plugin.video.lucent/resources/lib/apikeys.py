@@ -30,7 +30,8 @@ def tmdb():
 
 
 def trakt_id():
-    return util.setting("trakt_id") or stored().get("trakt_client_id") or keys.TRAKT_CLIENT_ID
+    """Lucent's own Trakt app, unless you filled in another Client ID yourself (expert setting)."""
+    return util.setting("trakt_id") or keys.TRAKT_CLIENT_ID or stored().get("trakt_client_id")
 
 
 def simkl_id():
@@ -41,7 +42,7 @@ def valid(data):
     """Only the expected fields, all plain text, and at least a TMDB key. Returns a clean copy or None."""
     if not isinstance(data, dict) or not data or set(data) - set(FIELDS):
         return None
-    if not all(isinstance(value, str) and value.strip() and value.strip().isalnum() for value in data.values()):
+    if not all(isinstance(value, str) and value.strip() and value.strip().replace("_", "").replace("-", "").isalnum() for value in data.values()):
         return None
     if "tmdb" not in data:
         return None

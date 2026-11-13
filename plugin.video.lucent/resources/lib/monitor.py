@@ -422,7 +422,8 @@ class SubtitleJobs:
         import subwatch
         self.swap_at = 0.0
         import subs_builtin
-        for job in (subconf.migrate, subs_builtin.take_over_once, self.switch_once, subconf.publish):
+        import trakt
+        for job in (subconf.migrate, subs_builtin.take_over_once, self.switch_once, subconf.publish, trakt.relink_notice):
             try:
                 job()
             except Exception as error:      # noqa: BLE001 - the service must start anyway
