@@ -11,19 +11,16 @@ import xbmcplugin
 
 import items
 import kids
-import library
-import player
-import report
 import floppy
 import mdblist
 import simkl
-import streams
 import tmdb
 import tracker
 import trakt
 import users
-import usenet
 import util
+
+library, player, report, usenet, streams = (util.lazy(n) for n in ("library", "player", "report", "usenet", "streams"))
 
 T = util.T
 PAGE = 40

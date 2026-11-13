@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """Kodi helpers, HTTP and a small file cache. Secrets (the AIOStreams address, tokens) are never logged."""
+import gzip
 import hashlib
+import importlib
 import json
 import os
 import time
+import types
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -72,7 +75,7 @@ class HttpError(Exception):
 
 def http(url, data=None, headers=None, timeout=20, method=None, form=None, raw=None):
     """Returns (parsed json or None, response headers). The error never holds the URL."""
-    head = {"User-Agent": "Lucent-Video/0.1", "Accept": "application/json"}
+    head = {"User-Agent": "Lucent-Video/0.1", "Accept": "application/json", "Accept-Encoding": "gzip"}
     head.update(headers or {})
     body = None
     if data is not None:
@@ -87,14 +90,17 @@ def http(url, data=None, headers=None, timeout=20, method=None, form=None, raw=N
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             raw = response.read()
+            if raw[:2] == b"\x1f\x8b":                  # packed (gzip): smaller over the network
+                raw = gzip.decompress(raw)
             return (json.loads(raw.decode("utf-8")) if raw else None), dict(response.headers)
     except urllib.error.HTTPError as error:
         try:
-            detail = json.loads(error.read().decode("utf-8"))
-        except (ValueError, OSError):
+            body = error.read()
+            detail = json.loads((gzip.decompress(body) if body[:2] == b"\x1f\x8b" else body).decode("utf-8"))
+        except (ValueError, OSError, EOFError):
             detail = {}
         raise HttpError(error.code, detail if isinstance(detail, dict) else {}) from None
-    except (urllib.error.URLError, OSError, ValueError) as error:
+    except (urllib.error.URLError, OSError, ValueError, EOFError) as error:
         raise HttpError(type(error).__name__) from None
 
 
@@ -129,6 +135,25 @@ def cache_drop(key):
         os.remove(_cache_path(key))
     except OSError:
         pass
+
+
+def cache_prune(days=31):
+    """Throw away saved answers nobody can use any more (the longest anything is kept is 30 days)."""
+    limit = time.time() - days * 86400
+    try:
+        names = os.listdir(CACHE)
+    except OSError:
+        return 0
+    gone = 0
+    for name in names:
+        path = os.path.join(CACHE, name)
+        try:
+            if os.path.getmtime(path) < limit:
+                os.remove(path)
+                gone += 1
+        except OSError:
+            pass
+    return gone
 
 
 def cache_clear():
@@ -194,3 +219,14 @@ def video_playing():
         return xbmc.getCondVisibility("Player.HasVideo")
     except Exception:          # noqa: BLE001
         return False
+
+
+class _Lazy(types.ModuleType):
+    """A module that is only loaded the first time it is used: opening a menu does not load the player and library code."""
+
+    def __getattr__(self, attr):
+        return getattr(importlib.import_module(self.__name__), attr)
+
+
+def lazy(name):
+    return _Lazy(name)

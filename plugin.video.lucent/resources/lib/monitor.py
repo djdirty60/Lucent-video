@@ -513,6 +513,8 @@ def run():
                 threading.Thread(target=kompas.run, daemon=True).start()
             if seconds >= 300 and seconds % 300 == 0 and not watcher.isPlaying() and alerts.due():
                 threading.Thread(target=alerts.run, daemon=True).start()
+            if seconds % 86400 == 900 and not watcher.isPlaying():          # once a day: old saved answers away
+                threading.Thread(target=util.cache_prune, daemon=True).start()
             if seconds >= 45 and seconds % 120 == 45 and not watcher.isPlaying():
                 import skipper
                 threading.Thread(target=skipper.migrate_once, daemon=True).start()

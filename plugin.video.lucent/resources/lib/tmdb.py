@@ -20,9 +20,11 @@ def lang():
     return "nl-NL" if util.NL else "en-US"
 
 
-def get(path, ttl=DAY, language=None, **params):
+def get(path, ttl=DAY, language=None, store=True, **params):
     params.update(api_key=key(), language=language or lang())
     url = API + path + "?" + urllib.parse.urlencode(sorted(params.items()))
+    if not store:
+        return util.http(url)[0]
     cached = util.cache_get("tmdb" + url, ttl)
     if cached is not None:
         return cached
@@ -147,13 +149,28 @@ def show_status(raw_status):
     return SHOW_STATUS.get(str(raw_status or "").strip().lower(), "")
 
 
+DETAILS_FORMAT = 1          # raise when the fields below change: old saved titles are then fetched again
+
+
 def details(kind, tmdb_id):
-    """kind: movie or tvshow. Returns the normalised title, or None."""
+    """kind: movie or tvshow. Returns the normalised title, or None.
+    Only the finished title is kept (a few KB), not TMDB's whole answer (often hundreds of KB): lists open faster."""
+    saved_as = "tmdbtitle%d|%s|%s|%s" % (DETAILS_FORMAT, kind, tmdb_id, lang())
+    saved = util.cache_get(saved_as, 7 * DAY)
+    if saved is not None:
+        return saved
+    meta = _details(kind, tmdb_id)
+    if meta:
+        util.cache_set(saved_as, meta)
+    return meta
+
+
+def _details(kind, tmdb_id):
     api_kind = "movie" if kind == "movie" else "tv"
     extra = {"append_to_response": "external_ids,images,credits,release_dates,content_ratings,videos,translations",
              "include_image_language": "nl,en,null,de,fr,es,it"}
     try:
-        raw = get("%s/%s" % (api_kind, tmdb_id), ttl=7 * DAY, **extra)
+        raw = get("%s/%s" % (api_kind, tmdb_id), store=False, **extra)
     except util.HttpError as error:
         util.log("details failed: %s" % error)
         return None
