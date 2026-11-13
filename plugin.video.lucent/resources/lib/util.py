@@ -2,9 +2,12 @@
 """Kodi helpers, HTTP and a small file cache. Secrets (the AIOStreams address, tokens) are never logged."""
 import gzip
 import hashlib
+import http.client as httpclient
 import importlib
 import json
 import os
+import ssl
+import threading
 import time
 import types
 import urllib.error
@@ -73,6 +76,98 @@ class HttpError(Exception):
         self.detail = detail or {}
 
 
+def _unpack(raw):
+    if raw[:2] == b"\x1f\x8b":                          # packed (gzip): smaller over the network
+        raw = gzip.decompress(raw)
+    return json.loads(raw.decode("utf-8")) if raw else None
+
+
+def _detail(raw):
+    try:
+        detail = _unpack(raw)
+    except (ValueError, OSError, EOFError):
+        return {}
+    return detail if isinstance(detail, dict) else {}
+
+
+_open = threading.local()       # per thread: connections that stay open, so the next question skips the handshake
+_tls = []
+REDIRECTS = (301, 302, 303, 307, 308)
+STALE = (httpclient.RemoteDisconnected, httpclient.BadStatusLine, ConnectionResetError, BrokenPipeError,
+         ConnectionAbortedError, httpclient.CannotSendRequest, httpclient.ResponseNotReady)
+
+
+class _Fallback(Exception):
+    """This question goes the ordinary way (a redirect, a proxy, ...)."""
+
+
+def _connection(scheme, host, port, timeout):
+    pool = getattr(_open, "pool", None)
+    if pool is None:
+        pool = _open.pool = {}
+    key = (scheme, host, port)
+    conn = pool.get(key)
+    reused = conn is not None
+    if conn is None:
+        if scheme == "https":
+            if not _tls:
+                _tls.append(ssl.create_default_context())
+            conn = httpclient.HTTPSConnection(host, port, timeout=timeout, context=_tls[0])
+        else:
+            conn = httpclient.HTTPConnection(host, port, timeout=timeout)
+        pool[key] = conn
+    conn.timeout = timeout
+    if conn.sock is not None:
+        conn.sock.settimeout(timeout)
+    return conn, reused
+
+
+def _drop(scheme, host, port):
+    conn = (getattr(_open, "pool", None) or {}).pop((scheme, host, port), None)
+    if conn is not None:
+        conn.close()
+
+
+def _keepalive(url, body, head, timeout, method):
+    """One question over a connection that stays open. Raises _Fallback when it should go the ordinary way."""
+    parts = urllib.parse.urlsplit(url)
+    scheme, host = parts.scheme, parts.hostname
+    if scheme not in ("http", "https") or not host or parts.username or parts.password:
+        raise _Fallback()
+    proxies = urllib.request.getproxies()
+    if proxies.get(scheme) and not urllib.request.proxy_bypass(host):
+        raise _Fallback()                                  # a proxy is set up on this device: leave it to urllib
+    port = parts.port or (443 if scheme == "https" else 80)
+    path = parts.path or "/"
+    if parts.query:
+        path += "?" + parts.query
+    method = method or ("POST" if body is not None else "GET")
+    if method != "GET":
+        _drop(scheme, host, port)              # sending something: always over a fresh connection, so it is never sent twice
+    for attempt in (1, 2):
+        conn, reused = _connection(scheme, host, port, timeout)
+        try:
+            conn.request(method, path, body=body, headers=head)
+            response = conn.getresponse()
+            raw = response.read()
+        except STALE:
+            _drop(scheme, host, port)
+            if reused and attempt == 1:                    # the server had closed it while it waited: once more, fresh
+                continue
+            raise
+        except BaseException:
+            _drop(scheme, host, port)
+            raise
+        if response.will_close:
+            _drop(scheme, host, port)
+        if response.status in REDIRECTS:
+            raise _Fallback()
+        if not 200 <= response.status < 300:
+            raise HttpError(response.status, _detail(raw))
+        return _unpack(raw), dict(response.msg)
+    raise _Fallback()
+
+
 def http(url, data=None, headers=None, timeout=20, method=None, form=None, raw=None):
     """Returns (parsed json or None, response headers). The error never holds the URL."""
     head = {"User-Agent": "Lucent-Video/0.1", "Accept": "application/json", "Accept-Encoding": "gzip"}
@@ -86,21 +181,21 @@ def http(url, data=None, headers=None, timeout=20, method=None, form=None, raw=N
     elif form is not None:
         body = urllib.parse.urlencode(form).encode("utf-8")
         head["Content-Type"] = "application/x-www-form-urlencoded"
+    try:
+        return _keepalive(url, body, head, timeout, method)
+    except _Fallback:
+        pass
+    except HttpError:
+        raise
+    except (OSError, ValueError, EOFError, httpclient.HTTPException) as error:
+        raise HttpError(type(error).__name__) from None
     request = urllib.request.Request(url, data=body, headers=head, method=method)
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
-            raw = response.read()
-            if raw[:2] == b"\x1f\x8b":                  # packed (gzip): smaller over the network
-                raw = gzip.decompress(raw)
-            return (json.loads(raw.decode("utf-8")) if raw else None), dict(response.headers)
+            return _unpack(response.read()), dict(response.headers)
     except urllib.error.HTTPError as error:
-        try:
-            body = error.read()
-            detail = json.loads((gzip.decompress(body) if body[:2] == b"\x1f\x8b" else body).decode("utf-8"))
-        except (ValueError, OSError, EOFError):
-            detail = {}
-        raise HttpError(error.code, detail if isinstance(detail, dict) else {}) from None
-    except (urllib.error.URLError, OSError, ValueError, EOFError) as error:
+        raise HttpError(error.code, _detail(error.read())) from None
+    except (urllib.error.URLError, OSError, ValueError, EOFError, httpclient.HTTPException) as error:
         raise HttpError(type(error).__name__) from None
 
 
