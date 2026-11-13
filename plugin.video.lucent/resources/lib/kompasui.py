@@ -449,7 +449,7 @@ class Rate(dialogs.Base):
 
 def rate_after(meta):
     full = tmdb.details("movie", meta["tmdb"]) or meta
-    window = Rate("lucent_rate.xml", dialogs.PATH, "Default", "1080i", meta=full)
+    window = Rate("lucent_rate.xml", dialogs.path(), "Default", "1080i", meta=full)
     window.doModal()
     value = window.result
     del window

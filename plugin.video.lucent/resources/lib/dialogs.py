@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""The add-on's own screens. Layouts are in resources/skins/Default/1080i and use the Lucent skin's colours and fonts."""
+"""The add-on's own screens. Layouts are in resources/skins/Default/1080i and use the Lucent skin's colours and fonts;
+with another skin they are read from a converted copy (anyskin.py)."""
 import os
 import threading
 
@@ -10,13 +11,19 @@ import util
 
 T = util.T
 PATH = xbmcvfs.translatePath(util.ADDON.getAddonInfo("path"))
+
+
+def path():
+    import anyskin
+    return anyskin.path()
+
 BACK = (9, 10, 92)
 LEFT_RIGHT = (1, 2)
 ORDER = ["4K", "1440p", "1080p", "720p", "SD"]
 
 
 def _open(cls, xml, **kwargs):
-    return cls(xml, PATH, "Default", "1080i", **kwargs)
+    return cls(xml, path(), "Default", "1080i", **kwargs)
 
 
 class Base(xbmcgui.WindowXMLDialog):

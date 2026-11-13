@@ -630,7 +630,7 @@ def ai_cached_path():
 
 def skin_path():
     import dialogs
-    return dialogs.PATH
+    return dialogs.path()
 
 
 def open_list(auto=False):

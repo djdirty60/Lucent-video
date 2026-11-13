@@ -469,7 +469,7 @@ class Scrapers(Options, Reorder):
 
 
 def open_screen(cls, xml, **kwargs):
-    window = cls(xml, dialogs.PATH, "Default", "1080i", **kwargs)
+    window = cls(xml, dialogs.path(), "Default", "1080i", **kwargs)
     window.doModal()
     del window
 

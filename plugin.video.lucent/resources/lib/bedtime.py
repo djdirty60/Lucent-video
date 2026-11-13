@@ -61,7 +61,7 @@ class Screen(dialogs.Base):
 
 
 def _show(props):
-    window = Screen("lucent_bedtime.xml", dialogs.PATH, "Default", "1080i", props=props)
+    window = Screen("lucent_bedtime.xml", dialogs.path(), "Default", "1080i", props=props)
     window.doModal()
     result = window.result
     del window

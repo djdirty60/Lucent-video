@@ -242,7 +242,7 @@ class Who(dialogs.Base):
                 chosen = number
         extra = xbmcgui.ListItem(T("Nieuw", "New"), offscreen=True)
         extra.setProperty("letter", "+")
-        extra.setProperty("color", "glass_strong")
+        extra.setProperty("color", __import__("anyskin").color("glass_strong"))
         self.row.addItem(extra)
         self.ids.append(NEW)
         width = 276 * len(self.ids)

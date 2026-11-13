@@ -35,7 +35,7 @@ class Progress:
         if self.card is not None and self.card.closed:       # you pressed a key: shown again when you are idle
             self.hide()
         if self.card is None:
-            self.card = Card("lucent_progress.xml", dialogs.PATH, "Default", "1080i")
+            self.card = Card("lucent_progress.xml", dialogs.path(), "Default", "1080i")
             self.update(done, total)
             self.card.show()
         else:
