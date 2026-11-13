@@ -55,12 +55,20 @@
 
 ## Install
 
+**The easy way: add a source in Kodi**
+1. In Kodi go to **Settings → File manager → Add source**.
+2. Choose **<None>**, type `https://djdirty60.github.io/Lucent-video/`, and name it **Lucent**.
+3. Go to **Add-ons → Install from zip file → Lucent → repository.lucent.zip**.
+4. Go to **Add-ons → Install from repository → Lucent Repository → Video add-ons → Lucent Video → Install**.
+
+**Or with the zip file**
 1. Download [`repository.lucent.zip`](https://github.com/djdirty60/Lucent/raw/main/repository.lucent.zip) and copy it to your device.
 2. In Kodi go to **Add-ons → Install from zip file** and choose `repository.lucent.zip`.
 3. Go to **Add-ons → Install from repository → Lucent Repository → Video add-ons → Lucent Video → Install**.
-4. Open Lucent Video. A setup assistant walks you through the TMDB key, your sources and your account.
 
-Kodi keeps Lucent Video up to date through the Lucent Repository (`repository.lucent` 1.0.2 or newer).
+Installing from zip needs **Settings → System → Add-ons → Unknown sources** switched on.
+
+When you open Lucent Video, a setup assistant walks you through the TMDB key, your sources and your account. Kodi keeps Lucent Video up to date through the Lucent Repository.
 
 **You need:**
 - a free TMDB API key;
