@@ -69,7 +69,19 @@ Kodi keeps Lucent Video up to date through the Lucent Repository (`repository.lu
 
 ## Other skins
 
-Lucent Video is made for the Lucent skin, but its own windows (choosing a source, skip intro, subtitles …) also work in other skins such as Estuary. Outside Lucent they use fixed colours and common fonts, so they look a little simpler.
+Lucent Video is made for the Lucent skin, but its own windows (choosing a source, skip intro, subtitles …) also work in other skins. Outside Lucent they use fixed colours and common fonts, so they look a little simpler.
+
+This is how it looks in **Estuary**, Kodi's default skin:
+
+<p align="center">
+  <img src="docs/estuary-sources.jpg" width="400" alt="Choosing a source in Estuary">
+  <img src="docs/estuary-skip-intro.jpg" width="400" alt="Skip intro in Estuary">
+  <br>
+  <img src="docs/estuary-stay-seated.jpg" width="400" alt="Stay seated in Estuary">
+  <img src="docs/estuary-next-episode.jpg" width="400" alt="Next episode in Estuary">
+  <br>
+  <img src="docs/estuary-pause-recap.jpg" width="400" alt="Pause recap in Estuary">
+</p>
 
 ## Privacy
 
