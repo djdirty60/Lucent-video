@@ -87,8 +87,14 @@ class Watcher(xbmc.Player):
             self.position = float(now["resume"])
             threading.Thread(target=self._check_resume, args=(now, self.video_number), daemon=True).start()
         self._scrobble("start")
+        threading.Thread(target=self._log_server, args=(now,), daemon=True).start()
         self.streams = None
         threading.Thread(target=self._series_streams, args=(now,), daemon=True).start()
+
+    def _log_server(self, now):
+        if now.get("url"):
+            first = player.describe({"url": now["url"]}).replace("server ", "")
+            util.log("picture comes from server %s (link given to %s)" % (player.final_server({"url": now["url"]}), first))
 
     def _check_resume(self, now, number):
         """Kodi starts at the resume point itself. Only when it did not: jump there, once the picture runs steadily."""

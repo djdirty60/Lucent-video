@@ -79,6 +79,19 @@ def _answers(source, offset=0):
         return False
 
 
+def final_server(source):
+    """Where the picture really comes from: the server name after all redirects (one byte is asked). Never the address."""
+    url, _, extra = (source.get("url") or "").partition("|")
+    head = dict(urllib.parse.parse_qsl(extra))
+    head.setdefault("User-Agent", "Lucent-Video/0.1")
+    head["Range"] = "bytes=0-0"
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers=head), timeout=10) as response:
+            return urllib.parse.urlsplit(response.geturl()).hostname or "?"
+    except (urllib.error.URLError, OSError, ValueError) as error:
+        return "? (%s)" % type(error).__name__
+
+
 def first_working(sources, index):
     """The chosen source, or the next one that works when its link is dead."""
     needs_wait = any(s.get("resolve") for s in sources[index:index + 5])
