@@ -83,7 +83,7 @@ It's a beta, so please report bugs and ideas in the [issues of the Lucent reposi
 
 ## Made with AI
 
-Lucent Video is designed and tested by its maker, djdirty60. The code was written with the help of Claude, an AI by Anthropic.
+Lucent Video is designed and tested by Wilfried van der Voort (djdirty60). The code was written with the help of Claude, an AI by Anthropic.
 
 ---
 
