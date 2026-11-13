@@ -57,7 +57,7 @@
 
 **The easy way: add a source in Kodi**
 1. In Kodi go to **Settings → File manager → Add source**.
-2. Choose **<None>**, type `https://djdirty60.github.io/Lucent-video/`, and name it **Lucent**.
+2. Choose **<None>**, type `https://djdirty60.github.io/Lucent/`, and name it **Lucent**.
 3. Go to **Add-ons → Install from zip file → Lucent → repository.lucent.zip**.
 4. Go to **Add-ons → Install from repository → Lucent Repository → Video add-ons → Lucent Video → Install**.
 
