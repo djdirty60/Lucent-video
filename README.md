@@ -7,6 +7,8 @@ Films and series for Kodi, made for the Lucent skin but working in any skin.
 
 Install the Lucent Repository once (see [djdirty60/Lucent](https://github.com/djdirty60/Lucent)), then install Lucent Video from it.
 
+Homey (movie night: lights down when a film starts): see [README-HOMEY.md](README-HOMEY.md) (Nederlands: [LEESMIJ-HOMEY.md](LEESMIJ-HOMEY.md)).
+
 Developers: the public actions for other add-ons and skins are listed in [plugin.video.lucent/README.md](plugin.video.lucent/README.md).
 
 ## Publishing a new version

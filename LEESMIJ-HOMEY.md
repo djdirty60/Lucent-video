@@ -1,5 +1,7 @@
 # Lucent Video en Homey: filmavond
 
+*English version: [README-HOMEY.md](README-HOMEY.md)*
+
 Met Lucent Video kan je Homey automatisch de woonkamer in filmstand laten zetten. Als je een film of aflevering start, gaan de lampen omlaag. Bij de aftiteling gaan ze langzaam weer omhoog, en na afloop staat alles weer zoals het was.
 
 Dit document is voor wie de Flow in Homey maakt. Je hoeft niets van programmeren te weten.
