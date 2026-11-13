@@ -72,7 +72,10 @@ class Watcher(xbmc.Player):
             return
         util.HOME.clearProperty(player.HANDOFF)
         self.current, self.asked_next, self.following, self.auto_next, self.prefetched = now, False, None, False, False
-        self.position = 0.0
+        try:
+            self.position = self.getTime()           # Kodi may already have started at the resume point itself
+        except RuntimeError:
+            self.position = 0.0
         self.learned = False
         self.buffering, self.stalls, self.asked_lighter = 0, [], False
         self.total = self.getTotalTime() or 0.0
@@ -81,12 +84,33 @@ class Watcher(xbmc.Player):
         import skipper
         threading.Thread(target=skipper.Watch(self, dict(now), self.video_number).run, daemon=True).start()
         if now.get("resume"):
-            util.log("jumping to the resume point: %ds of %ds" % (int(float(now["resume"])), int(self.total)))
-            self.seekTime(float(now["resume"]))
             self.position = float(now["resume"])
+            threading.Thread(target=self._check_resume, args=(now, self.video_number), daemon=True).start()
         self._scrobble("start")
         self.streams = None
         threading.Thread(target=self._series_streams, args=(now,), daemon=True).start()
+
+    def _check_resume(self, now, number):
+        """Kodi starts at the resume point itself. Only when it did not: jump there, once the picture runs steadily."""
+        wanted = float(now["resume"])
+        monitor = xbmc.Monitor()
+        for _ in range(16):                                   # up to 8 seconds: the TV may switch its refresh rate first
+            if monitor.waitForAbort(0.5) or self.video_number != number or self.current is not now:
+                return
+            try:
+                at = self.getTime()
+            except RuntimeError:
+                return
+            if abs(at - wanted) < 30:
+                util.log("started at the resume point: %ds" % int(at))
+                return
+            if at > 2 and not xbmc.getCondVisibility("Player.Caching"):
+                break
+        try:
+            util.log("Kodi did not start at the resume point (%ds): jumping to %ds" % (int(self.getTime()), int(wanted)))
+            self.seekTime(wanted)
+        except RuntimeError:
+            pass
 
     def _series_streams(self, meta):
         import streammem

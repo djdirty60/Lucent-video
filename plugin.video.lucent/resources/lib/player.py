@@ -123,12 +123,17 @@ def ask_resume(meta):
     return None if answer is None else (position if answer else 0)
 
 
-def build(meta, source):
+def build(meta, source, resume=0):
+    """The item Kodi plays. With a resume point Kodi opens the video at that place itself, before the picture starts:
+    jumping there afterwards (while the TV switches its refresh rate) can leave the picture standing still."""
     url = source["url"]
     item = xbmcgui.ListItem(meta["title"], path=url, offscreen=True)
     item.setArt(items.art_of(meta))
+    total = float(meta.get("runtime") or 0) * 60
     # Kodi reports the default id as "the IMDb number": other add-ons (like PunchPlay) read that while playing
-    items.fill_tag(item, meta, default_id="imdb")
+    items.fill_tag(item, meta, default_id="imdb", resume=(resume, max(total, resume + 1)) if resume else None)
+    if resume:
+        item.setProperty("StartOffset", "%.1f" % float(resume))
     item.setProperty("IsPlayable", "true")
     if meta["kind"] == "episode":      # read by Lucent Ondertitels and TheIntroDB
         for key in ("tmdb", "imdb", "tvdb"):
@@ -250,7 +255,7 @@ def resume_elsewhere(now, position, lighter=False):
         learn.record(now.get("learn"), False)          # the one that broke
         util.notify(util.T("Verder met een lichtere versie", "Continuing with a lighter version") if lighter else
                     util.T("Link viel weg, verder met een andere bron", "Link dropped, continuing with another source"))
-        xbmc.Player().play(source["url"], build(full, source))
+        xbmc.Player().play(source["url"], build(full, source, position))
         return True
     return False
 
@@ -384,14 +389,14 @@ def play(params, handle):
     else:
         order = same_release_first(meta, usable)
     # from the library Kodi itself asks about resuming; asking again would be a second pop-up
-    resume = 0 if autoplay or params.get("lib") == "1" else ask_resume(meta)
+    resume = 0 if autoplay or params.get("lib") == "1" or params.get("kodi_resumes") == "1" else ask_resume(meta)
     if resume is None:
         return _fail(handle)
 
     source = first_working(order, 0)
     if not source.get("url"):
         return _fail(handle, util.T("Deze bron kon niet worden gestart", "This source could not be started"))
-    item = build(meta, source)
+    item = build(meta, source, resume)
     remember_release(meta, source)
     handoff(meta, resume, source, [s for s in order if s is not source][:4], others, lighter_than(source, order), last)
     bedtime.counted()

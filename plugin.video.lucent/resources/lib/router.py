@@ -860,6 +860,8 @@ def run(argv):
             import kompas
             kompas.opened(params.get("type") or "tvshow", params["tmdb"])
         if action == "play":
+            if len(argv) > 3 and argv[3] == "resume:true":
+                params["kodi_resumes"] = "1"         # Kodi already asked and starts at the resume point itself
             return player.play(params, handle)
         if action == "auth_trakt":
             linked = trakt.login()
