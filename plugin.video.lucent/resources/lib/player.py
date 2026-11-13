@@ -175,6 +175,22 @@ def lighter_than(source, order):
     return [s for s in order if s is not source and s.get("cached") and 0 < (s.get("size") or 0) < size * 0.55][:3]
 
 
+def describe(source):
+    """What a source is, for the log: service, quality, size and the server's name. Never the address itself."""
+    import urllib.parse
+    host = urllib.parse.urlsplit(source.get("url") or "").hostname or "?"
+    scraper = (source.get("resolve") or {}).get("scraper") or ""
+    parts = [scraper, source.get("service") or "", source.get("resolution") or "", streams_size(source.get("size")), "server " + host]
+    return " / ".join(p for p in parts if p)
+
+
+def streams_size(size):
+    try:
+        return "%.1f GB" % (float(size) / 1e9) if size else ""
+    except (TypeError, ValueError):
+        return ""
+
+
 def handoff(meta, resume, source, alternates=None, others=None, lighter=None, last=False):
     keep = ("kind", "tmdb", "imdb", "season", "episode", "title", "runtime")
     now = {k: meta.get(k) for k in keep}
@@ -229,6 +245,7 @@ def resume_elsewhere(now, position, lighter=False):
         if not full:
             return False
         handoff(full, position, source, alternates, now.get("together"))
+        util.log("%s at %ds: now %s" % ("lighter version" if lighter else "link dropped", int(position), describe(source)))
         import learn
         learn.record(now.get("learn"), False)          # the one that broke
         util.notify(util.T("Verder met een lichtere versie", "Continuing with a lighter version") if lighter else
@@ -378,7 +395,7 @@ def play(params, handle):
     remember_release(meta, source)
     handoff(meta, resume, source, [s for s in order if s is not source][:4], others, lighter_than(source, order), last)
     bedtime.counted()
-    util.log("playing %s" % progress_key(meta))
+    util.log("playing %s: %s%s" % (progress_key(meta), describe(source), ", resume at %ds" % int(resume) if resume else ""))
     _no_trailer()
     if handle >= 0:
         xbmcplugin.setResolvedUrl(handle, True, item)

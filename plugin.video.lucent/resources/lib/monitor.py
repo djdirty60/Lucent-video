@@ -81,6 +81,7 @@ class Watcher(xbmc.Player):
         import skipper
         threading.Thread(target=skipper.Watch(self, dict(now), self.video_number).run, daemon=True).start()
         if now.get("resume"):
+            util.log("jumping to the resume point: %ds of %ds" % (int(float(now["resume"])), int(self.total)))
             self.seekTime(float(now["resume"]))
             self.position = float(now["resume"])
         self._scrobble("start")
@@ -99,16 +100,20 @@ class Watcher(xbmc.Player):
 
     def watch_buffering(self, meta):
         """Keeps loading? Offer once to continue with a much smaller version of the same title, at the same place."""
-        if getattr(self, "asked_lighter", True) or not meta.get("lighter") or not util.flag("lighter"):
-            return
         if xbmc.getCondVisibility("Player.Caching"):
             self.buffering += 1
+            return
+        if self.buffering >= 2:
+            util.log("buffering for %ds at %ds" % (self.buffering, int(self.position)))
+        if getattr(self, "asked_lighter", True) or not meta.get("lighter") or not util.flag("lighter"):
+            self.buffering = 0
             return
         if self.buffering >= 2 and self.position > 30:
             self.stalls = [t for t in self.stalls if time.time() - t < 180] + [time.time()]
         long_stall = self.buffering >= 12 and self.position > 30
         self.buffering = 0
         if long_stall or len(self.stalls) >= 3:
+            util.log("keeps buffering at %ds (%s): lighter version offered" % (int(self.position), "long stall" if long_stall else "3 stalls in 3 minutes"))
             self.asked_lighter = True
             threading.Thread(target=self._offer_lighter, args=(meta,), daemon=True).start()
 
@@ -123,6 +128,10 @@ class Watcher(xbmc.Player):
         self.close_dialog()
         if not player.resume_elsewhere(meta, position, lighter=True):
             util.notify(util.T("Geen lichtere versie gevonden", "No lighter version found"))
+
+    def onPlayBackSeek(self, time_ms, offset_ms):
+        if self.current:
+            util.log("jumped to %ds (%+ds)" % (int(time_ms / 1000), int(offset_ms / 1000)))
 
     def onPlayBackPaused(self):
         if self.recapping:
@@ -269,6 +278,8 @@ class Watcher(xbmc.Player):
     def onPlayBackStopped(self):
         self._cinema_end()
         meta = self.current
+        if meta:
+            util.log("stopped at %ds of %ds" % (int(self.position), int(self.total)))
         if meta and meta.get("alternates") and self.total - self.position > BROKEN_BEFORE_END and player.link_is_dead(meta, self.position, self.total):
             position, self.current = self.position, None
             self.close_dialog()
@@ -281,6 +292,7 @@ class Watcher(xbmc.Player):
         threading.Thread(target=player.resume_elsewhere, args=(now, position), daemon=True).start()
 
     def onPlayBackError(self):
+        util.log("playback error at %ds" % int(self.position))
         now, position = self.current, self.position
         learn.record((now or json.loads(util.HOME.getProperty(player.HANDOFF) or "{}")).get("learn"), False)
         if not now:                  # it did not even start
@@ -295,6 +307,8 @@ class Watcher(xbmc.Player):
 
     def onPlayBackEnded(self):
         meta = self.current
+        if meta:
+            util.log("ended at %ds of %ds" % (int(self.position), int(self.total)))
         if meta and self.total and self.total - self.position > BROKEN_BEFORE_END and meta.get("alternates"):
             position, self.current = self.position, None     # ended far too early: the link broke
             self.close_dialog()

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+8" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+9" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -79,7 +79,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 8: connections to TMDB, Trakt and the other services stay open between questions, so lists that open for the first time load faster. Anything sent (watched, scrobble) always goes over a fresh connection.
+        <news>1.0.0 beta 1, update 9: the log now says which source plays (service, quality, size, server name; never the address), when it jumps to the resume point, when you skip, when it buffers and when it switches source. Helps to find out why resuming or skipping stalls.
+1.0.0 beta 1, update 8: connections to TMDB, Trakt and the other services stay open between questions, so lists that open for the first time load faster. Anything sent (watched, scrobble) always goes over a fresh connection.
 1.0.0 beta 1, update 7: faster. Every click starts quicker (player and library code only load when needed), lists read a small saved title instead of TMDB's whole answer, answers come packed (gzip), and old saved answers are cleaned up once a day.
 1.0.0 beta 1, update 6: the Trakt Client ID and Client Secret settings are gone; Lucent uses its own built-in Trakt app.
 1.0.0 beta 1, update 5: Lucent Video's own screens (choosing a source, Skip, Stay seated, the subtitle list ...) now also work in other skins than Lucent, with fixed colours and common fonts. Episodes tell the skin how many episodes are left in their season and whether it is the season finale. Lucent's own Trakt app (production access, no secret): link Trakt once more. Subtitles are built in: no separate subtitle add-on needed.
