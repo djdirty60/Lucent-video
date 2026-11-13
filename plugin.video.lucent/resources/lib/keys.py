@@ -4,5 +4,4 @@
 # (PKCE / device code), so its Client ID may be public, the way Trakt intends it.
 TMDB_KEY = ""
 TRAKT_CLIENT_ID = "Ygmc_TAb8t2Y_c3VoSLYyG0i4jZ_cAVBqn18kiyvuvY"
-TRAKT_CLIENT_SECRET = ""
 SIMKL_CLIENT_ID = ""

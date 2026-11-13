@@ -30,8 +30,8 @@ def tmdb():
 
 
 def trakt_id():
-    """Lucent's own Trakt app, unless you filled in another Client ID yourself (expert setting)."""
-    return util.setting("trakt_id") or keys.TRAKT_CLIENT_ID or stored().get("trakt_client_id")
+    """Lucent's own Trakt app (built in; there is no setting for it any more)."""
+    return keys.TRAKT_CLIENT_ID or stored().get("trakt_client_id")
 
 
 def simkl_id():

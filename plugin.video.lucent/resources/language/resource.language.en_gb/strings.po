@@ -75,14 +75,6 @@ msgctxt "#32031"
 msgid "Unlink Trakt account"
 msgstr ""
 
-msgctxt "#32032"
-msgid "Trakt Client ID"
-msgstr ""
-
-msgctxt "#32033"
-msgid "Trakt Client Secret"
-msgstr ""
-
 msgctxt "#32040"
 msgid "Library"
 msgstr ""

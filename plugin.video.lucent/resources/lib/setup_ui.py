@@ -91,8 +91,6 @@ class Setup(dialogs.Base):
         if key == "keys":
             out = [(CODE_IN, "", None), (KEY_FILE, "", None), (T("TMDB-sleutel", "TMDB key"), filled if tmdb.key() else empty, None)]
             mode = users.tracker_choice()
-            if mode == 0 and not apikeys.trakt_id():
-                out.append(("Trakt Client ID", empty, None))
             if mode == 1 and not apikeys.simkl_id():
                 out.append(("Simkl Client ID", empty, None))
             if apikeys.exists():
@@ -179,7 +177,7 @@ class Setup(dialogs.Base):
             elif label == CODE_OUT:
                 apikeys.show_code()
             else:
-                ask(label, {"Trakt Client ID": "trakt_id", "Simkl Client ID": "simkl_id"}.get(label, "tmdb_key"))
+                ask(label, {"Simkl Client ID": "simkl_id"}.get(label, "tmdb_key"))
         elif key == "scrapers":
             if at == 7:
                 return self.test()

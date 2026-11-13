@@ -20,10 +20,8 @@ COLLECTIONS = {"watchlist_movie": ("sync/watchlist/movies", "movie"), "watchlist
 
 
 def client():
-    """(Client ID, secret). Lucent's own Trakt app has no secret; an old one filled in is only used with your own app."""
-    cid = apikeys.trakt_id()
-    secret = util.setting("trakt_secret") or keys.TRAKT_CLIENT_SECRET
-    return cid, "" if cid == keys.TRAKT_CLIENT_ID else secret
+    """(Client ID, secret). Lucent's own Trakt app signs in without a secret."""
+    return apikeys.trakt_id(), ""
 
 
 def account():
