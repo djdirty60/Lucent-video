@@ -1,42 +1,25 @@
 # -*- coding: utf-8 -*-
-"""Subtitles sure beforehand: while the sources are searched, Lucent Ondertitels (service.subtitles.lucent) is asked
+"""Subtitles sure beforehand: while the sources are searched, Lucent Video's own subtitle search (subs_core.py) is asked
 which subtitles in your language exist for this film or episode. A source whose release fits one of them gets the
 NL-SUBS mark (so the order of sources can use it), and with 'Sources with subtitles first' it moves up within its
-own resolution. Uses Lucent Ondertitels' own settings and keys; does nothing when it is not installed."""
-import os
-import sys
+own resolution. Uses the subtitle search built into Lucent Video, with its own keys."""
 import threading
 
-import xbmc
-import xbmcaddon
 
 import util
 
-ADDON = "service.subtitles.lucent"
 FLAG = "aio_NL-SUBS"
 FIT = 0.85
 
 
 def available():
-    return util.flag("subs_check") and xbmc.getCondVisibility("System.HasAddon(%s)" % ADDON)
+    return util.flag("subs_check")
 
 
 def _core():
-    """Lucent Ondertitels' search, loaded so that it reads its own settings, not Lucent Video's."""
-    if "lucent_subs_core" in sys.modules:
-        return sys.modules["lucent_subs_core"]
-    import importlib.util
-    path = os.path.join(xbmcaddon.Addon(ADDON).getAddonInfo("path"), "resources", "lib", "core.py")
-    spec = importlib.util.spec_from_file_location("lucent_subs_core", path)
-    module = importlib.util.module_from_spec(spec)
-    real = xbmcaddon.Addon
-    xbmcaddon.Addon = lambda *args, **kwargs: real(ADDON)      # its ADDON = xbmcaddon.Addon() must be itself
-    try:
-        spec.loader.exec_module(module)
-    finally:
-        xbmcaddon.Addon = real
-    sys.modules["lucent_subs_core"] = module
-    return module
+    """The subtitle search built into Lucent Video."""
+    import subs_core
+    return subs_core
 
 
 def start(meta):

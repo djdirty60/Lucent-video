@@ -11,7 +11,6 @@ import subconf
 import util
 
 T = util.T
-SUBS = subconf.SUBS_ADDON
 
 
 def has(addon_id):
@@ -28,40 +27,25 @@ def install(addon_id):
 
 
 # ------------------------------------------------------------------ subtitles
-def subs_default():
-    return (rpc("Settings.GetSettingValue", {"setting": "subtitles.movie"}) or {}).get("value") == SUBS
-
-
 def subs_keys():
-    """(OpenSubtitles key + login filled in, SubDL key filled in) of Lucent Ondertitels."""
-    try:
-        addon = xbmcaddon.Addon(SUBS)
-        return (bool(addon.getSetting("os_key").strip() and addon.getSetting("os_user").strip() and addon.getSetting("os_pass")),
-                bool(addon.getSetting("subdl_key").strip()))
-    except Exception:          # noqa: BLE001 - not installed
-        return False, False
+    """(OpenSubtitles key + login filled in, SubDL key filled in) of the subtitle search built into Lucent Video."""
+    import subs_builtin
+    return subs_builtin.keys()
 
 
 def subs_state():
-    if not has(SUBS):
-        return T("Lucent Ondertitels is niet geïnstalleerd", "Lucent Subtitles is not installed")
     os_ok, subdl_ok = subs_keys()
-    parts = [T("Lucent Ondertitels is de standaard", "Lucent Subtitles is the default") if subs_default()
-             else T("Lucent Ondertitels is nog niet de standaard", "Lucent Subtitles is not the default yet"),
+    parts = [T("Ingebouwd in Lucent Video", "Built into Lucent Video"),
              "OpenSubtitles ✓" if os_ok else T("OpenSubtitles: geen account", "OpenSubtitles: no account"),
-             "SubDL ✓" if subdl_ok else T("SubDL: geen sleutel", "SubDL: no key")]
+             "SubDL ✓" if subdl_ok else T("SubDL: geen sleutel", "SubDL: no key"), "Podnapisi ✓"]
     parts.append(util.HOME.getProperty("lucent.video.subs.state") or "")
     return "  ·  ".join(p for p in parts if p)
 
 
 def subs_actions():
     import subs_live
-    if not has(SUBS):
-        return [(T("Lucent Ondertitels installeren", "Install Lucent Subtitles"), lambda: install(SUBS))]
-    out = [(T("Accounts en sleutels", "Accounts and keys"), lambda: xbmc.executebuiltin("Addon.OpenSettings(%s)" % SUBS))]
-    if not subs_default():
-        import subwatch
-        out.append((T("Als standaard instellen", "Make it the default"), subwatch.set_default))
+    out = [(T("Accounts en sleutels", "Accounts and keys"),
+            lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.lucent/?action=settings&section=subs)"))]
     out.append((T("Automatisch zoeken", "Search automatically"), subs_live.choose_mode))
     spoken = subconf.text("lucent.audio.label") or T("Kodi beslist", "Kodi decides")
     out.append((T("Gesproken taal: %s", "Spoken language: %s") % spoken, subs_live.choose_audio))
@@ -69,13 +53,13 @@ def subs_actions():
     return out
 
 
-INTRO_SUBS = T("Lucent Ondertitels vraagt OpenSubtitles, SubDL en Podnapisi tegelijk en zet de ondertitels die precies bij je video "
-               "passen bovenaan. Maak twee gratis accounts en vul ze in bij 'Accounts en sleutels':[CR]"
+INTRO_SUBS = T("Lucent Video zoekt zelf ondertitels: het vraagt OpenSubtitles, SubDL en Podnapisi tegelijk en zet de ondertitels die precies bij je video "
+               "passen bovenaan. Podnapisi werkt meteen. Voor meer en betere ondertitels maak je twee gratis accounts en vul je ze in bij 'Accounts en sleutels':[CR]"
                "1. opensubtitles.com: aanmelden, dan Profiel › API consumers › New consumer (de API-sleutel), plus je gebruikersnaam en wachtwoord.[CR]"
                "2. subdl.com: aanmelden, dan Account › API-sleutel.[CR]Optioneel: een AI-sleutel (Gemini is gratis, of OpenRouter of Claude) "
                "vertaalt Engelse ondertitels. Bij 'Gesproken taal' kies je met welk geluid een film start.",
-               "Lucent Subtitles asks OpenSubtitles, SubDL and Podnapisi at the same time and puts the subtitles that fit your video "
-               "exactly first. Make two free accounts and fill them in under 'Accounts and keys':[CR]"
+               "Lucent Video finds subtitles itself: it asks OpenSubtitles, SubDL and Podnapisi at the same time and puts the subtitles that fit your video "
+               "exactly first. Podnapisi works right away. For more and better subtitles make two free accounts and fill them in under 'Accounts and keys':[CR]"
                "1. opensubtitles.com: sign up, then Profile › API consumers › New consumer (the API key), plus your user name and password.[CR]"
                "2. subdl.com: sign up, then Account › API key.[CR]Optional: an AI key (Gemini is free, or OpenRouter or Claude) translates "
                "English subtitles. Under 'Spoken language' you choose which sound a film starts with.")

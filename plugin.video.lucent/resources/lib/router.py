@@ -854,6 +854,11 @@ def run(argv):
     params = dict(urllib.parse.parse_qsl((argv[2] if len(argv) > 2 else "").lstrip("?")))
     action = params.get("action", "")
     try:
+        import subs_builtin
+        if subs_builtin.is_subtitle_call(action, params):        # Lucent Video as a subtitle source
+            return subs_builtin.search(handle, params)
+        if action == "subdownload":
+            return subs_builtin.download(handle, params)
         if action in ("play", "seasons") and params.get("tmdb"):
             import kompas
             kompas.opened(params.get("type") or "tvshow", params["tmdb"])

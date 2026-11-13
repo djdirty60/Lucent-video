@@ -104,10 +104,15 @@ def search_languages():
 
 
 def subtitle_addons():
-    found = rpc("Addons.GetAddons", {"type": "xbmc.subtitle.module", "enabled": True, "properties": ["name"]})
-    addons = [(a["addonid"], a.get("name") or a["addonid"]) for a in found.get("addons", [])]
-    own = [a for a in addons if a[0] == "service.subtitles.lucent"]
-    return (own or addons)[:SOURCES]                   # Lucent Ondertitels asks all sites itself
+    """Lucent Video itself first (built in: OpenSubtitles, SubDL and Podnapisi at once), then other subtitle add-ons
+    you installed. The separate Lucent Subtitles add-on is left out: Lucent Video does the same now."""
+    import subs_builtin
+    try:
+        found = rpc("Addons.GetAddons", {"type": "xbmc.subtitle.module", "enabled": True, "properties": ["name"]})
+    except Exception:  # noqa: BLE001
+        found = {}
+    addons = [(a["addonid"], a.get("name") or a["addonid"]) for a in found.get("addons", []) if a["addonid"] != "service.subtitles.lucent"]
+    return ([(subs_builtin.ID, subs_builtin.NAME)] + addons)[:SOURCES]
 
 
 # ----------------------------------------------------------------------------- the window

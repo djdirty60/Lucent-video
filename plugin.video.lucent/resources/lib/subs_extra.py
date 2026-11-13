@@ -24,7 +24,7 @@ import xbmcgui
 
 NL = xbmc.getLanguage(xbmc.ISO_639_1) == "nl"
 DIR = subconf.data_dir("subs_extra")
-OWN = "service.subtitles.lucent"
+OWN = "plugin.video.lucent"                      # the subtitle search is built into Lucent Video
 HOME = xbmcgui.Window(10000)
 
 
@@ -137,7 +137,7 @@ def pref_rank(release, source, pref):
 
 # ----------------------------------------------------------------------------- asking Lucent Ondertitels for any video
 def own_installed():
-    return xbmc.getCondVisibility(f"System.HasAddon({OWN})")
+    return True                                      # built into Lucent Video
 
 
 def own_search(video, languages, mine_name):

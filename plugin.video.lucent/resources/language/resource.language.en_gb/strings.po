@@ -580,13 +580,7 @@ msgctxt "#32196"
 msgid "Set up subtitles (step by step)"
 msgstr ""
 
-msgctxt "#32197"
-msgid "Make Lucent Subtitles the default"
-msgstr ""
 
-msgctxt "#32198"
-msgid "Accounts and keys of Lucent Subtitles"
-msgstr ""
 
 msgctxt "#32199"
 msgid "Automatic"
@@ -980,13 +974,7 @@ msgctxt "#32363"
 msgid "Set up subtitles step by step: language, services and what should happen."
 msgstr ""
 
-msgctxt "#32364"
-msgid "Makes Lucent Subtitles the default in Kodi."
-msgstr ""
 
-msgctxt "#32365"
-msgid "Opens the settings of Lucent Subtitles for accounts and keys."
-msgstr ""
 
 msgctxt "#32366"
 msgid "On playback Lucent looks for a subtitle in your language by itself."
@@ -1439,4 +1427,88 @@ msgstr ""
 
 msgctxt "#32434"
 msgid "An American episode airs there in the evening, which is the next day here. Automatic: series from America count from the next day, other series from the air date. This goes for the library, the calendar, next up and the messages."
+msgstr ""
+
+msgctxt "#32286"
+msgid "OpenSubtitles"
+msgstr ""
+
+msgctxt "#32287"
+msgid "Use OpenSubtitles"
+msgstr ""
+
+msgctxt "#32288"
+msgid "API key"
+msgstr ""
+
+msgctxt "#32289"
+msgid "User name"
+msgstr ""
+
+msgctxt "#32290"
+msgid "Password"
+msgstr ""
+
+msgctxt "#32291"
+msgid "SubDL"
+msgstr ""
+
+msgctxt "#32292"
+msgid "Use SubDL"
+msgstr ""
+
+msgctxt "#32293"
+msgid "API key"
+msgstr ""
+
+msgctxt "#32294"
+msgid "Podnapisi and search"
+msgstr ""
+
+msgctxt "#32295"
+msgid "Use Podnapisi"
+msgstr ""
+
+msgctxt "#32296"
+msgid "Wait at most (seconds)"
+msgstr ""
+
+msgctxt "#32297"
+msgid "Hearing-impaired subtitles last"
+msgstr ""
+
+msgctxt "#32435"
+msgid "OpenSubtitles has the most subtitles and recognises the ones that fit your file exactly. Needs a free account."
+msgstr ""
+
+msgctxt "#32436"
+msgid "opensubtitles.com: sign up, then Profile > API consumers > New consumer. Fill in the key here."
+msgstr ""
+
+msgctxt "#32437"
+msgid "Your OpenSubtitles user name, needed to download."
+msgstr ""
+
+msgctxt "#32438"
+msgid "Your OpenSubtitles password."
+msgstr ""
+
+msgctxt "#32439"
+msgid "SubDL has many subtitles for new films and series. Needs a free key."
+msgstr ""
+
+msgctxt "#32440"
+msgid "subdl.com: sign up, then Account > API key. Fill in the key here."
+msgstr ""
+
+msgctxt "#32441"
+msgid "Podnapisi works without an account."
+msgstr ""
+
+msgctxt "#32442"
+msgid "How long Lucent waits for the sources. A slow source is left out."
+msgstr ""
+
+msgctxt "#32443"
+msgid "Subtitles with sound descriptions come after the normal ones."
 msgstr ""

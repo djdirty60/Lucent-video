@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~beta1" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="1.0.0~beta2" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -78,11 +78,11 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1: The first beta. The whole add-on was checked: every menu and list, playing, pausing and stopping were tested in Kodi without errors. Unused code and texts were removed, and the skip card no longer trips over its own countdown. From here on: fixes only.
+        <news>1.0.0 beta 2: Subtitles are built in: Lucent Video asks OpenSubtitles, SubDL and Podnapisi itself, so no separate subtitle add-on is needed any more (Podnapisi works without an account; keys under Subtitles). Other subtitle add-ons you install are still asked too. The keys of Lucent Subtitles are taken over once.
+1.0.0 beta 1: The first beta. The whole add-on was checked: every menu and list, playing, pausing and stopping were tested in Kodi without errors. Unused code and texts were removed, and the skip card no longer trips over its own countdown. From here on: fixes only.
 0.40.0: Order of sources with researched points (TRaSH Guides): red flags (CAM, upscales, 3D, burned-in subtitles, home-made Dolby Vision, far too small files) always at the bottom; 4K in SDR counts as 1080p; picture adds up (Dolby Vision + HDR + IMAX), sound counts its best track (TrueHD Atmos highest). Your own order of groups and choices still counts.
 0.39.0: Order of sources with points: the top group (usually resolution) still decides on its own, every other group gives points and a higher group counts more. So Dolby Vision + IMAX + Atmos together beat a source that is only Blu-ray. Size and scraper decide between equal points.
-0.38.9: In the profiles "FEL first" and "Best quality" Picture now comes before Source: a Blu-ray encode with only HDR no longer goes above a WEB-DL with Dolby Vision. A saved copy gets this too, unless you moved its groups yourself.
-0.38.8: Order of sources: IMAX and 10-bit under Picture, and two new groups, Channels (7.1, 5.1, stereo) and Codec (HEVC, AV1, H.264). Your own profiles keep their order: the new choices come at the end.</news>
+0.38.9: In the profiles "FEL first" and "Best quality" Picture now comes before Source: a Blu-ray encode with only HDR no longer goes above a WEB-DL with Dolby Vision. A saved copy gets this too, unless you moved its groups yourself.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>
