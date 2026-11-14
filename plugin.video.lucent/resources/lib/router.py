@@ -451,7 +451,19 @@ def watching_titles():
             meta["resume_percent"] = progress
         return meta
     with ThreadPoolExecutor(max_workers=6) as pool:
-        return [m for m in pool.map(load, rows[:40]) if m]
+        loaded = [(row, m) for row, m in zip(rows[:40], pool.map(load, rows[:40])) if m]
+    # first the new episodes (out in the last 30 days and after you last watched that series), newest first;
+    # then everything else as before: what you watched or stopped most recently first
+    recent = (datetime.date.today() - datetime.timedelta(days=NEW_DAYS)).isoformat()
+
+    def is_new(row, meta):
+        aired = str(meta.get("premiered") or "")[:10]
+        return not row[2] and aired >= recent and aired > str(row[0])[:10]
+    new = sorted([m for row, m in loaded if is_new(row, m)], key=lambda m: str(m.get("premiered") or ""), reverse=True)
+    return new + [m for row, m in loaded if not is_new(row, m)]
+
+
+NEW_DAYS = 30
 
 
 def calendar_titles():

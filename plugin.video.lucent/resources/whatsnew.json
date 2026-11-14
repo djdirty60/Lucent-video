@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+28",
+   "label": "Beta 1 · update 28",
+   "label_en": "Beta 1 · update 28",
+   "date": "2026-11-14",
+   "at": "2026-11-14T13:35Z",
+   "items": [
+    [
+     "movies",
+     "Nieuwe afleveringen eerst in Verder kijken",
+     "In Verder kijken (series) staan nu eerst de nieuwe afleveringen: uit in de laatste 30 dagen en verschenen nadat je die serie het laatst keek, de nieuwste bovenaan. Daarna volgt de rest zoals altijd: wat je het laatst keek of waar je bleef staan.",
+     "New episodes first in Continue watching",
+     "Continue watching (series) now starts with the new episodes: out in the last 30 days and released after you last watched that series, newest on top. Then the rest as always: what you watched or stopped most recently."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+27",
    "label": "Beta 1 · update 27",
    "label_en": "Beta 1 · update 27",
