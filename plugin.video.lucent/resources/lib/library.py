@@ -296,7 +296,11 @@ def write_show(tmdb_id, show, episodes, folder, added, skips, seen=None):
         changed += write_if_changed(os.path.join(root, season_dir, name + ".strm"), strm)
         nfo = os.path.join(root, season_dir, name + ".nfo")
         when = (seen or {}).get((raw["season_number"], raw["episode_number"]))
-        changed += write_if_changed(nfo, with_seen(episode_nfo(show, raw, added), nfo, when is not None, when or ""))
+        existed_nfo = os.path.exists(nfo)
+        if write_if_changed(nfo, with_seen(episode_nfo(show, raw, added), nfo, when is not None, when or "")):
+            changed += 1
+            if existed_nfo:
+                EPISODES.add(nfo)             # Kodi only reads it again when the episode is refreshed
         keep |= {os.path.join(season_dir, name + ".strm"), os.path.join(season_dir, name + ".nfo")}
     if show.get("complete"):         # only tidy up when every season came back
         for directory, _subdirs, files in os.walk(root):
@@ -376,11 +380,12 @@ def scan(path):
 
 
 REFRESH = set()
+EPISODES = set()          # .nfo files of episodes that changed (a better title or description came)
 
 
 def refresh_changed():
     """Kodi only reads a changed .nfo when a title is refreshed: do that for titles whose information or pictures changed."""
-    if not REFRESH or not wait_idle():
+    if not (REFRESH or EPISODES) or not wait_idle():
         return
     folders = {os.path.normcase(os.path.normpath(p)) for p in REFRESH}
     calls = []
@@ -394,7 +399,14 @@ def refresh_changed():
                 if key == "tvshows":
                     params["refreshepisodes"] = False
                 calls.append((refresh, params))
+    if EPISODES:
+        wanted = {os.path.normcase(os.path.normpath(p)) for p in EPISODES}
+        for episode in rpc("VideoLibrary.GetEpisodes", {"properties": ["file"]}).get("episodes", []):
+            path = xbmcvfs.translatePath(episode.get("file", ""))
+            if _ours(episode) and os.path.normcase(os.path.normpath(os.path.splitext(path)[0] + ".nfo")) in wanted:
+                calls.append(("VideoLibrary.RefreshEpisode", {"episodeid": episode["episodeid"], "ignorenfo": False}))
     REFRESH.clear()
+    EPISODES.clear()
     for method, params in calls:                # one by one: Kodi runs each refresh as its own job
         rpc(method, params)
         wait_idle(600)

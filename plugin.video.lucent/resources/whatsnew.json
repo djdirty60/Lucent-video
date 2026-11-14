@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+33",
+   "label": "Beta 1 · update 33",
+   "label_en": "Beta 1 · update 33",
+   "date": "2026-11-14",
+   "at": "2026-11-14T20:37Z",
+   "items": [
+    [
+     "library",
+     "Afleveringen in de bibliotheek krijgen hun echte titel",
+     "Heeft een aflevering geen Nederlandse titel ('Aflevering 7') of beschrijving, dan gebruikt Lucent de Engelse. Komt die titel of beschrijving later pas op TMDB, dan werkt Lucent de aflevering in de Kodi-bibliotheek nu ook echt bij. Eerder bleef 'Aflevering 7' staan.",
+     "Library episodes get their real title",
+     "When an episode has no Dutch title ('Episode 7') or description, Lucent uses the English one. When that title or description only comes to TMDB later, Lucent now really updates the episode in the Kodi library too. Before, 'Episode 7' stayed."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+32",
    "label": "Beta 1 · update 32",
    "label_en": "Beta 1 · update 32",

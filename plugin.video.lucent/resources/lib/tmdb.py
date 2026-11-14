@@ -432,7 +432,9 @@ def season(tmdb_id, number):
         return filled
     data = get("tv/%s/season/%s" % (tmdb_id, number), ttl=6 * 3600)
     rows = data.get("episodes") or []
-    if util.NL and (not data.get("overview") or any(not row.get("overview") or not _latin(row.get("name")) for row in rows)):
+    import tvdb
+    if util.NL and (not data.get("overview") or any(not row.get("overview") or not _latin(row.get("name"))
+                                                    or tvdb._generic(row.get("name") or "") for row in rows)):   # noqa: SLF001 - 'Aflevering 7'
         try:
             english = get("tv/%s/season/%s" % (tmdb_id, number), ttl=6 * 3600, language="en-US")
         except util.HttpError as error:
@@ -443,7 +445,6 @@ def season(tmdb_id, number):
             other = by_number.get(row.get("episode_number")) or {}
             if not row.get("overview") and other.get("overview"):
                 row["overview"] = other["overview"]
-            import tvdb
             if (not row.get("name") or tvdb._generic(row["name"]) or not _latin(row["name"])) and other.get("name") \
                     and not tvdb._generic(other["name"]) and _latin(other["name"]):     # noqa: SLF001
                 row["name"] = other["name"]
