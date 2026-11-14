@@ -84,7 +84,7 @@ def play_url(meta, **extra):
                         episode=meta["episode"], **extra)
 
 
-def context(meta, watched):
+def context(meta, watched, resumable=False):
     entries = []
 
     def run(label, **params):
@@ -93,6 +93,8 @@ def context(meta, watched):
     if meta["kind"] in ("movie", "episode"):
         entries.append((util.T("Bron kiezen", "Choose source"), "PlayMedia(%s)" % play_url(meta, select=1)))
         run(util.T("Klaarzetten voor vanavond", "Get ready for tonight"), action="tonight_add", **target)
+        if resumable:                         # Kodi's own 'Reset resume position' cannot reach your account
+            run(util.T("Hervatpunt wissen", "Clear resume point"), action="resume_forget", **target)
     run(util.T("Markeer als niet bekeken", "Mark as unwatched") if watched else
         util.T("Markeer als bekeken", "Mark as watched"), action="watched", value=0 if watched else 1, **target)
     if meta["kind"] in ("tvshow", "episode", "season"):
@@ -159,7 +161,7 @@ def title_item(meta, watched=False, resume=None, last_played="", counts=None):
         item.setProperty("TotalEpisodes", str(counts[0]))
         item.setProperty("WatchedEpisodes", str(counts[1]))
         item.setProperty("UnWatchedEpisodes", str(max(0, counts[0] - counts[1])))
-    item.addContextMenuItems(context(meta, watched))
+    item.addContextMenuItems(context(meta, watched, bool(resume and resume[0])))
     if kind in ("movie", "episode"):
         item.setProperty("IsPlayable", "true")
         return play_url(meta), item, False

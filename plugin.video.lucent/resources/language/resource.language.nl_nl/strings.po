@@ -1512,3 +1512,7 @@ msgstr "Serie openen waar je gebleven bent"
 msgctxt "#32444"
 msgid "Opens a series straight in the season you are in, with the cursor on your next episode. Works in Lucent Video and in the Kodi library. One step back brings you to all seasons."
 msgstr "Opent een serie meteen in het seizoen waar je bent, met de cursor op je volgende aflevering. Werkt in Lucent Video en in de Kodi-bibliotheek. Eén stap terug brengt je naar alle seizoenen."
+
+msgctxt "#32299"
+msgid "Clear resume point (Lucent)"
+msgstr "Hervatpunt wissen (Lucent)"

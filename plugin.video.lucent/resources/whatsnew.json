@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+21",
+   "label": "Beta 1 · update 21",
+   "label_en": "Beta 1 · update 21",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "play",
+     "Hervatpunt wissen",
+     "Nieuw in het menu van een film of aflevering met een hervatpunt: 'Hervatpunt wissen'. Lucent vergeet dan waar je was, op dit apparaat, op je account (Trakt) en in de Kodi-bibliotheek, en hij verdwijnt uit Verder kijken. Kodi's eigen 'Positie om te hervatten resetten' kan je account niet bereiken.",
+     "Clear resume point",
+     "New in the menu of a film or episode with a resume point: 'Clear resume point'. Lucent forgets where you were, on this device, on your account (Trakt) and in the Kodi library, and it leaves Continue watching. Kodi's own 'Reset resume position' cannot reach your account."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+20",
    "label": "Beta 1 · update 20",
    "label_en": "Beta 1 · update 20",

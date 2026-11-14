@@ -159,6 +159,8 @@ def main(what):
         xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="watched", value=0 if seen else 1, **clean))
     elif what in ("watchlist_add", "watchlist_remove"):
         xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="watchlist", value=1 if what == "watchlist_add" else 0, **clean))
+    elif what == "resume":
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="resume_forget", **clean))
     elif what == "trailer":
         xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="trailer", type=meta["type"], tmdb=meta["tmdb"]))
     elif what == "cast":

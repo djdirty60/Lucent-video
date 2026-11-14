@@ -1512,3 +1512,7 @@ msgstr ""
 msgctxt "#32444"
 msgid "Opens a series straight in the season you are in, with the cursor on your next episode. Works in Lucent Video and in the Kodi library. One step back brings you to all seasons."
 msgstr ""
+
+msgctxt "#32299"
+msgid "Clear resume point (Lucent)"
+msgstr ""

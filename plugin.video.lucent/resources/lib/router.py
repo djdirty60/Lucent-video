@@ -755,7 +755,14 @@ def title_menu(params):
         seen = (int(meta["season"]), int(meta["episode"])) in tracker.watched_episodes().get(str(meta["tmdb"]), {})
     else:
         seen = False
-    entries = items.context(meta, seen)
+    resumable = False
+    if meta["kind"] in ("movie", "episode"):
+        try:
+            resumable = player.progress_key(meta) in util.load_json(player.LOCAL, {}) or bool(
+                tracker.resume_percent(meta["kind"], meta["tmdb"], meta.get("season"), meta.get("episode")))
+        except (util.HttpError, KeyError, TypeError, ValueError):
+            resumable = False
+    entries = items.context(meta, seen, resumable)
     if meta["kind"] in ("movie", "tvshow"):
         entries.insert(0, (T("Bibliotheek en lijsten", "Library and lists"), "RunPlugin(%s)" % util.url_for(action="lists", type=meta["kind"], tmdb=meta["tmdb"])))
         if params.get("all") != "1":
@@ -770,6 +777,25 @@ def title_menu(params):
         if command.startswith("Container.Update("):          # from a dialog: open the list in the Videos window
             command = "ActivateWindow(Videos,%s,return)" % command[len("Container.Update("):-1]
         xbmc.executebuiltin(command)
+
+
+def forget_resume(params):
+    """'Clear resume point' on a film or episode: forgotten on this device, on your account and in the Kodi library."""
+    meta = _meta_for(params)
+    try:
+        tracker.forget_resume(meta)
+    except util.HttpError as error:
+        util.log("resume forget: %s" % error)
+        return util.notify(T("Je account is niet bereikbaar, er is niets gewijzigd", "Your account cannot be reached, nothing was changed"))
+    try:
+        library.clear_resume(meta)
+    except Exception as error:      # noqa: BLE001 - the library is a bonus here
+        util.log("resume forget, library: %s" % type(error).__name__)
+    util.log("resume point of %s removed" % player.progress_key(meta))
+    util.notify(T("Hervatpunt gewist: hij begint weer vooraan", "Resume point cleared: it starts from the beginning"))
+    import widgets
+    widgets.mark_old(account_only=True)
+    xbmc.executebuiltin("Container.Refresh")
 
 
 def set_watchlist(params):
@@ -947,6 +973,8 @@ def run(argv):
         if action == "introskip":
             import introskip
             return introskip.toggle(params["tmdb"])
+        if action == "resume_forget":
+            return forget_resume(params)
         if action == "tonight_add":
             import prefetch
             return prefetch.add_tonight(params)

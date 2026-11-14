@@ -423,6 +423,27 @@ def _ours(item):
     return util.ADDON_ID in item.get("file", "") and item.get("file", "").endswith(".strm")
 
 
+def clear_resume(meta):
+    """Takes the resume point of this film or episode out of the Kodi library (only titles Lucent Video put there)."""
+    tmdb_id = str(meta["tmdb"])
+    calls = []
+    if meta["kind"] == "movie":
+        for movie in rpc("VideoLibrary.GetMovies", {"properties": ["file", "uniqueid"]}).get("movies", []):
+            if _ours(movie) and str((movie.get("uniqueid") or {}).get("tmdb")) == tmdb_id:
+                calls.append(("VideoLibrary.SetMovieDetails", {"movieid": movie["movieid"], "resume": {"position": 0, "total": 0}}))
+    else:
+        shows = [s["tvshowid"] for s in rpc("VideoLibrary.GetTVShows", {"properties": ["uniqueid"]}).get("tvshows", [])
+                 if str((s.get("uniqueid") or {}).get("tmdb")) == tmdb_id]
+        for show in shows:
+            for episode in rpc("VideoLibrary.GetEpisodes", {"tvshowid": show, "season": int(meta["season"]),
+                                                            "properties": ["file", "episode"]}).get("episodes", []):
+                if _ours(episode) and episode.get("episode") == int(meta["episode"]):
+                    calls.append(("VideoLibrary.SetEpisodeDetails", {"episodeid": episode["episodeid"], "resume": {"position": 0, "total": 0}}))
+    if calls:
+        rpc_batch(calls)
+    return len(calls)
+
+
 def _resume_call(method, id_name, item, percent):
     total = item.get("runtime") or 0
     if not percent or not total:
