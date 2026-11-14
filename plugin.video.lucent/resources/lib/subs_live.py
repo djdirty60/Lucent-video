@@ -807,6 +807,27 @@ def use_prefetched(mine):
     return True
 
 
+def use_saved_ai(mine):
+    """This episode or film was translated with AI before (the list shows it as 'Saved'): switch that one on at once,
+    instead of searching or showing the list again. Not when a subtitle in your language is already on."""
+    if mine == "en":
+        return False
+    if cond("VideoPlayer.SubtitlesEnabled") and not cond("String.IsEmpty(VideoPlayer.SubtitlesLanguage)"):
+        current = (xbmc.getInfoLabel("VideoPlayer.SubtitlesLanguage") or "").strip().lower()
+        code = NAME_TO_CODE.get(current) or (xbmc.convertLanguage(current, xbmc.ISO_639_1) or "").lower() or current[:2]
+        if code == mine:
+            return False
+    cached = ai_cached_path()
+    if not cached:
+        return False
+    log("saved AI translation for this video: switched on at once")
+    xbmcgui.Dialog().notification("Lucent", t(f"{full_name(mine, mine.upper())} subtitle on (saved AI translation)",
+                                              f"Ondertitel ({full_name(mine, mine.upper())}) staat aan (bewaarde AI-vertaling)"),
+                                  xbmcgui.NOTIFICATION_INFO, 3000)
+    activate(cached, mine, 30)
+    return True
+
+
 def background():
     """A video started without a subtitle in your language: ask the subtitle add-ons quietly, download the best
     match in your language and switch it on. Nothing in your language: nothing is shown at all - unless
@@ -827,7 +848,7 @@ def background():
             return
     except Exception as error:  # noqa: BLE001
         log(f"same-language check: {error}")
-    if use_prefetched(mine):
+    if use_prefetched(mine) or use_saved_ai(mine):
         return
     sources = subtitle_addons()
     if not sources:
@@ -924,7 +945,7 @@ def open_once(auto=False):
         return                                             # really open already (a stale mark no longer blocks it)
     if auto and not settled(xbmc.Monitor(), xbmc.Player()):
         return
-    if auto and use_prefetched(my_code()):
+    if auto and (use_prefetched(my_code()) or use_saved_ai(my_code())):
         return
     home.setProperty("lucent.subs.open", f"{time.time():.1f}")
     try:

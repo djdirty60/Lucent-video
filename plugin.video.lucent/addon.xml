@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+15" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+16" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -78,7 +78,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 15: the label '2 left' on an episode only counts episodes of this season that were already on TV.
+        <news>1.0.0 beta 1, update 16: an episode or film you translated with AI before gets that saved translation switched on at once, instead of the subtitle list or a new search.
+1.0.0 beta 1, update 15: the label '2 left' on an episode only counts episodes of this season that were already on TV.
 1.0.0 beta 1, update 14: a list of what changed in each update (Dutch and English), for the Lucent skin's What's new screen.
 1.0.0 beta 1, update 13: opening a series takes you straight to the season you are in, with your next episode selected. Works in Lucent Video and in the Kodi library; one step back shows all seasons. Turn it off under Settings, General.
 1.0.0 beta 1, update 12: 'new episodes' and 'episodes to go' only count episodes that were on TV; announced episodes no longer count. Your film and series collection is in A to Z order (The, De, Het and Een at the start are skipped).

@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+16",
+   "label": "Beta 1 · update 16",
+   "label_en": "Beta 1 · update 16",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "subtitles",
+     "Bewaarde AI-vertaling gaat meteen aan",
+     "Heb je een aflevering of film eerder met AI vertaald, dan zet Lucent die vertaling meteen aan als je hem weer start. Geen lijst en geen zoeken meer.",
+     "Saved AI translation switches on at once",
+     "When you translated an episode or film with AI before, Lucent switches that translation on at once when you start it again. No list and no searching."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+15",
    "label": "Beta 1 · update 15",
    "label_en": "Beta 1 · update 15",
