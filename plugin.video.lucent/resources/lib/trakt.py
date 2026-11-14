@@ -486,11 +486,19 @@ def season_texts(tmdb_id, season):
         trakt_id = ((found[0].get("show") or {}).get("ids") or {}).get("trakt") if found else None
         if not trakt_id:
             return {}
-        rows = cached("shows/%s/seasons/%s?extended=full" % (trakt_id, int(season)), 12 * 3600) or []
+        language = "nl" if util.NL else ""          # like Seren: Trakt's translation in your language, else English
+        rows = cached("shows/%s/seasons/%s?extended=full%s" % (trakt_id, int(season), "&translations=" + language if language else ""),
+                      12 * 3600) or []
     except (util.HttpError, ValueError, TypeError, AttributeError) as error:
         util.log("Trakt episode titles: %s" % type(error).__name__)
         return {}
-    return {row.get("number"): (row.get("title") or "", row.get("overview") or "") for row in rows if isinstance(row, dict)}
+    out = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        mine = next((t for t in row.get("translations") or [] if isinstance(t, dict) and t.get("language") == language), {})
+        out[row.get("number")] = (mine.get("title") or row.get("title") or "", mine.get("overview") or row.get("overview") or "")
+    return out
 
 
 def enrich(titles):
