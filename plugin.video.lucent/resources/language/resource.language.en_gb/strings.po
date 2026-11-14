@@ -1504,3 +1504,11 @@ msgstr ""
 msgctxt "#32443"
 msgid "Subtitles with sound descriptions come after the normal ones."
 msgstr ""
+
+msgctxt "#32298"
+msgid "Open a series where you left off"
+msgstr ""
+
+msgctxt "#32444"
+msgid "Opens a series straight in the season you are in, with the cursor on your next episode. Works in Lucent Video and in the Kodi library. One step back brings you to all seasons."
+msgstr ""

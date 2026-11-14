@@ -533,6 +533,8 @@ def run():
     import kompas
     kompas.publish()
     subtitle_jobs = SubtitleJobs()
+    import jumper
+    jumper.start(monitor)
     while not monitor.waitForAbort(1):
         seconds += 1
         try:
