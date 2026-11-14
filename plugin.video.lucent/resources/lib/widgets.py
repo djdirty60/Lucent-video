@@ -75,13 +75,23 @@ def emptied_by_you(params, entry):
 
 
 def same(entry, titles, content):
-    def ids(rows):
-        return [(t.get("kind"), str(t.get("tmdb")), t.get("season"), t.get("episode")) for t in rows]
+    def ids(rows):                              # where you stopped counts too: a row with a new resume point is new
+        return [(t.get("kind"), str(t.get("tmdb")), t.get("season"), t.get("episode"), round(float(t.get("resume_percent") or 0)))
+                for t in rows]
     return entry.get("content") == content and ids(entry.get("titles") or []) == ids(titles)
 
 
 def bump():
     util.HOME.setProperty(PROPERTY, str(int(time.time() * 1000)))
+
+
+def after_watching():
+    """A video was just stopped or watched: forget what the account said before (it may have been read again while
+    the account was still taking in the scrobble) and mark the rows of your account as old, so they are fetched
+    again. Runs twice after a video (15 and 75 seconds later): the account does not always know it at once."""
+    import tracker
+    tracker.forget_lists()
+    mark_old(account_only=True)
 
 
 def mark_old(account_only=False):

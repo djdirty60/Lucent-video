@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+30",
+   "label": "Beta 1 · update 30",
+   "label_en": "Beta 1 · update 30",
+   "date": "2026-11-14",
+   "at": "2026-11-14T18:15Z",
+   "items": [
+    [
+     "home",
+     "Home-rijen bijgewerkt na het kijken",
+     "Stop je met kijken, dan worden Verder kijken en de andere rijen van je account na 15 seconden en nog eens na 75 seconden opnieuw opgehaald, met verse gegevens van je account. Ook een nieuw hervatpunt bij dezelfde aflevering telt nu als verandering.",
+     "Home rows updated after watching",
+     "When you stop watching, Continue watching and the other rows of your account are fetched again after 15 seconds and once more after 75 seconds, with fresh data from your account. A new resume point on the same episode now counts as a change too."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+29",
    "label": "Beta 1 · update 29",
    "label_en": "Beta 1 · update 29",

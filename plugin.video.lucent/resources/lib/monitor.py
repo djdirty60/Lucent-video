@@ -291,7 +291,8 @@ class Watcher(xbmc.Player):
         libwatch.sync_soon()
         tracker.forget_lists()
         import widgets
-        threading.Timer(15, widgets.mark_old, args=(True,)).start()     # the account knows it a few seconds later
+        for delay in (15, 75):                  # the account knows it a few seconds later, sometimes a minute
+            threading.Timer(delay, widgets.after_watching).start()
         if percent >= WATCHED_AT and meta.get("kind") in ("movie", "episode"):
             threading.Timer(20, _tidy_watchlist, args=(dict(meta),)).start()       # after the account has the scrobble
         if percent >= WATCHED_AT and meta.get("kind") == "movie":
