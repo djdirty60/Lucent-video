@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+29",
+   "label": "Beta 1 · update 29",
+   "label_en": "Beta 1 · update 29",
+   "date": "2026-11-14",
+   "at": "2026-11-14T17:57Z",
+   "items": [
+    [
+     "star",
+     "Finale alleen als het echt de finale is",
+     "Een aflevering krijgt het label Finale alleen nog als TMDB hem zelf als (seizoens)finale markeert. De nieuwste aflevering van een seizoen dat nog loopt, zoals Gold Rush, is geen finale meer. Ook het midseason-finale- en seriefinale-label komt nu van TMDB.",
+     "Finale only when it really is the finale",
+     "An episode only gets the Finale label when TMDB itself marks it as a (season) finale. The newest episode of a season that is still running, like Gold Rush, is no longer a finale. The mid-season finale and series finale labels now come from TMDB too."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+28",
    "label": "Beta 1 · update 28",
    "label_en": "Beta 1 · update 28",

@@ -459,6 +459,20 @@ def season(tmdb_id, number):
     return data
 
 
+def episode_type(show, raw):
+    """TMDB's own mark for an episode, in TMDb Helper's words: season_finale, mid_season_finale, series_finale or ''.
+    Only what TMDB says counts: the last episode TMDB knows of a season that is still running is no finale."""
+    kind = str(raw.get("episode_type") or "").lower()
+    if kind == "mid_season":
+        return "mid_season_finale"
+    if kind != "finale":
+        return ""
+    last_season = max((int(s.get("season_number") or 0) for s in show.get("seasons") or []), default=0)
+    if show.get("status") in ("Ended", "Cancelled") and int(raw.get("season_number") or 0) >= last_season:
+        return "series_finale"
+    return "season_finale"
+
+
 def episode_meta(show, raw):
     return {
         "kind": "episode",
@@ -489,6 +503,7 @@ def episode_meta(show, raw):
         "season_count": next((s.get("episode_count") or 0 for s in show.get("seasons") or []
                               if s.get("season_number") == raw["season_number"]), 0),
         "season_aired": aired_in_season(show, raw["season_number"]) if show.get("last_aired") else None,
+        "episode_type": episode_type(show, raw),
     }
 
 

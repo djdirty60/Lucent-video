@@ -119,9 +119,14 @@ def context(meta, watched, resumable=False):
 
 
 def season_props(item, meta):
-    """For the skin's posters: how many episodes this season has, how many come after this one, and whether this is the
-    season finale. Nothing when the number of episodes is not known (specials have none)."""
+    """For the skin's posters: TMDB's finale mark (episode_type, lucent.season.finale), how many episodes this season
+    has and how many aired ones come after this one (nothing when the number of episodes is not known)."""
     item.setProperty("tvshow.tmdb_id", str(meta["tmdb"]))
+    kind = meta.get("episode_type") or ""
+    if kind:
+        item.setProperty("episode_type", kind)                     # as TMDb Helper gives it
+    if kind in ("season_finale", "series_finale"):                 # only TMDB's own mark: a running season has none
+        item.setProperty("lucent.season.finale", "1")
     count = int(meta.get("season_count") or 0)
     number = int(meta.get("episode") or 0)
     if not count or not number or not int(meta.get("season") or 0) or number > count:
@@ -131,8 +136,6 @@ def season_props(item, meta):
     left = (aired if aired is not None else count) - number          # only episodes that were on TV already
     if number < count and left > 0:
         item.setProperty("lucent.season.left", util.T("nog %d", "%d left") % left)
-    elif number == count:
-        item.setProperty("lucent.season.finale", "1")
 
 
 def title_item(meta, watched=False, resume=None, last_played="", counts=None):
