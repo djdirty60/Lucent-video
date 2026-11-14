@@ -1524,3 +1524,11 @@ msgstr "Ook bijwerken bij je andere account"
 msgctxt "#32447"
 msgid "When you are signed in to both Trakt and Simkl, what you watch, what you mark as watched and a cleared resume point go to both. Your lists and Continue watching come from the account you choose above."
 msgstr "Ben je bij Trakt én bij Simkl ingelogd, dan gaat wat je kijkt, wat je als bekeken markeert en een gewist hervatpunt naar allebei. Je lijsten en Verder kijken komen uit het account dat je hierboven kiest."
+
+msgctxt "#32448"
+msgid "Copy your library (Trakt ↔ Simkl)"
+msgstr "Bibliotheek kopiëren (Trakt ↔ Simkl)"
+
+msgctxt "#32449"
+msgid "Copies your watchlist and what you watched from Trakt to Simkl or the other way round. What the other account already has is skipped; nothing is removed."
+msgstr "Kopieert je kijklijst en wat je gezien hebt van Trakt naar Simkl of andersom. Wat het andere account al heeft, wordt overgeslagen; er wordt niets verwijderd."

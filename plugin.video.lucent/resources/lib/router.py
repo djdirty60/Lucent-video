@@ -974,6 +974,9 @@ def run(argv):
         if action == "introskip":
             import introskip
             return introskip.toggle(params["tmdb"])
+        if action == "transfer":
+            import transfer
+            return transfer.run()
         if action == "resume_forget":
             return forget_resume(params)
         if action == "tonight_add":

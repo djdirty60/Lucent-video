@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+24",
+   "label": "Beta 1 · update 24",
+   "label_en": "Beta 1 · update 24",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "library",
+     "Bibliotheek kopiëren tussen Trakt en Simkl",
+     "Ben je bij Trakt én Simkl ingelogd, dan staat bij Account de knop 'Bibliotheek kopiëren'. Die kopieert je kijklijst en wat je gezien hebt (met de datum) van de een naar de ander. Wat het andere account al heeft, slaat Lucent over, en er wordt niets verwijderd.",
+     "Copy your library between Trakt and Simkl",
+     "When you are signed in to both Trakt and Simkl, Account has the button 'Copy your library'. It copies your watchlist and what you watched (with the date) from one to the other. What the other account already has is skipped, and nothing is removed."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+23",
    "label": "Beta 1 · update 23",
    "label_en": "Beta 1 · update 23",
