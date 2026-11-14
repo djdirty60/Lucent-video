@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+22",
+   "label": "Beta 1 · update 22",
+   "label_en": "Beta 1 · update 22",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "home",
+     "Laatste titel verdwijnt uit een rij",
+     "Wis je het hervatpunt van de laatste titel in Verder kijken (of markeer je hem als bekeken), dan wordt de rij op Home nu echt leeg. Eerder bleef de oude titel staan.",
+     "Last title leaves a row",
+     "When you clear the resume point of the last title in Continue watching (or mark it as watched), the row on Home now really becomes empty. Before, the old title stayed."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+21",
    "label": "Beta 1 · update 21",
    "label_en": "Beta 1 · update 21",

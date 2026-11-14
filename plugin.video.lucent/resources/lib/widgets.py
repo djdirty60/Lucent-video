@@ -68,6 +68,12 @@ def is_old(params, entry, size=0):
     return time.time() - at > age or at < marks.get("all", 0) or (account and at < marks.get("account", 0))
 
 
+def emptied_by_you(params, entry):
+    """A row of your account that you changed yourself after this copy was made (a resume point cleared, marked as
+    watched): an empty answer is real then, not a hiccup of the account."""
+    return params.get("name") in ACCOUNT and entry.get("at", 0) < util.load_json(MARKS, {}).get("account", 0)
+
+
 def same(entry, titles, content):
     def ids(rows):
         return [(t.get("kind"), str(t.get("tmdb")), t.get("season"), t.get("episode")) for t in rows]

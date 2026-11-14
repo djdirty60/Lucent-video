@@ -543,9 +543,10 @@ def list_titles(handle, params):
                 util.log("row %s not refreshed: %s" % (name, type(error).__name__))
                 return None
             changed = not widgets.same(cached, titles, content)
-            if titles or not cached.get("titles"):
+            yours = widgets.emptied_by_you(params, cached)
+            if titles or not cached.get("titles") or yours:
                 widgets.put(params, titles, content, size)
-            if changed and titles:
+            if changed and (titles or yours):
                 widgets.bump()
         return None
     titles, content, more = gather_row(params, size)
