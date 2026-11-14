@@ -1516,3 +1516,11 @@ msgstr ""
 msgctxt "#32299"
 msgid "Clear resume point (Lucent)"
 msgstr ""
+
+msgctxt "#32446"
+msgid "Also update your other account"
+msgstr ""
+
+msgctxt "#32447"
+msgid "When you are signed in to both Trakt and Simkl, what you watch, what you mark as watched and a cleared resume point go to both. Your lists and Continue watching come from the account you choose above."
+msgstr ""

@@ -35,6 +35,25 @@ def active():
     return None
 
 
+def mirrors():
+    """The other account (Trakt or Simkl) you are also signed in to, when 'Also update your other account' is on."""
+    if not util.flag("also_other"):
+        return []
+    main = active()
+    if main is None and choice() == 2:
+        return []                           # only this device: nothing goes out
+    return [m for m in (trakt, simkl) if m is not main and m.logged_in()]
+
+
+def _mirror(job, *args):
+    """Runs job(account, *args) for the other account; its trouble never stops the main one."""
+    for account in mirrors():
+        try:
+            job(account, *args)
+        except Exception as error:      # noqa: BLE001
+            util.log("%s (other account): %s" % ("Trakt" if account is trakt else "Simkl", type(error).__name__))
+
+
 def logged_in():
     return active() is not None
 
@@ -154,6 +173,7 @@ def forget_resume(meta):
     saved = util.load_json(PROGRESS, {})
     if saved.pop(key, None) is not None:
         util.save_json(PROGRESS, saved)
+    _mirror(lambda other: other.forget_playback(meta) if hasattr(other, "forget_playback") else None)
     account = active()
     if account and hasattr(account, "forget_playback"):
         return account.forget_playback(meta)
@@ -203,6 +223,7 @@ def set_watched(meta, watched):
         account.set_watched(meta, watched)
     else:
         mark_local(meta, watched)
+    _mirror(lambda other: other.set_watched(meta, watched))
     import wetrakr
     wetrakr.watched(meta, watched)
     util.cache_drop("nextup")
@@ -252,6 +273,7 @@ def scrobble(state, meta, percent, position=0, total=0):
             elif percent < 80.0:
                 sent_percent = 100.0
         account.scrobble(sent_state, meta, sent_percent)
+        _mirror(lambda other: other.scrobble(sent_state, meta, sent_percent))
     floppy.scrobble("pause" if state == "stop" and percent < util.watched_at() else state, meta, position, total)
     import wetrakr
     wetrakr.scrobble(state, meta, percent, total)

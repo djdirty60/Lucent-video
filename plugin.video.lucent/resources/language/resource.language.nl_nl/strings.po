@@ -1516,3 +1516,11 @@ msgstr "Opent een serie meteen in het seizoen waar je bent, met de cursor op je 
 msgctxt "#32299"
 msgid "Clear resume point (Lucent)"
 msgstr "Hervatpunt wissen (Lucent)"
+
+msgctxt "#32446"
+msgid "Also update your other account"
+msgstr "Ook bijwerken bij je andere account"
+
+msgctxt "#32447"
+msgid "When you are signed in to both Trakt and Simkl, what you watch, what you mark as watched and a cleared resume point go to both. Your lists and Continue watching come from the account you choose above."
+msgstr "Ben je bij Trakt én bij Simkl ingelogd, dan gaat wat je kijkt, wat je als bekeken markeert en een gewist hervatpunt naar allebei. Je lijsten en Verder kijken komen uit het account dat je hierboven kiest."
