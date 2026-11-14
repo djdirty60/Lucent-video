@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+32",
+   "label": "Beta 1 · update 32",
+   "label_en": "Beta 1 · update 32",
+   "date": "2026-11-14",
+   "at": "2026-11-14T20:18Z",
+   "items": [
+    [
+     "movies",
+     "'Nog' telt deze aflevering mee",
+     "Voor het label op de poster telt Lucent Video nu ook de aflevering zelf mee: bij aflevering 1 van 4 uitgezonden staat er 'nog 4'. Bij de laatst uitgezonden aflevering staat er niets. (De Lucent-skin toont dit vanaf 2.1.15.)",
+     "'Left' counts this episode too",
+     "For the poster label Lucent Video now counts the episode itself too: episode 1 of 4 aired shows '4 to watch'. The last aired episode shows nothing. (The Lucent skin shows this from 2.1.15.)"
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+31",
    "label": "Beta 1 · update 31",
    "label_en": "Beta 1 · update 31",

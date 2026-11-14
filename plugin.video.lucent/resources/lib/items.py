@@ -135,7 +135,8 @@ def season_props(item, meta):
     aired = meta.get("season_aired")
     left = (aired if aired is not None else count) - number          # only episodes that were on TV already
     if number < count and left > 0:
-        item.setProperty("lucent.season.left", util.T("nog %d", "%d left") % left)
+        item.setProperty("lucent.season.left", util.T("nog %d", "%d left") % left)       # after this one (the skin counts with it)
+        item.setProperty("lucent.season.towatch", util.T("nog %d", "%d to watch") % (left + 1))   # this one included: the poster label
 
 
 def title_item(meta, watched=False, resume=None, last_played="", counts=None):
