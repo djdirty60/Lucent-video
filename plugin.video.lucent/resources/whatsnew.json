@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+17",
+   "label": "Beta 1 · update 17",
+   "label_en": "Beta 1 · update 17",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "subtitles",
+     "Automatisch ondertitels werkt weer",
+     "Automatisch ondertitels zoeken deed niets meer als de losse add-on Lucent Subtitles niet op je apparaat stond. Die is sinds de ingebouwde ondertitels niet meer nodig. Nu werkt het weer, en een bewaarde AI-vertaling gaat bij het starten meteen aan.",
+     "Automatic subtitles work again",
+     "Searching subtitles automatically did nothing when the separate Lucent Subtitles add-on was not on your device, which is no longer needed since subtitles are built in. It works again now, and a saved AI translation switches on at the start."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+16",
    "label": "Beta 1 · update 16",
    "label_en": "Beta 1 · update 16",

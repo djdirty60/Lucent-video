@@ -326,7 +326,7 @@ class Watcher(xbmc.Player):
                 always_on()
         except Exception as error:  # noqa: BLE001 - never break playback
             xbmc.log(f"[lucent.video] subtitles: always on: {error}", xbmc.LOGINFO)
-        if not subconf.on("nuvio.autosubs") or not service_id():
+        if not subconf.on("nuvio.autosubs"):              # the search is built into Lucent Video: no separate add-on needed
             self.check_again()
             return
         self.next_episode_later()
