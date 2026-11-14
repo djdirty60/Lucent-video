@@ -488,6 +488,7 @@ def episode_meta(show, raw):
         "runtime": raw.get("runtime") or show["runtime"],
         "season_count": next((s.get("episode_count") or 0 for s in show.get("seasons") or []
                               if s.get("season_number") == raw["season_number"]), 0),
+        "season_aired": aired_in_season(show, raw["season_number"]) if show.get("last_aired") else None,
     }
 
 

@@ -125,10 +125,11 @@ def season_props(item, meta):
     if not count or not number or not int(meta.get("season") or 0) or number > count:
         return
     item.setProperty("lucent.season.count", str(count))
-    left = count - number
-    if left:
+    aired = meta.get("season_aired")
+    left = (aired if aired is not None else count) - number          # only episodes that were on TV already
+    if number < count and left > 0:
         item.setProperty("lucent.season.left", util.T("nog %d", "%d left") % left)
-    else:
+    elif number == count:
         item.setProperty("lucent.season.finale", "1")
 
 
