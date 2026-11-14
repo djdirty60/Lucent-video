@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+26",
+   "label": "Beta 1 · update 26",
+   "label_en": "Beta 1 · update 26",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "settings",
+     "Instellingen blijven open",
+     "Gebruik je in de instellingen een knop die een eigen venster opent (inloggen, talen kiezen, accountinformatie, bibliotheek kopiëren…), dan kom je daarna terug in hetzelfde deel van de instellingen. Je sluit ze zelf wanneer je klaar bent.",
+     "Settings stay open",
+     "When you use a button in the settings that opens its own window (sign in, choose languages, account information, copy your library…), you come back to the same part of the settings afterwards. You close them yourself when you are done."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+25",
    "label": "Beta 1 · update 25",
    "label_en": "Beta 1 · update 25",

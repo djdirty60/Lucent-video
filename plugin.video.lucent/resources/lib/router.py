@@ -891,6 +891,18 @@ FOLDERS = {"kompasmenu": kompas_menu, "": home, "menu": menu, "tools": tools, "s
 
 
 def run(argv):
+    """Runs one call. A button in the settings (…&back=<category>) brings you back to that part of the settings
+    afterwards: Kodi closes the settings for such a button, and settings changed while they are open would be lost."""
+    params = dict(urllib.parse.parse_qsl((argv[2] if len(argv) > 2 else "").lstrip("?")))
+    back = params.get("back", "")
+    try:
+        return _run(argv)
+    finally:
+        if back in SECTIONS and not xbmc.Player().isPlayingVideo() and not xbmc.getCondVisibility("Window.IsVisible(addonsettings)"):
+            open_settings({"section": back})
+
+
+def _run(argv):
     handle = int(argv[1])
     params = dict(urllib.parse.parse_qsl((argv[2] if len(argv) > 2 else "").lstrip("?")))
     action = params.get("action", "")
