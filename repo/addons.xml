@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+19" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+20" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -79,20 +79,19 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 19: a saved AI translation also switches on when the next episode starts while the previous subtitle list is still closing.
+        <news>1.0.0 beta 1, update 20: the streams prepared for your next episodes and Continue watching are looked up again before they run out, so pressing play starts at once instead of showing the search screen.
+1.0.0 beta 1, update 19: a saved AI translation also switches on when the next episode starts while the previous subtitle list is still closing.
 1.0.0 beta 1, update 18: when Kodi switches on an English subtitle from the film while Lucent looks for one in your language, Lucent switches it off at once; you then get your language or the AI translation.
 1.0.0 beta 1, update 17: automatic subtitles did nothing when the old separate Lucent Subtitles add-on was not installed (it is no longer needed). Fixed; a saved AI translation now really switches on at the start.
 1.0.0 beta 1, update 16: an episode or film you translated with AI before gets that saved translation switched on at once, instead of the subtitle list or a new search.
 1.0.0 beta 1, update 15: the label '2 left' on an episode only counts episodes of this season that were already on TV.
 1.0.0 beta 1, update 14: a list of what changed in each update (Dutch and English), for the Lucent skin's What's new screen.
-1.0.0 beta 1, update 13: opening a series takes you straight to the season you are in, with your next episode selected. Works in Lucent Video and in the Kodi library; one step back shows all seasons. Turn it off under Settings, General.
-1.0.0 beta 1, update 12: 'new episodes' and 'episodes to go' only count episodes that were on TV; announced episodes no longer count. Your film and series collection is in A to Z order (The, De, Het and Een at the start are skipped).</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 19: Bewaarde vertaling ook bij de volgende aflevering: Start de volgende aflevering terwijl de ondertitellijst van de vorige nog dichtgaat, dan gaat een bewaarde AI-vertaling nu toch meteen aan.
+1.0.0 beta 1, update 13: opening a series takes you straight to the season you are in, with your next episode selected. Works in Lucent Video and in the Kodi library; one step back shows all seasons. Turn it off under Settings, General.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 20: Klaargezette streams blijven vers: Lucent zoekt de streams voor je volgende afleveringen en 'Verder kijken' nu opnieuw voordat ze verlopen. Eerder verliepen ze na anderhalf uur en kon het tot een kwartier duren voor ze terug waren; in die tijd startte een aflevering met het zoekscherm.
+1.0.0 beta 1, update 19: Bewaarde vertaling ook bij de volgende aflevering: Start de volgende aflevering terwijl de ondertitellijst van de vorige nog dichtgaat, dan gaat een bewaarde AI-vertaling nu toch meteen aan.
 1.0.0 beta 1, update 18: Geen Engelse ondertitel meer vooraf: Kiest Kodi bij het starten een Engelse ondertitel uit de film terwijl Lucent er een in jouw taal zoekt, dan zet Lucent die Engelse meteen uit. Je ziet daarna jouw taal, of de AI-vertaling. Een 'forced' ondertitel en een keuze die je zelf voor een serie maakte, blijven staan.
 1.0.0 beta 1, update 17: Automatisch ondertitels werkt weer: Automatisch ondertitels zoeken deed niets meer als de losse add-on Lucent Subtitles niet op je apparaat stond. Die is sinds de ingebouwde ondertitels niet meer nodig. Nu werkt het weer, en een bewaarde AI-vertaling gaat bij het starten meteen aan.
-1.0.0 beta 1, update 16: Bewaarde AI-vertaling gaat meteen aan: Heb je een aflevering of film eerder met AI vertaald, dan zet Lucent die vertaling meteen aan als je hem weer start. Geen lijst en geen zoeken meer.
-1.0.0 beta 1, update 15: 'Nog' telt alleen uitgezonden afleveringen: Het label 'nog 2' op een aflevering telt alleen afleveringen van dit seizoen die al op tv zijn geweest. Aangekondigde afleveringen tellen niet meer mee.
-1.0.0 beta 1, update 14: Updates in Wat is er nieuw: Wat er per update van Lucent Video verandert, staat nu ook in het scherm Wat is er nieuw van de Lucent-skin (zodra de skin dit inleest).</news>
+1.0.0 beta 1, update 16: Bewaarde AI-vertaling gaat meteen aan: Heb je een aflevering of film eerder met AI vertaald, dan zet Lucent die vertaling meteen aan als je hem weer start. Geen lijst en geen zoeken meer.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

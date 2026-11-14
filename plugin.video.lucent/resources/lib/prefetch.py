@@ -70,8 +70,8 @@ def run():
     done = 0
     for entry, subtitles in wanted:
         key = key_of(*entry)
-        if key in store or done >= PER_ROUND:
-            continue
+        if done >= PER_ROUND or (key in store and time.time() - store[key].get("at", 0) < KEEP - 2 * EVERY):
+            continue                         # fresh enough; an older one is looked up again before it runs out
         try:
             found = _fetch(entry, subtitles)
         except Exception as error:          # noqa: BLE001 - a failing scraper must never stop the service

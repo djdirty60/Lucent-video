@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+20",
+   "label": "Beta 1 · update 20",
+   "label_en": "Beta 1 · update 20",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "play",
+     "Klaargezette streams blijven vers",
+     "Lucent zoekt de streams voor je volgende afleveringen en 'Verder kijken' nu opnieuw voordat ze verlopen. Eerder verliepen ze na anderhalf uur en kon het tot een kwartier duren voor ze terug waren; in die tijd startte een aflevering met het zoekscherm.",
+     "Prepared streams stay fresh",
+     "Lucent now looks up the streams for your next episodes and 'Continue watching' again before they run out. Before, they ran out after an hour and a half and it could take a quarter of an hour before they were back; in that time an episode started with the search screen."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+19",
    "label": "Beta 1 · update 19",
    "label_en": "Beta 1 · update 19",
