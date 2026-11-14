@@ -2,10 +2,27 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+27",
+   "label": "Beta 1 · update 27",
+   "label_en": "Beta 1 · update 27",
+   "date": "2026-11-14",
+   "at": "2026-11-14T13:21Z",
+   "items": [
+    [
+     "refresh",
+     "Volgorde in Wat is er nieuw",
+     "Elke update van Lucent Video heeft nu ook het tijdstip waarop hij is geplaatst. De Lucent-skin zet skin en Lucent Video daardoor in Wat is er nieuw in de echte volgorde.",
+     "Order in What's new",
+     "Every Lucent Video update now also has the time it was published. The Lucent skin can then show skin and Lucent Video in What's new in the real order."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+26",
    "label": "Beta 1 · update 26",
    "label_en": "Beta 1 · update 26",
    "date": "2026-11-14",
+   "at": "2026-11-14T12:02Z",
    "items": [
     [
      "settings",
@@ -21,6 +38,7 @@
    "label": "Beta 1 · update 25",
    "label_en": "Beta 1 · update 25",
    "date": "2026-11-14",
+   "at": "2026-11-14T11:56Z",
    "items": [
     [
      "settings",
@@ -36,6 +54,7 @@
    "label": "Beta 1 · update 24",
    "label_en": "Beta 1 · update 24",
    "date": "2026-11-14",
+   "at": "2026-11-14T11:43Z",
    "items": [
     [
      "library",
@@ -51,6 +70,7 @@
    "label": "Beta 1 · update 23",
    "label_en": "Beta 1 · update 23",
    "date": "2026-11-14",
+   "at": "2026-11-14T11:39Z",
    "items": [
     [
      "trakt",
@@ -66,6 +86,7 @@
    "label": "Beta 1 · update 22",
    "label_en": "Beta 1 · update 22",
    "date": "2026-11-14",
+   "at": "2026-11-14T11:30Z",
    "items": [
     [
      "home",
@@ -81,6 +102,7 @@
    "label": "Beta 1 · update 21",
    "label_en": "Beta 1 · update 21",
    "date": "2026-11-14",
+   "at": "2026-11-14T11:25Z",
    "items": [
     [
      "play",
@@ -96,6 +118,7 @@
    "label": "Beta 1 · update 20",
    "label_en": "Beta 1 · update 20",
    "date": "2026-11-14",
+   "at": "2026-11-14T11:03Z",
    "items": [
     [
      "play",
@@ -111,6 +134,7 @@
    "label": "Beta 1 · update 19",
    "label_en": "Beta 1 · update 19",
    "date": "2026-11-14",
+   "at": "2026-11-14T10:46Z",
    "items": [
     [
      "subtitles",
@@ -126,6 +150,7 @@
    "label": "Beta 1 · update 18",
    "label_en": "Beta 1 · update 18",
    "date": "2026-11-14",
+   "at": "2026-11-14T10:39Z",
    "items": [
     [
      "subtitles",
@@ -141,6 +166,7 @@
    "label": "Beta 1 · update 17",
    "label_en": "Beta 1 · update 17",
    "date": "2026-11-14",
+   "at": "2026-11-14T10:30Z",
    "items": [
     [
      "subtitles",
@@ -156,6 +182,7 @@
    "label": "Beta 1 · update 16",
    "label_en": "Beta 1 · update 16",
    "date": "2026-11-14",
+   "at": "2026-11-14T10:22Z",
    "items": [
     [
      "subtitles",
@@ -171,6 +198,7 @@
    "label": "Beta 1 · update 15",
    "label_en": "Beta 1 · update 15",
    "date": "2026-11-14",
+   "at": "2026-11-14T10:14Z",
    "items": [
     [
      "movies",
@@ -186,6 +214,7 @@
    "label": "Beta 1 · update 14",
    "label_en": "Beta 1 · update 14",
    "date": "2026-11-14",
+   "at": "2026-11-14T09:26Z",
    "items": [
     [
      "info",
@@ -201,6 +230,7 @@
    "label": "Beta 1 · update 13",
    "label_en": "Beta 1 · update 13",
    "date": "2026-11-14",
+   "at": "2026-11-14T09:23Z",
    "items": [
     [
      "movies",
@@ -216,6 +246,7 @@
    "label": "Beta 1 · update 12",
    "label_en": "Beta 1 · update 12",
    "date": "2026-11-14",
+   "at": "2026-11-14T00:09Z",
    "items": [
     [
      "movies",
@@ -231,6 +262,7 @@
    "label": "Beta 1 · update 11",
    "label_en": "Beta 1 · update 11",
    "date": "2026-11-13",
+   "at": "2026-11-13T22:51Z",
    "items": [
     [
      "info",
@@ -246,6 +278,7 @@
    "label": "Beta 1 · update 10",
    "label_en": "Beta 1 · update 10",
    "date": "2026-11-13",
+   "at": "2026-11-13T22:42Z",
    "items": [
     [
      "play",
@@ -261,6 +294,7 @@
    "label": "Beta 1 · update 9",
    "label_en": "Beta 1 · update 9",
    "date": "2026-11-13",
+   "at": "2026-11-13T22:30Z",
    "items": [
     [
      "info",
@@ -276,6 +310,7 @@
    "label": "Beta 1 · update 8",
    "label_en": "Beta 1 · update 8",
    "date": "2026-11-13",
+   "at": "2026-11-13T18:38Z",
    "items": [
     [
      "refresh",
@@ -291,6 +326,7 @@
    "label": "Beta 1 · update 7",
    "label_en": "Beta 1 · update 7",
    "date": "2026-11-13",
+   "at": "2026-11-13T18:31Z",
    "items": [
     [
      "layout",
@@ -306,6 +342,7 @@
    "label": "Beta 1 · update 6",
    "label_en": "Beta 1 · update 6",
    "date": "2026-11-13",
+   "at": "2026-11-13T16:37Z",
    "items": [
     [
      "trakt",
@@ -321,6 +358,7 @@
    "label": "Beta 1 · update 5",
    "label_en": "Beta 1 · update 5",
    "date": "2026-11-13",
+   "at": "2026-11-13T16:35Z",
    "items": [
     [
      "layout",
