@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+30" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+31" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -83,18 +83,19 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 30: after you stop watching, Continue watching and the other account rows on Home are fetched again (after 15 and 75 seconds) with fresh account data; a new resume point counts as a change.
+        <news>1.0.0 beta 1, update 31: Kodi now shows Wilfried van der Voort as the maker of Lucent Video.
+1.0.0 beta 1, update 30: after you stop watching, Continue watching and the other account rows on Home are fetched again (after 15 and 75 seconds) with fresh account data; a new resume point counts as a change.
 1.0.0 beta 1, update 29: the Finale label only appears when TMDB itself marks the episode as a finale; the newest episode of a running season is no longer called a finale. Mid-season and series finales come from TMDB too.
 1.0.0 beta 1, update 28: Continue watching for series starts with new episodes (out in the last 30 days, after you last watched that series), newest first; then what you watched or stopped most recently.
 1.0.0 beta 1, update 27: every update in the What's new list now has the time it was published, so the Lucent skin can show skin and add-on updates in the real order.
 1.0.0 beta 1, update 26: after a settings button that opens its own window (sign in, languages, account info, copy library...), you come back to the same part of the settings instead of leaving them.
 1.0.0 beta 1, update 25: 'Copy your library (Trakt / Simkl)' is always shown under Account; without both accounts it tells you to sign in first.
 1.0.0 beta 1, update 24: 'Copy your library' under Account copies your watchlist and what you watched between Trakt and Simkl; what is already there is skipped, nothing is removed.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 30: Home-rijen bijgewerkt na het kijken: Stop je met kijken, dan worden Verder kijken en de andere rijen van je account na 15 seconden en nog eens na 75 seconden opnieuw opgehaald, met verse gegevens van je account. Ook een nieuw hervatpunt bij dezelfde aflevering telt nu als verandering.
+        <news lang="nl_NL">1.0.0 beta 1, update 31: Maker: Wilfried van der Voort: In Kodi staat bij Lucent Video nu Wilfried van der Voort als maker.
+1.0.0 beta 1, update 30: Home-rijen bijgewerkt na het kijken: Stop je met kijken, dan worden Verder kijken en de andere rijen van je account na 15 seconden en nog eens na 75 seconden opnieuw opgehaald, met verse gegevens van je account. Ook een nieuw hervatpunt bij dezelfde aflevering telt nu als verandering.
 1.0.0 beta 1, update 29: Finale alleen als het echt de finale is: Een aflevering krijgt het label Finale alleen nog als TMDB hem zelf als (seizoens)finale markeert. De nieuwste aflevering van een seizoen dat nog loopt, zoals Gold Rush, is geen finale meer. Ook het midseason-finale- en seriefinale-label komt nu van TMDB.
 1.0.0 beta 1, update 28: Nieuwe afleveringen eerst in Verder kijken: In Verder kijken (series) staan nu eerst de nieuwe afleveringen: uit in de laatste 30 dagen en verschenen nadat je die serie het laatst keek, de nieuwste bovenaan. Daarna volgt de rest zoals altijd: wat je het laatst keek of waar je bleef staan.
-1.0.0 beta 1, update 27: Volgorde in Wat is er nieuw: Elke update van Lucent Video heeft nu ook het tijdstip waarop hij is geplaatst. De Lucent-skin zet skin en Lucent Video daardoor in Wat is er nieuw in de echte volgorde.
-1.0.0 beta 1, update 26: Instellingen blijven open: Gebruik je in de instellingen een knop die een eigen venster opent (inloggen, talen kiezen, accountinformatie, bibliotheek kopiëren…), dan kom je daarna terug in hetzelfde deel van de instellingen. Je sluit ze zelf wanneer je klaar bent.</news>
+1.0.0 beta 1, update 27: Volgorde in Wat is er nieuw: Elke update van Lucent Video heeft nu ook het tijdstip waarop hij is geplaatst. De Lucent-skin zet skin en Lucent Video daardoor in Wat is er nieuw in de echte volgorde.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

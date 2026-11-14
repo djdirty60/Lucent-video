@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+31",
+   "label": "Beta 1 · update 31",
+   "label_en": "Beta 1 · update 31",
+   "date": "2026-11-14",
+   "at": "2026-11-14T18:29Z",
+   "items": [
+    [
+     "info",
+     "Maker: Wilfried van der Voort",
+     "In Kodi staat bij Lucent Video nu Wilfried van der Voort als maker.",
+     "Maker: Wilfried van der Voort",
+     "Kodi now shows Wilfried van der Voort as the maker of Lucent Video."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+30",
    "label": "Beta 1 · update 30",
    "label_en": "Beta 1 · update 30",
