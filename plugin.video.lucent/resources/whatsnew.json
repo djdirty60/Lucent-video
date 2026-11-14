@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+34",
+   "label": "Beta 1 · update 34",
+   "label_en": "Beta 1 · update 34",
+   "date": "2026-11-14",
+   "at": "2026-11-14T20:45Z",
+   "items": [
+    [
+     "movies",
+     "Echte titels voor 'Aflevering 7'",
+     "Kent TMDB een aflevering alleen als 'Aflevering 7' (ook in het Engels), dan haalt Lucent de titel en beschrijving nu bij Trakt, net als Seren. Dat werkt ook zonder Trakt-account, in de lijsten en in de bibliotheek.",
+     "Real titles for 'Episode 7'",
+     "When TMDB only knows an episode as 'Episode 7' (in English too), Lucent now takes the title and description from Trakt, like Seren does. This works without a Trakt account too, in the lists and in the library."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+33",
    "label": "Beta 1 · update 33",
    "label_en": "Beta 1 · update 33",

@@ -426,7 +426,7 @@ def show_here(tmdb_id, ttl=12 * 3600):
 def season(tmdb_id, number):
     """One season. Episodes without a description in your language get the English one of TMDB, and when that is
     missing too the one of TheTVDB (only with your own TheTVDB key)."""
-    key_name = "tmdbseasonfull%s:%s:%s:%d" % (tmdb_id, number, lang(), day_later(tmdb_id))
+    key_name = "tmdbseasonfull2%s:%s:%s:%d" % (tmdb_id, number, lang(), day_later(tmdb_id))
     filled = util.cache_get(key_name, 6 * 3600)
     if filled is not None:
         return filled
@@ -450,6 +450,15 @@ def season(tmdb_id, number):
                 row["name"] = other["name"]
         if not data.get("overview"):
             data["overview"] = english.get("overview") or ""
+    if any(tvdb._generic(row.get("name") or "") or not row.get("overview") for row in rows):     # noqa: SLF001
+        import trakt                       # TMDB has only 'Episode 7': Trakt often has the real title (as Seren shows)
+        texts = trakt.season_texts(tmdb_id, number)
+        for row in rows:
+            title, text = texts.get(row.get("episode_number")) or ("", "")
+            if title and not tvdb._generic(title) and (not row.get("name") or tvdb._generic(row["name"])):    # noqa: SLF001
+                row["name"] = title
+            if text and not row.get("overview"):
+                row["overview"] = text
     if any(not row.get("overview") for row in rows):
         import tvdb
         if tvdb.available():

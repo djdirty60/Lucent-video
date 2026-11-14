@@ -476,6 +476,23 @@ def _enrich_one(meta):
         meta["trakt_id"] = str((entry.get("ids") or {}).get("trakt") or "")
 
 
+def season_texts(tmdb_id, season):
+    """{episode number: (title, description)} of one season on Trakt (works without signing in), for episodes TMDB
+    only knows as 'Episode 7'. Empty when Trakt does not answer."""
+    if not client()[0]:
+        return {}
+    try:
+        found = cached("search/tmdb/%s?type=show" % tmdb_id, 7 * 86400) or []
+        trakt_id = ((found[0].get("show") or {}).get("ids") or {}).get("trakt") if found else None
+        if not trakt_id:
+            return {}
+        rows = cached("shows/%s/seasons/%s?extended=full" % (trakt_id, int(season)), 12 * 3600) or []
+    except (util.HttpError, ValueError, TypeError, AttributeError) as error:
+        util.log("Trakt episode titles: %s" % type(error).__name__)
+        return {}
+    return {row.get("number"): (row.get("title") or "", row.get("overview") or "") for row in rows if isinstance(row, dict)}
+
+
 def enrich(titles):
     """Adds the Trakt score and id to films and series."""
     from concurrent.futures import ThreadPoolExecutor
