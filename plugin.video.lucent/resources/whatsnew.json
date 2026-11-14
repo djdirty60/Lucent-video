@@ -1,0 +1,155 @@
+{
+ "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
+ "versions": [
+  {
+   "v": "1.0.0~beta1+14",
+   "label": "Beta 1 · update 14",
+   "label_en": "Beta 1 · update 14",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "info",
+     "Updates in Wat is er nieuw",
+     "Wat er per update van Lucent Video verandert, staat nu ook in het scherm Wat is er nieuw van de Lucent-skin (zodra de skin dit inleest).",
+     "Updates in What's new",
+     "What changes in each Lucent Video update is now also listed in the Lucent skin's What's new screen (once the skin reads it)."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+13",
+   "label": "Beta 1 · update 13",
+   "label_en": "Beta 1 · update 13",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "movies",
+     "Serie openen waar je gebleven bent",
+     "Open je een serie, dan kom je meteen in het seizoen waar je bent, met de cursor op je volgende aflevering. Werkt in Lucent Video en in de Kodi-bibliotheek. Eén stap terug toont alle seizoenen. Uit te zetten bij Instellingen, Algemeen, Lijsten.",
+     "Open a series where you left off",
+     "Opening a series takes you straight to the season you are in, with your next episode selected. Works in Lucent Video and in the Kodi library. One step back shows all seasons. Turn it off under Settings, General, Lists."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+12",
+   "label": "Beta 1 · update 12",
+   "label_en": "Beta 1 · update 12",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "movies",
+     "Alleen uitgezonden afleveringen tellen",
+     "'Nieuw' en 'nog te kijken' tellen alleen afleveringen die al op tv zijn geweest. Je film- en seriecollectie staat op alfabet (The, De, Het en Een aan het begin tellen niet mee).",
+     "Only aired episodes count",
+     "'New' and 'episodes to go' only count episodes that were on TV. Your film and series collection is in A to Z order (The, De, Het and Een at the start are skipped)."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+11",
+   "label": "Beta 1 · update 11",
+   "label_en": "Beta 1 · update 11",
+   "date": "2026-11-13",
+   "items": [
+    [
+     "info",
+     "Server in het logboek",
+     "Het logboek zegt van welke server het beeld echt komt, na alle omleidingen. Handig om te zien waarom een stream blijft bufferen.",
+     "Server in the log",
+     "The log says which server the picture really comes from, after all redirects. Helps to find out why a stream keeps buffering."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+10",
+   "label": "Beta 1 · update 10",
+   "label_en": "Beta 1 · update 10",
+   "date": "2026-11-13",
+   "items": [
+    [
+     "play",
+     "Verder kijken hersteld",
+     "Kodi start de film nu zelf op het punt waar je was, in plaats van dat Lucent er na de start naartoe springt. Heeft Kodi al 'Hervatten?' gevraagd, dan vraagt Lucent het niet nog een keer.",
+     "Continue watching fixed",
+     "Kodi now starts the film at your resume point itself, instead of Lucent jumping there after the start. When Kodi already asked 'Resume?', Lucent no longer asks again."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+9",
+   "label": "Beta 1 · update 9",
+   "label_en": "Beta 1 · update 9",
+   "date": "2026-11-13",
+   "items": [
+    [
+     "info",
+     "Duidelijker logboek bij afspelen",
+     "Het logboek zegt welke bron speelt (dienst, kwaliteit, grootte, servernaam; nooit het adres), wanneer er gesprongen, overgeslagen of gebufferd wordt en wanneer er van bron gewisseld wordt.",
+     "Clearer playback log",
+     "The log says which source plays (service, quality, size, server name; never the address), when it jumps, skips or buffers and when it switches source."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+8",
+   "label": "Beta 1 · update 8",
+   "label_en": "Beta 1 · update 8",
+   "date": "2026-11-13",
+   "items": [
+    [
+     "refresh",
+     "Sneller laden",
+     "Verbindingen met TMDB, Trakt en de andere diensten blijven open tussen vragen, zodat lijsten die voor het eerst openen sneller laden.",
+     "Faster loading",
+     "Connections to TMDB, Trakt and the other services stay open between questions, so lists that open for the first time load faster."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+7",
+   "label": "Beta 1 · update 7",
+   "label_en": "Beta 1 · update 7",
+   "date": "2026-11-13",
+   "items": [
+    [
+     "layout",
+     "Snellere menu's en lijsten",
+     "Menu's en lijsten openen sneller.",
+     "Faster menus and lists",
+     "Menus and lists open faster."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+6",
+   "label": "Beta 1 · update 6",
+   "label_en": "Beta 1 · update 6",
+   "date": "2026-11-13",
+   "items": [
+    [
+     "trakt",
+     "Trakt zonder eigen sleutels",
+     "De instellingen Trakt Client ID en Secret zijn weg; inloggen bij Trakt werkt zonder.",
+     "Trakt without your own keys",
+     "The Trakt Client ID and Secret settings are gone; signing in to Trakt works without them."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+5",
+   "label": "Beta 1 · update 5",
+   "label_en": "Beta 1 · update 5",
+   "date": "2026-11-13",
+   "items": [
+    [
+     "layout",
+     "Werkt in andere skins",
+     "De eigen vensters van Lucent Video werken ook in andere skins.",
+     "Works in other skins",
+     "Lucent Video's own windows also work in other skins."
+    ]
+   ]
+  }
+ ]
+}
