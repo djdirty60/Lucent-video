@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+19",
+   "label": "Beta 1 · update 19",
+   "label_en": "Beta 1 · update 19",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "subtitles",
+     "Bewaarde vertaling ook bij de volgende aflevering",
+     "Start de volgende aflevering terwijl de ondertitellijst van de vorige nog dichtgaat, dan gaat een bewaarde AI-vertaling nu toch meteen aan.",
+     "Saved translation with the next episode too",
+     "When the next episode starts while the subtitle list of the previous one is still closing, a saved AI translation now still switches on at once."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+18",
    "label": "Beta 1 · update 18",
    "label_en": "Beta 1 · update 18",

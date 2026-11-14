@@ -941,12 +941,13 @@ def open_once(auto=False):
         recent = time.time() - float(home.getProperty("lucent.subs.open") or 0) < 120
     except ValueError:
         recent = False
+    if auto:
+        if not settled(xbmc.Monitor(), xbmc.Player()):
+            return
+        if use_prefetched(my_code()) or use_saved_ai(my_code()):
+            return                                         # also when a list of the previous episode is still closing
     if recent and cond("Window.IsVisible(lucent_subtitles.xml)"):
         return                                             # really open already (a stale mark no longer blocks it)
-    if auto and not settled(xbmc.Monitor(), xbmc.Player()):
-        return
-    if auto and (use_prefetched(my_code()) or use_saved_ai(my_code())):
-        return
     home.setProperty("lucent.subs.open", f"{time.time():.1f}")
     try:
         tidy()

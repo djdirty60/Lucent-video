@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+18" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+19" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -78,7 +78,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 18: when Kodi switches on an English subtitle from the film while Lucent looks for one in your language, Lucent switches it off at once; you then get your language or the AI translation.
+        <news>1.0.0 beta 1, update 19: a saved AI translation also switches on when the next episode starts while the previous subtitle list is still closing.
+1.0.0 beta 1, update 18: when Kodi switches on an English subtitle from the film while Lucent looks for one in your language, Lucent switches it off at once; you then get your language or the AI translation.
 1.0.0 beta 1, update 17: automatic subtitles did nothing when the old separate Lucent Subtitles add-on was not installed (it is no longer needed). Fixed; a saved AI translation now really switches on at the start.
 1.0.0 beta 1, update 16: an episode or film you translated with AI before gets that saved translation switched on at once, instead of the subtitle list or a new search.
 1.0.0 beta 1, update 15: the label '2 left' on an episode only counts episodes of this season that were already on TV.
