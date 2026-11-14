@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+24" name="Lucent Video" provider-name="Claude">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+25" name="Lucent Video" provider-name="Claude">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -83,14 +83,16 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 24: 'Copy your library' under Account copies your watchlist and what you watched between Trakt and Simkl; what is already there is skipped, nothing is removed.
+        <news>1.0.0 beta 1, update 25: 'Copy your library (Trakt / Simkl)' is always shown under Account; without both accounts it tells you to sign in first.
+1.0.0 beta 1, update 24: 'Copy your library' under Account copies your watchlist and what you watched between Trakt and Simkl; what is already there is skipped, nothing is removed.
 1.0.0 beta 1, update 23: sign in to Trakt and Simkl at the same time; what you watch, mark as watched or clear goes to both. Lists and Continue watching come from the account you choose. Can be turned off under Account.
 1.0.0 beta 1, update 22: when you clear the resume point of the last title in a Home row such as Continue watching, the row now really becomes empty instead of keeping the old title.
 1.0.0 beta 1, update 21: 'Clear resume point' in the menu of a film or episode: forgets where you were on this device, on your account and in the Kodi library (Kodi's own reset cannot reach your account).
 1.0.0 beta 1, update 20: the streams prepared for your next episodes and Continue watching are looked up again before they run out, so pressing play starts at once instead of showing the search screen.
 1.0.0 beta 1, update 19: a saved AI translation also switches on when the next episode starts while the previous subtitle list is still closing.
 1.0.0 beta 1, update 18: when Kodi switches on an English subtitle from the film while Lucent looks for one in your language, Lucent switches it off at once; you then get your language or the AI translation.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 24: Bibliotheek kopiëren tussen Trakt en Simkl: Ben je bij Trakt én Simkl ingelogd, dan staat bij Account de knop 'Bibliotheek kopiëren'. Die kopieert je kijklijst en wat je gezien hebt (met de datum) van de een naar de ander. Wat het andere account al heeft, slaat Lucent over, en er wordt niets verwijderd.
+        <news lang="nl_NL">1.0.0 beta 1, update 25: Bibliotheek kopiëren altijd te vinden: De knop 'Bibliotheek kopiëren (Trakt ↔ Simkl)' staat nu altijd bij Account, ook als je nog niet bij allebei bent ingelogd. Hij zegt dan wat je eerst moet doen.
+1.0.0 beta 1, update 24: Bibliotheek kopiëren tussen Trakt en Simkl: Ben je bij Trakt én Simkl ingelogd, dan staat bij Account de knop 'Bibliotheek kopiëren'. Die kopieert je kijklijst en wat je gezien hebt (met de datum) van de een naar de ander. Wat het andere account al heeft, slaat Lucent over, en er wordt niets verwijderd.
 1.0.0 beta 1, update 23: Trakt én Simkl tegelijk: Je kunt nu bij Trakt én bij Simkl ingelogd zijn. Wat je kijkt, wat je als bekeken markeert en een gewist hervatpunt gaan dan naar allebei. Je lijsten en Verder kijken komen uit het account dat je kiest bij 'Ik houd bij wat ik kijk met'. Uit te zetten bij Account.
 1.0.0 beta 1, update 22: Laatste titel verdwijnt uit een rij: Wis je het hervatpunt van de laatste titel in Verder kijken (of markeer je hem als bekeken), dan wordt de rij op Home nu echt leeg. Eerder bleef de oude titel staan.
 1.0.0 beta 1, update 21: Hervatpunt wissen: Nieuw in het menu van een film of aflevering met een hervatpunt: 'Hervatpunt wissen'. Lucent vergeet dan waar je was, op dit apparaat, op je account (Trakt) en in de Kodi-bibliotheek, en hij verdwijnt uit Verder kijken. Kodi's eigen 'Positie om te hervatten resetten' kan je account niet bereiken.</news>

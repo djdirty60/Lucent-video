@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+25",
+   "label": "Beta 1 · update 25",
+   "label_en": "Beta 1 · update 25",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "settings",
+     "Bibliotheek kopiëren altijd te vinden",
+     "De knop 'Bibliotheek kopiëren (Trakt ↔ Simkl)' staat nu altijd bij Account, ook als je nog niet bij allebei bent ingelogd. Hij zegt dan wat je eerst moet doen.",
+     "Copy your library always visible",
+     "The button 'Copy your library (Trakt ↔ Simkl)' is now always under Account, also when you are not yet signed in to both. It then tells you what to do first."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+24",
    "label": "Beta 1 · update 24",
    "label_en": "Beta 1 · update 24",
