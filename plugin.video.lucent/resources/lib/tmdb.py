@@ -149,7 +149,7 @@ def show_status(raw_status):
     return SHOW_STATUS.get(str(raw_status or "").strip().lower(), "")
 
 
-DETAILS_FORMAT = 1          # raise when the fields below change: old saved titles are then fetched again
+DETAILS_FORMAT = 2          # raise when the fields below change: old saved titles are then fetched again
 
 
 def details(kind, tmdb_id):
@@ -210,6 +210,8 @@ def _details(kind, tmdb_id):
         "seasons": [s for s in raw.get("seasons") or [] if s.get("season_number", 0) > 0],
         "specials": next((s for s in raw.get("seasons") or [] if s.get("season_number") == 0 and s.get("episode_count")), None),
         "episodes": raw.get("number_of_episodes") or 0,
+        "aired": _aired(raw) if not movie else 0,
+        "last_aired": _last_aired(raw) if not movie else [0, 0],
         "status": "" if movie else show_status(raw.get("status")),
         "tvdb": str((raw.get("external_ids") or {}).get("tvdb_id") or ""),
         "mpaa": _mpaa(raw, movie),
@@ -222,6 +224,30 @@ def _details(kind, tmdb_id):
         "directors": [c["name"] for c in crew.get("crew") or [] if c.get("job") == "Director"],
         "writers": [c["name"] for c in crew.get("crew") or [] if c.get("department") == "Writing"][:6],
     }
+
+
+def _last_aired(raw):
+    """[season, episode] of the last episode that was on TV, or [0, 0]."""
+    last = raw.get("last_episode_to_air") or {}
+    return [int(last.get("season_number") or 0), int(last.get("episode_number") or 0)]
+
+
+def _aired(raw):
+    """How many episodes (specials not counted) were on TV so far. Announced episodes do not count yet."""
+    season, episode = _last_aired(raw)
+    if not season:
+        return 0
+    before = sum(int(s.get("episode_count") or 0) for s in raw.get("seasons") or [] if 0 < int(s.get("season_number") or 0) < season)
+    return before + episode
+
+
+def aired_in_season(show, season):
+    """Episodes of one season that were on TV so far (the whole season when it is over)."""
+    last_season, last_episode = (show.get("last_aired") or [0, 0])[:2]
+    full = next((int(s.get("episode_count") or 0) for s in show.get("seasons") or [] if s.get("season_number") == season), 0)
+    if not last_season or season < last_season:
+        return full
+    return min(full, last_episode) if season == last_season else 0
 
 
 def many(pairs):

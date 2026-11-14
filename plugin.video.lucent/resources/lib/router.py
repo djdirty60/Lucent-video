@@ -86,7 +86,8 @@ def send_titles(handle, titles, content, more=None):
             seen, last = when is not None, when or ""
         else:
             shown = shows.get(meta["tmdb"], {})
-            counts = (meta.get("episodes") or 0, len(shown))
+            aired = meta.get("aired") if meta.get("aired") is not None else meta.get("episodes")
+            counts = (aired or 0, len([key for key in shown if key[0] > 0]))     # only episodes that were on TV
             seen, last = bool(counts[0]) and counts[1] >= counts[0], max(shown.values()) if shown else ""
         row = items.title_item(meta, seen, _resume_for(meta, local, paused), last, counts)
         if meta["kind"] == "tvshow":
@@ -100,7 +101,7 @@ def _progress(item, meta, shown):
     ('S2 · 5 of 10': the season you are in) and lucent.percent (0-100, the whole series)."""
     if not shown:
         return
-    total = sum(s.get("episode_count") or 0 for s in meta.get("seasons") or [])
+    total = meta["aired"] if meta.get("last_aired") else sum(s.get("episode_count") or 0 for s in meta.get("seasons") or [])
     done = len([key for key in shown if key[0] > 0])
     if total:
         left = max(0, total - done)
@@ -108,7 +109,8 @@ def _progress(item, meta, shown):
                          T("Nog 1 aflevering", "1 episode to go") if left == 1 else T("Nog %d afleveringen", "%d episodes to go") % left)
         item.setProperty("lucent.percent", str(min(100, int(100 * done / total))))
     season = max(shown, key=lambda key: (shown[key] or "", key))[0]
-    in_season = next((s.get("episode_count") or 0 for s in meta.get("seasons") or [] if s.get("season_number") == season), 0)
+    in_season = tmdb.aired_in_season(meta, season) if meta.get("last_aired") else \
+        next((s.get("episode_count") or 0 for s in meta.get("seasons") or [] if s.get("season_number") == season), 0)
     if in_season:
         seen_here = len([key for key in shown if key[0] == season])
         item.setProperty("lucent.progress", T("S%d · %d van %d", "S%d · %d of %d") % (season, min(seen_here, in_season), in_season))
@@ -342,6 +344,18 @@ def search_menu(handle, _params):
 def remember_search(kind, query):
     history = [entry for entry in util.load_json(HISTORY, []) if entry != [kind, query]]
     util.save_json(HISTORY, ([[kind, query]] + history)[:15])
+
+
+ARTICLES = ("the ", "a ", "an ", "de ", "het ", "een ")
+
+
+def _alphabetical(meta):
+    title = (meta.get("title") or "").casefold().strip()
+    for article in ARTICLES:
+        if title.startswith(article):
+            title = title[len(article):]
+            break
+    return title, meta.get("year") or 0
 
 
 def _slice(pairs, page):
@@ -636,6 +650,9 @@ def gather(params):
         titles, content = next_up_titles(), "episodes"
     elif name == "watching":
         titles = watching_titles()
+    elif name in ("collection_movie", "collection_tv"):          # the whole collection, A to Z
+        everything = sorted(tmdb.many(tracker.pairs(name)), key=_alphabetical)
+        titles, more = _slice(everything, page)
     elif name in ACCOUNT_LISTS:
         slice_of, more = _slice(tracker.pairs(name), page)
         titles = tmdb.many(slice_of)
@@ -683,7 +700,7 @@ def seasons(handle, params):
     rows = []
     for meta in titles:
         count = sum(1 for s, _e in shown if s == meta["season"])
-        total = meta["episodes"]
+        total = tmdb.aired_in_season(show, meta["season"]) if show.get("last_aired") else meta["episodes"]
         rows.append(items.title_item(meta, bool(total) and count >= total, counts=(total, count)))
     send(handle, rows, "seasons")
 
