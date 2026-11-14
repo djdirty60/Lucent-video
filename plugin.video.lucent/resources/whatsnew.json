@@ -2,6 +2,21 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+18",
+   "label": "Beta 1 · update 18",
+   "label_en": "Beta 1 · update 18",
+   "date": "2026-11-14",
+   "items": [
+    [
+     "subtitles",
+     "Geen Engelse ondertitel meer vooraf",
+     "Kiest Kodi bij het starten een Engelse ondertitel uit de film terwijl Lucent er een in jouw taal zoekt, dan zet Lucent die Engelse meteen uit. Je ziet daarna jouw taal, of de AI-vertaling. Een 'forced' ondertitel en een keuze die je zelf voor een serie maakte, blijven staan.",
+     "No English subtitle first",
+     "When Kodi switches on an English subtitle from the film at the start while Lucent looks for one in your language, Lucent switches the English one off at once. Then you see your language, or the AI translation. A 'forced' subtitle and a choice you made yourself for a series stay."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+17",
    "label": "Beta 1 · update 17",
    "label_en": "Beta 1 · update 17",

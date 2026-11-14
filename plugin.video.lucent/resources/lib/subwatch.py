@@ -230,6 +230,23 @@ def always_on():
     xbmc.log(f"[lucent.video] subtitles: always on: subtitle {pick[0].get('language') or pick[0].get('name')} switched on", xbmc.LOGINFO)
 
 
+def hide_foreign():
+    """Kodi switched on a subtitle from the film in a language that is not yours (for example English) while Lucent is
+    about to look for one in your language: switch it off, so it does not show first. A 'forced' track and a file that
+    was loaded on purpose stay. English only comes back as the source of an AI translation."""
+    props = rpc("Player.GetProperties", {"playerid": 1, "properties": ["currentsubtitle", "subtitleenabled"]})
+    current = props.get("currentsubtitle") or {}
+    if not props.get("subtitleenabled") or not current or current.get("isforced"):
+        return
+    if str(current.get("name") or "").lower().endswith((".srt", ".ass", ".ssa", ".sub", ".vtt", ".smi")):
+        return
+    code = lang2(current.get("language"))
+    if code and code in my_languages():
+        return
+    xbmc.Player().showSubtitles(False)
+    xbmc.log(f"[lucent.video] subtitles: {current.get('language') or 'unknown'} from the film switched off while looking for yours", xbmc.LOGINFO)
+
+
 class Watcher(xbmc.Player):
     def __init__(self):
         super().__init__()
@@ -334,6 +351,11 @@ class Watcher(xbmc.Player):
         if have & wanted_codes():
             return
         self.check_again()
+        if not remembered:                               # a choice you made for this series yourself stays
+            try:
+                hide_foreign()
+            except Exception as error:  # noqa: BLE001 - never break playback
+                xbmc.log(f"[lucent.video] subtitles: hide: {error}", xbmc.LOGINFO)
         if subconf.text("lucent.subs.mode") == "background":
             xbmc.executebuiltin("RunPlugin(plugin://plugin.video.lucent/?action=subs_background)")   # quietly, no window
         elif subconf.on("lucent.subs.native.off"):
