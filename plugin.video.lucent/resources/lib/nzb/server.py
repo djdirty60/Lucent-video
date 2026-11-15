@@ -165,7 +165,7 @@ def start():
     _state["http"] = server
     threading.Thread(target=server.serve_forever, daemon=True).start()
     util.HOME.setProperty(PORT_PROPERTY, str(server.server_address[1]))
-    util.log("usenet: local player server on")
+    util.log("usenet: local player server on, unpacking: %s" % yenc.mode())
 
 
 def stop():

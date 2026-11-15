@@ -6,7 +6,10 @@ lines and a '=yend' line with the checksum. Every byte is stored as (byte + 42) 
 line are written as '=' followed by (byte + 42 + 64) % 256. Decoding works on whole byte strings (split and translate),
 never byte by byte in Python: a film is thousands of articles of about 700 KB.
 """
+import os
+import platform
 import re
+import threading
 import zlib
 
 _MINUS_42 = bytes((b - 42) % 256 for b in range(256))
@@ -30,9 +33,107 @@ def _fields(line):
     return out
 
 
+# ------------------------------------------------------------------ the fast way: a tiny C file (native/ydec.c)
+_native = {"done": False, "fn": None, "why": ""}
+_native_lock = threading.Lock()
+_ARCH = {"aarch64": "aarch64", "arm64": "aarch64", "armv8l": "armv7", "armv7l": "armv7", "armv7": "armv7",
+         "x86_64": "x86_64", "amd64": "x86_64"}
+
+
+def _load():
+    """The C unpacker for this processor, or None (then Python does it, as before). Loaded once, checked with a test
+    article: a wrong or unreadable file can never give wrong pictures, it is simply not used."""
+    with _native_lock:
+        if _native["done"]:
+            return _native["fn"]
+        _native["done"] = True
+        arch = _ARCH.get(platform.machine().lower())
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "native", "linux-%s" % arch, "libydec.so")
+        if platform.system().lower() != "linux" or not arch or not os.path.isfile(path):
+            _native["why"] = "no fast version for %s %s" % (platform.system(), platform.machine())
+            return None
+        try:
+            import ctypes
+            lib = ctypes.CDLL(path)                 # CDLL: Python's lock is let go during each call
+            fn = lib.lucent_ydecode
+            fn.restype = ctypes.c_ulong
+            fn.argtypes = [ctypes.c_char_p, ctypes.c_ulong, ctypes.c_void_p]
+            sample = bytes(range(256)) * 4
+            if _c_unpack(fn, ctypes, _python_lines(encode(sample, "t", len(sample), 1))) != sample:
+                raise OSError("self-test failed")
+        except (ImportError, OSError, AttributeError, ValueError) as error:
+            _native["why"] = "fast version not usable (%s)" % (str(error)[:80] or type(error).__name__)
+            return None
+        _native["fn"] = (fn, ctypes)
+        return _native["fn"]
+
+
+def _python_lines(article):
+    """The data lines of a test article (between its header lines and =yend)."""
+    start = article.index(b"\n", article.index(b"=ypart")) + 1
+    return article[start:article.rindex(b"\n=yend")]
+
+
+def _c_unpack(fn, ctypes, raw):
+    out = bytearray(len(raw))
+    holder = (ctypes.c_char * len(out)).from_buffer(out) if out else None
+    size = fn(raw, len(raw), ctypes.addressof(holder) if holder is not None else None)
+    del holder
+    return bytes(memoryview(out)[:size])
+
+
+def mode():
+    """'C' or 'Python (reason)', for the log."""
+    return "C" if _load() else "Python (%s)" % (_native["why"] or "?")
+
+
+def _decode_fast(body, native):
+    """Like decode(), but the header lines are found with find() and the data is unpacked in C."""
+    fn, ctypes = native
+    start = 0 if body.startswith(b"=ybegin ") else body.find(b"\n=ybegin ") + 1
+    if start <= 0 and not body.startswith(b"=ybegin "):
+        raise YencError("no =ybegin")
+    line_end = body.find(b"\n", start)
+    info = _fields(body[start:line_end].rstrip(b"\r"))
+    data_from = line_end + 1
+    if body.startswith(b"=ypart ", data_from):
+        line_end = body.find(b"\n", data_from)
+        info.update(_fields(body[data_from:line_end].rstrip(b"\r")))
+        data_from = line_end + 1
+    end = body.rfind(b"\n=yend")
+    if end < data_from - 1:
+        raise YencError("no =yend")
+    trailer_end = body.find(b"\n", end + 1)
+    trailer = _fields(body[end + 1:trailer_end if trailer_end > 0 else len(body)].rstrip(b"\r"))
+    data = _c_unpack(fn, ctypes, body[data_from:end])
+    return _finish(data, info, trailer)
+
+
+def _finish(data, info, trailer):
+    crc = trailer.get("pcrc32") or (trailer.get("crc32") if "begin" not in info else None)
+    if crc:
+        try:
+            if zlib.crc32(data) & 0xFFFFFFFF != int(crc, 16):
+                raise YencError("checksum")
+        except ValueError:
+            pass
+    expected = int(trailer.get("size") or 0)
+    if expected and expected != len(data):
+        raise YencError("size %d, expected %d" % (len(data), expected))
+    result = {"name": info.get("name", ""), "size": int(info.get("size") or 0)}
+    if "begin" in info:
+        result["begin"], result["end"] = int(info["begin"]), int(info["end"])
+    else:
+        result["begin"], result["end"] = 1, len(data)
+    return data, result
+
+
 def decode(body):
     """body: the article as the server sent it (lines with CRLF, dots already unstuffed).
     Returns (data, info). info: name, size (of the whole file), begin and end (1-based, of this part), crc."""
+    native = _native["fn"] if _native["done"] else _load()
+    if native:
+        return _decode_fast(body, native)
     lines = body.split(b"\r\n") if b"\r\n" in body else body.split(b"\n")
     start = next((i for i, line in enumerate(lines) if line.startswith(b"=ybegin ")), None)
     if start is None:
