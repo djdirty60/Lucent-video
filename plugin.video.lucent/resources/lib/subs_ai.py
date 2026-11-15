@@ -174,10 +174,20 @@ def post(url, body, headers):
 
 
 def openrouter(key, lines, target):
+    """Thinking (reasoning) off: a subtitle needs no reasoning, and those tokens cost time and money. A model that must
+    always think refuses that request (400): then the same request goes again without it."""
     model = skin_string(PROVIDERS["openrouter"][2]) or PROVIDERS["openrouter"][3]
-    data = post("https://openrouter.ai/api/v1/chat/completions",
-                {"model": model, "temperature": 0.2, "messages": [{"role": "user", "content": make_prompt(lines, target)}]},
-                {"Authorization": f"Bearer {key}", "HTTP-Referer": "https://github.com/djdirty60/Lucent", "X-Title": "Lucent"})
+    body = {"model": model, "temperature": 0.2, "messages": [{"role": "user", "content": make_prompt(lines, target)}],
+            "reasoning": {"effort": "none"}}
+    head = {"Authorization": f"Bearer {key}", "HTTP-Referer": "https://github.com/djdirty60/Lucent", "X-Title": "Lucent"}
+    try:
+        data = post("https://openrouter.ai/api/v1/chat/completions", body, head)
+    except urllib.error.HTTPError as error:
+        if error.code != 400:
+            raise
+        log("OpenRouter: this model does not take 'no reasoning', asking again with its own setting")
+        body.pop("reasoning")
+        data = post("https://openrouter.ai/api/v1/chat/completions", body, head)
     text = (((data.get("choices") or [{}])[0].get("message") or {}).get("content")) or ""
     return json_list(text, len(lines))
 

@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+41",
+   "label": "Beta 1 · update 41",
+   "label_en": "Beta 1 · update 41",
+   "date": "2026-11-15",
+   "at": "2026-11-15T12:02Z",
+   "items": [
+    [
+     "subtitles",
+     "AI-ondertitels via OpenRouter sneller en goedkoper",
+     "Lucent vraagt het model bij OpenRouter nu om niet eerst te 'denken' (reasoning): voor een ondertitel is dat niet nodig en het kost tijd en geld. Een model dat altijd moet denken, krijgt de vraag vanzelf nog een keer zonder dit verzoek.",
+     "AI subtitles via OpenRouter faster and cheaper",
+     "Lucent now asks the OpenRouter model not to 'think' first (reasoning): a subtitle does not need it and it costs time and money. A model that always has to think simply gets the request again without it."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+40",
    "label": "Beta 1 · update 40",
    "label_en": "Beta 1 · update 40",
