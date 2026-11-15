@@ -119,14 +119,16 @@ def _read_limits(base, root):
         return
 
 
-def _pause(base, seconds=None):
+def _pause(base, seconds=None, reason=""):
     """After 'limit reached': rest until the next day (UTC), or the given seconds (HTTP 429, too many at once)."""
     if seconds is None:
         now = time.time()
         until = now - now % 86400 + 86400 + 300
     else:
         until = time.time() + seconds
-    _update(base, lambda e: e.__setitem__("pause", until))
+    _update(base, lambda e: e.update(pause=until, why=reason))
+    util.log("usenet: indexer %s said %s: resting until %s UTC" % (urllib.parse.urlsplit(base).hostname or "?", reason or "limit",
+                                                                    time.strftime("%H:%M", time.gmtime(until))))
 
 
 def allowed(base, kind="api", background=False):
@@ -138,6 +140,15 @@ def allowed(base, kind="api", background=False):
     if most:
         return used < int(most) * (STOP_AT_BACKGROUND if background else STOP_AT)
     return not background or used < UNKNOWN_BACKGROUND
+
+
+def grab_room(base):
+    """Room to fetch an NZB only to check it: never more than half of a known daily NZB limit."""
+    entry = _entry(util.load_json(HITS, {}), base)
+    if entry.get("pause", 0) > time.time():
+        return False
+    most = entry.get("grab_max")
+    return not most or int(most) >= 1000000 or int(entry.get("grab") or 0) < int(most) * 0.5
 
 
 def usage(base, log=False):
@@ -161,12 +172,24 @@ def usage(base, log=False):
                       part(entry.get("grab"), entry.get("grab_max"), "NZB's", "NZBs")))
 
 
+_said = {"text": ""}                    # what the indexer itself said last (code and description), for the log
+
+
 def _limit_hit(base, error):
     text = str(error)
     if text == "limit reached":
-        _pause(base)
+        _pause(base, reason=_said["text"] or text)
     elif text.startswith("HTTP 429"):
-        _pause(base, 3600)
+        _pause(base, 3600, reason="HTTP 429, too many at once")
+
+
+def pause_text(base):
+    """'paused until 01:05 (code 500, 'Request limit reached')' or '' when it is not paused, for the log."""
+    entry = _entry(util.load_json(HITS, {}), base)
+    until = entry.get("pause", 0)
+    if until <= time.time():
+        return ""
+    return "paused until %s UTC (%s)" % (time.strftime("%H:%M", time.gmtime(until)), entry.get("why") or "?")
 
 
 def indexers():
@@ -272,6 +295,7 @@ def _root(body):
         raise IndexerError("answer is %s" % ("a web page" if tag == "html" else "not a Newznab answer"))
     if root.tag == "error":
         code = root.get("code") or "?"
+        _said["text"] = "code %s%s" % (code, (", '%s'" % re.sub(r"[^\w .,:;()\-]", " ", root.get("description") or "")[:80]) if root.get("description") else "")
         raise IndexerError({"100": "wrong API key", "101": "account suspended", "429": "limit reached",
                             "500": "limit reached"}.get(code, "error %s" % code))
     return root
@@ -321,7 +345,10 @@ def _tell_attrs(slot, root):
     names = sorted({a.get("name") for item in root.iter("item") for a in item.iter(NS + "attr") if a.get("name")})
     if names:
         _told.add(slot)
-        util.log("usenet: indexer %s gives: %s" % (slot, ", ".join(names)))
+        subs = next((a.get("value") for item in root.iter("item") for a in item.iter(NS + "attr")
+                     if a.get("name") == "subs" and a.get("value")), "")
+        util.log("usenet: indexer %s gives: %s%s" % (slot, ", ".join(names),
+                                                    ("; subs for example: %s" % subs[:80]) if subs else ""))
 
 
 FORMATS = "nzb_imdb_format.json"       # per indexer: does it want the IMDb id with 'tt' (some do, the spec says digits)

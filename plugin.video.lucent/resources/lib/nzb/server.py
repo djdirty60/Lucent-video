@@ -54,13 +54,25 @@ def _close_release():
     release, pool, spare = _state["release"], _state["pool"], _state.get("backup")
     _state["release"], _state["key"], _state["pool"], _state["backup"] = None, "", None, None
     if release:
+        stats = release.stats
+        util.log("usenet: release closed after %.0f s: %d MB in, %d MB to Kodi, Kodi waited %d time(s), longest %.1f s"
+                 % (time.time() - release.opened, stats.get("in", 0) >> 20, stats.get("out", 0) >> 20, stats.get("waits", 0),
+                    stats.get("longest", 0.0)))
         release.close()
     for one in (pool, spare):
         if one:
             one.close()
 
 
-def prepare(name, season=None, episode=None, pack=False):
+def _sizes(minutes):
+    """(ahead, cache) in bytes from the settings; stream.fit_to_film raises them for a heavy film."""
+    megabyte = 1024 * 1024
+    ahead = max(16, util.number("nzb_ahead", 64)) * megabyte
+    cache = max(32, util.number("nzb_cache", 128)) * megabyte
+    return ahead, cache
+
+
+def prepare(name, season=None, episode=None, pack=False, minutes=0):
     """Open the release in nzb/<name>. Returns a dict for the plugin: ok, key, name, size or error."""
     path = os.path.join(folder(), os.path.basename(name))
     try:
@@ -77,13 +89,11 @@ def prepare(name, season=None, episode=None, pack=False):
         pool = nntp.Pool(provider())
         spare_settings = provider(backup=True)
         spare = nntp.Pool(spare_settings) if spare_settings else None
-        megabyte = 1024 * 1024
         started = time.time()
+        ahead, cache = _sizes(minutes)
         try:
             release = stream.open_release(pool, data, season, episode, log=lambda text: util.log("usenet: " + text), pack=pack,
-                                          backup=spare, fill=util.flag("nzb_fill"),
-                                          ahead=max(16, util.number("nzb_ahead", 64)) * megabyte,
-                                          cache=max(32, util.number("nzb_cache", 128)) * megabyte)
+                                          backup=spare, fill=util.flag("nzb_fill"), ahead=ahead, cache=cache, minutes=minutes)
         except nntp.AuthError:
             pool.close()
             if spare:
@@ -144,7 +154,8 @@ class _Handler(BaseHTTPRequestHandler):
         parts = urllib.parse.urlsplit(self.path)
         query = dict(urllib.parse.parse_qsl(parts.query))
         if parts.path == "/prepare":
-            return self._json(prepare(query.get("nzb", ""), query.get("season"), query.get("episode"), query.get("pack") == "1"))
+            return self._json(prepare(query.get("nzb", ""), query.get("season"), query.get("episode"), query.get("pack") == "1",
+                                      int(query.get("minutes") or 0) if (query.get("minutes") or "").isdigit() else 0))
         match = re.match(r"^/(stream|close)/([0-9a-f]+)(?:/.*)?$", parts.path)
         release = _state["release"]
         if not match or not release or match.group(2) != _state["key"]:
@@ -184,29 +195,53 @@ class _Handler(BaseHTTPRequestHandler):
         if not with_body:
             return
         at = start
+        asked = time.time()
+        first = None
         try:
             while at <= end:
                 chunk = release.read(at, min(CHUNK, end - at + 1))
                 if not chunk:
                     break
+                if first is None:
+                    first = time.time() - asked
+                    _tell_request(release, start, end, first)
                 self.wfile.write(chunk)
                 at += len(chunk)
         except (BrokenPipeError, ConnectionResetError):
             pass                            # Kodi closed this request (a seek): normal
-        except (stream.StreamError, nntp.NntpError, yenc.YencError, OSError) as error:
-            util.log("usenet: reading stopped (%s)" % type(error).__name__)
+        except Exception as error:          # noqa: BLE001 - whatever it is, it must reach the log
+            util.log("usenet: reading stopped at %.1f%% after %.1f s (%s: %s)" % (100.0 * at / max(1, release.size), time.time() - asked,
+                                                                              type(error).__name__, str(error)[:120]))
             self.close_connection = True
 
 
-def start():
-    if _state["http"]:
+TELL_REQUESTS = 12                  # the first requests of a release are logged (where Kodi reads, how fast it got data)
+
+
+def _tell_request(release, start, end, first):
+    told = release.stats.get("told", 0)
+    if told >= TELL_REQUESTS and first < 2:
         return
-    try:                                        # Android: a folder inside the app for the fast unpacker (see yenc)
+    release.stats["told"] = told + 1
+    util.log("usenet: Kodi reads from %.1f%%%s: first data after %.1f s"
+             % (100.0 * start / max(1, release.size), "" if end >= release.size - 1 else " (%d MB)" % ((end - start + 1) >> 20), first))
+
+
+def native_setup():
+    """Android: a folder inside the app for the fast unpacker (see yenc). Also for the settings' test button, which
+    runs in another process than the service."""
+    try:
         import xbmcvfs
         inside = os.path.dirname(os.path.dirname(xbmcvfs.translatePath("special://xbmc").rstrip("/\\")))
         yenc.set_copy_dir(os.path.join(inside, "lucent_native"))
     except Exception:                           # noqa: BLE001 - only a faster way, never a reason not to start
         pass
+
+
+def start():
+    if _state["http"]:
+        return
+    native_setup()
     server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
     server.daemon_threads = True
     _state["http"] = server
@@ -256,16 +291,21 @@ def _speed_line(release):
         net = stats.get("net", 0.0) - before.get("net", 0.0)
         raw = stats.get("raw", 0) - before.get("raw", 0)
         unpack = stats.get("decode", 0.0) - before.get("decode", 0.0)
+        answers = nntp.ANSWERS["count"] - _speed.get("answers", (0, 0.0))[0]
+        answer_time = nntp.ANSWERS["seconds"] - _speed.get("answers", (0, 0.0))[1]
         util.log("usenet: speed: in %.1f MB/s, to Kodi %.1f MB/s, Kodi waited %d time(s) (%.1f s), processor %d%% of %d core(s), cache %d MB; "
-                 "one connection %.1f MB/s, %d connection(s) busy on average, unpacking %d%% of the time"
+                 "one connection %.1f MB/s, %d connection(s) busy on average, unpacking %d%% of the time; "
+                 "provider answers in %d ms, %d pair(s), reading %d MB ahead"
                  % ((stats["in"] - before["in"]) / seconds / 1e6, (stats["out"] - before["out"]) / seconds / 1e6,
                     stats["waits"] - before["waits"], stats["waited"] - before["waited"],
                     round(100 * (cpu - _speed["cpu"]) / seconds / cores), cores, release.cached // 1000000,
-                    raw / net / 1e6 if net else 0, round(net / seconds), round(100 * unpack / seconds)))
+                    raw / net / 1e6 if net else 0, round(net / seconds), round(100 * unpack / seconds),
+                    round(1000 * answer_time / answers) if answers else 0, stats.get("pairs", 0) - before.get("pairs", 0),
+                    release.ahead >> 20))
         _remember_speed((stats["in"] - before["in"]) / seconds, stats["waits"] - before["waits"])
     elif before is not None and _speed.get("release") is release:
         return
-    _speed.update(at=now, cpu=cpu, stats=stats, release=release)
+    _speed.update(at=now, cpu=cpu, stats=stats, release=release, answers=(nntp.ANSWERS["count"], nntp.ANSWERS["seconds"]))
 
 
 def tick(playing):

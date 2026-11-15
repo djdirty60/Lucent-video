@@ -180,4 +180,7 @@ def search(meta, again=True):
     import learn
     fitting = subcheck.mark(subtitles, found)          # before ranking, so the order of sources can use NL-SUBS
     ranked = learn.adjust(ranking.apply(found, profile, meta["kind"], order))
+    if "Usenet" in order:
+        from nzb import source as nzb_source
+        ranked = nzb_source.prune(ranked, meta)         # taken-down Usenet releases never reach the list
     return subcheck.first(ranked, fitting), None

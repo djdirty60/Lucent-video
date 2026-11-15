@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+62",
+   "label": "Beta 1 · update 62",
+   "label_en": "Beta 1 · update 62",
+   "date": "2026-11-15",
+   "at": "2026-11-15T20:35Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: Usenet sneller en slimmer",
+     "Alleen voor testers: verwijderde releases worden al bij het zoeken gecontroleerd en weggelaten, ook voor automatisch starten. Bij openen en spoelen gaat het stuk dat Kodi nodig heeft voor. Vooruit lezen past zich aan zware films (REMUX) aan, en vooruit lezen vraagt twee stukken tegelijk per verbinding. Nederlandse ondertitels die de indexer meldt worden herkend, en de log zegt waarom een indexer even rust. De verbindingstest meldt op Android nu juist of de snelle uitpakker werkt, releases met een wachtwoord worden niet meer getoond, en de log zegt welke indexer een NZB weigert en hoe snel Kodi zijn eerste beeld kreeg.",
+     "Test mode: Usenet faster and smarter",
+     "Testers only: removed releases are checked while searching and left out, also for automatic start. When opening and seeking, the piece Kodi needs goes first. Read-ahead adapts to heavy films (REMUX) and asks two pieces at once per connection. Dutch subtitles reported by the indexer are recognised, and the log says why an indexer is resting. The connection test now reports the fast unpacker correctly on Android, password-locked releases are no longer shown, and the log says which indexer refuses an NZB and how fast Kodi got its first data."
+    ],
+    [
+     "info",
+     "Releasenaam in de speler-info",
+     "De speler-info van de skin toont bij Lucent Video nu de releasenaam en de container (zoals Matroska).",
+     "Release name in the player info",
+     "The skin's player info now shows the release name and the container (like Matroska) for Lucent Video."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+61",
    "label": "Beta 1 · update 61",
    "label_en": "Beta 1 · update 61",

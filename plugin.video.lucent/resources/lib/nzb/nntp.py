@@ -37,6 +37,14 @@ def _too_many(code, text):
     return code in (400, 481, 502) and any(word in low for word in ("connection", "too many", "limit", "max"))
 
 
+ANSWERS = {"count": 0, "seconds": 0.0}     # how long the provider takes to start answering a BODY (for the speed line)
+
+
+def _answered(seconds):
+    ANSWERS["count"] += 1                       # a rough figure for the log: no lock needed
+    ANSWERS["seconds"] += seconds
+
+
 class Connection:
     def __init__(self, host, port, use_ssl, user, password, timeout=TIMEOUT):
         self.buffer = bytearray()            # grows in place: an SSL socket hands over 16 KB at a time, and copying
@@ -117,10 +125,33 @@ class Connection:
             message_id = "<%s>" % message_id
         return message_id.encode("utf-8")
 
+    def body_many(self, message_ids, each=None):
+        """Several bodies, all asked at once and read in order: the answer time is paid once. A Missing instance stands
+        in for an article the server does not have. each(number, body) is called as soon as one is in."""
+        asked = time.time()
+        self.sock.sendall(b"".join(b"BODY " + self._id(m) + b"\r\n" for m in message_ids))
+        out = []
+        for number, _m in enumerate(message_ids):
+            code, _text = self._line()
+            if not number:
+                _answered(time.time() - asked)
+            if code in (420, 423, 430):
+                out.append(Missing(str(code)))
+            elif code == 222:
+                out.append(self._block())
+            else:
+                raise NntpError("BODY %d" % code)
+            if each:
+                each(number, out[-1])
+        self.used = time.time()
+        return out
+
     def body(self, message_id):
         """The article body (still yEnc). Raises Missing when the server does not have it."""
+        asked = time.time()
         code, text = self._command(b"BODY " + self._id(message_id))
         self.used = time.time()
+        _answered(self.used - asked)
         if code in (420, 423, 430):
             raise Missing(str(code))
         if code != 222:
@@ -161,26 +192,35 @@ class Pool:
         self.count = 0
         self.lock = threading.Condition()
         self.closed = False
+        self.urgent = 0                     # takers for an article Kodi is waiting for right now: they go first
 
     def _new(self):
         p = self.provider
         return Connection(p["host"], p["port"], p.get("ssl", True), p.get("user", ""), p.get("password", ""))
 
-    def take(self, timeout=30):
+    def take(self, timeout=30, urgent=False):
         end = time.time() + timeout
         with self.lock:
-            while True:
-                if self.closed:
-                    raise NntpError("closed")
-                if self.idle:
-                    return self.idle.pop()
-                if self.count < self.limit:
-                    self.count += 1
-                    break
-                left = end - time.time()
-                if left <= 0:
-                    raise NntpError("no free connection")
-                self.lock.wait(left)
+            if urgent:
+                self.urgent += 1
+            try:
+                while True:
+                    if self.closed:
+                        raise NntpError("closed")
+                    if urgent or not self.urgent:
+                        if self.idle:
+                            return self.idle.pop()
+                        if self.count < self.limit:
+                            self.count += 1
+                            break
+                    left = end - time.time()
+                    if left <= 0:
+                        raise NntpError("no free connection")
+                    self.lock.wait(left)
+            finally:
+                if urgent:
+                    self.urgent -= 1
+                    self.lock.notify_all()
         try:
             return self._new()
         except TooMany:
@@ -202,7 +242,7 @@ class Pool:
                 connection.close()
             else:
                 self.idle.append(connection)
-            self.lock.notify()
+            self.lock.notify_all()
 
     def close(self):
         with self.lock:
@@ -213,10 +253,10 @@ class Pool:
         for connection in idle:
             connection.close()
 
-    def body(self, message_id):
-        """One article, with a fresh connection once when the first one broke."""
+    def body(self, message_id, urgent=False):
+        """One article, with a fresh connection once when the first one broke. urgent: Kodi waits for it, it goes first."""
         for attempt in range(2):
-            connection = self.take()
+            connection = self.take(urgent=urgent)
             try:
                 data = connection.body(message_id)
             except Missing:
@@ -227,15 +267,29 @@ class Pool:
                 if attempt:
                     raise
                 continue
+            except BaseException:
+                self.give(connection, broken=True)      # never lose a connection, whatever went wrong
+                raise
             self.give(connection)
             return data
         raise NntpError("unreachable")
+
+    def body_many(self, message_ids, each=None):
+        """Neighbouring articles over one connection, asked at once (see Connection.body_many)."""
+        connection = self.take()
+        try:
+            out = connection.body_many(message_ids, each)
+        except BaseException:                       # broken, or anything unexpected: never lose the connection
+            self.give(connection, broken=True)
+            raise
+        self.give(connection)
+        return out
 
     def stat_many(self, message_ids):
         connection = self.take()
         try:
             answer = connection.stat_many(message_ids)
-        except (OSError, NntpError):
+        except BaseException:                       # broken, or anything unexpected: never lose the connection
             self.give(connection, broken=True)
             raise
         self.give(connection)

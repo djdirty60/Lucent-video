@@ -12,7 +12,7 @@ import collections
 import re
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import CancelledError, Future, ThreadPoolExecutor
 
 from . import archive, nntp, nzbfile, sevenzip, yenc
 
@@ -23,6 +23,10 @@ SAMPLE_GONE = 0.1          # more than this share gone in the sample: refuse at 
 COUNT_LIMIT = 20           # seconds the full gap count may take before playing starts
 COUNT_PART = 500           # articles per STAT round
 SAMPLE_PART = 10           # sample articles per connection
+AHEAD_SECONDS = 15         # a heavy film: read at least this many seconds of it ahead
+AHEAD_MOST = 192 * 1024 * 1024    # but never more than this (memory on small boxes)
+PIPELINE = True            # read-ahead asks two neighbouring articles at once over one connection
+URGENT = 3                 # articles Kodi waits for, fetched before any read-ahead
 COUNT_WORKERS = 8          # connections used for counting
 PIN_START = 4 * 1024 * 1024
 PIN_END = 16 * 1024 * 1024
@@ -72,21 +76,25 @@ class Release:
         self.uneven = set()                 # file indexes whose articles are not all the same size
         self.ranges = {}                    # (file index, article) -> (first byte, last byte) in that file, from yEnc
         self.file_size = {}                 # file index -> decoded size of the whole posted file
-        self.workers = ThreadPoolExecutor(max_workers=max(2, pool.limit))
+        # read-ahead leaves a couple of connections free, so what Kodi waits for (a jump) never queues behind it
+        keep_free = 2 if pool.limit >= 16 else 1 if pool.limit >= 8 else 0
+        self.workers = ThreadPoolExecutor(max_workers=max(2, pool.limit - keep_free))
+        self.urgent = ThreadPoolExecutor(max_workers=URGENT)    # only for what Kodi is waiting for right now
         self.pieces = []
         self.size = 0
         self.name = ""
         self.closed = False
         self.last_read = time.time()
+        self.opened = time.time()
         self.want = None                    # for an episode: the pattern its name must have (if it has one at all)
         self._want_key = None               # (season, episode) of that episode
         self.stats = {"in": 0, "out": 0, "waits": 0, "waited": 0.0}     # for the speed line in the log
 
     # ------------------------------------------------------------------ articles
-    def _body(self, message_id):
+    def _body(self, message_id, urgent=False):
         """The article from the provider, or from the backup provider when the first one does not have it."""
         try:
-            return self.pool.body(message_id)
+            return self.pool.body(message_id, urgent=urgent) if urgent else self.pool.body(message_id)
         except nntp.Missing:
             if not self.backup:
                 raise
@@ -94,14 +102,17 @@ class Release:
             self.stats["backup"] = self.stats.get("backup", 0) + 1
             return body
 
-    def _decode(self, posted, number):
+    def _decode(self, posted, number, urgent=False, body=None):
         _n, _size, message_id = posted.segments[number]
         started = time.time()
-        body = self._body(message_id)
-        fetched = time.time()
+        if body is None:
+            body = self._body(message_id, urgent) if urgent else self._body(message_id)
+            fetched = time.time()
+            self.stats["net"] = self.stats.get("net", 0.0) + fetched - started  # waiting for the provider (all connections)
+        else:
+            fetched = started                       # fetched with its neighbour: that time is counted there
         data, info = yenc.decode(body)
         stats = self.stats
-        stats["net"] = stats.get("net", 0.0) + fetched - started      # waiting for the provider (all connections added up)
         stats["raw"] = stats.get("raw", 0) + len(body)
         stats["decode"] = stats.get("decode", 0.0) + time.time() - fetched   # unpacking in Python
         if info.get("begin"):
@@ -155,18 +166,24 @@ class Release:
                 self.cache.move_to_end(key)
                 return self.cache[key]
             future = self.pending.get(key)
+            if future is not None and future.cancel():
+                future = None                       # it was still waiting in the read-ahead queue: fetch it first
             if future is None:
-                future = self.workers.submit(self._fetch, posted, number)
+                self._drop_stale(posted, number)    # a jump: read-ahead for the old place is no use any more
+                future = self.urgent.submit(self._fetch, posted, number, True)
                 self.pending[key] = future
         started = time.time()
         try:
             data = future.result(timeout=60)
+        except CancelledError:
+            return self.article(posted, number)     # another read jumped elsewhere and cancelled it: ask again
         except nntp.Missing:
             data = self._filler(posted, number)
         waited = time.time() - started
         if waited > 0.05:                   # Kodi had to wait for this article: read-ahead was not far enough
             self.stats["waits"] += 1
             self.stats["waited"] += waited
+            self.stats["longest"] = max(self.stats.get("longest", 0.0), waited)
         return data
 
     def _filler(self, posted, number):
@@ -193,13 +210,39 @@ class Release:
         self.log("article %d of %s is gone: filled in (%d so far)" % (number, posted.name or posted.index, len(self.filled)))
         return self.cache[key]
 
-    def _fetch(self, posted, number):
+    def fit_to_film(self, minutes):
+        """A heavy film (a remux) needs more per second: read at least AHEAD_SECONDS of it ahead, up to AHEAD_MOST."""
+        if not minutes or not self.size:
+            return
+        per_second = self.size / (minutes * 60.0)
+        want = min(AHEAD_MOST, max(self.ahead, int(per_second * AHEAD_SECONDS)))
+        if want > self.ahead:
+            self.ahead = want
+            self.cache_limit = max(self.cache_limit, want + 64 * 1024 * 1024)
+        self.log("film needs %.1f MB/s: reading %d MB ahead (%.0f s), memory %d MB"
+                 % (per_second / 1e6, self.ahead >> 20, self.ahead / per_second, self.cache_limit >> 20))
+
+    def _drop_stale(self, posted, number):
+        """Cancel read-ahead that has not started and lies outside the new reading window (called under the lock)."""
+        part = self.part.get(posted.index) or 700000
+        window = max(1, self.ahead // part) + 2
+        for key, future in list(self.pending.items()):
+            if key[0] == posted.index and number <= key[1] <= number + window:
+                continue
+            if future.cancel():
+                del self.pending[key]
+
+    def _fetch(self, posted, number, urgent=False):
         key = (posted.index, number)
         try:
-            data, _info = self._decode(posted, number)
+            data, _info = self._decode(posted, number, urgent) if urgent else self._decode(posted, number)
         finally:
             with self.lock:
                 self.pending.pop(key, None)
+        self._store(key, data)
+        return data
+
+    def _store(self, key, data):
         with self.lock:
             self.stats["in"] += len(data)
             if key not in self.cache:
@@ -213,7 +256,47 @@ class Release:
                         self.cache[old] = dropped
                         continue
                     self.cached -= len(dropped)
-        return data
+
+    def _fetch_pair(self, posted, numbers, futures):
+        """Read-ahead: two neighbouring articles over one connection, both asked at once (pipelined), so the provider's
+        answer time is paid once. Each article's own future is filled the moment it is in."""
+        todo = [(n, f) for n, f in zip(numbers, futures) if f.set_running_or_notify_cancel()]
+        if not todo:
+            return                                  # both cancelled (Kodi jumped elsewhere)
+        started = time.time()
+
+        def done(n, future, body):
+            try:
+                if body is None or isinstance(body, nntp.Missing):
+                    data, _info = self._decode(posted, n)              # alone, with the backup provider when it is gone
+                else:
+                    data, _info = self._decode(posted, n, body=body)
+                self._store((posted.index, n), data)
+                future.set_result(data)
+            except BaseException as error:          # noqa: BLE001 - handed to whoever reads this article
+                future.set_exception(error)
+            finally:
+                with self.lock:
+                    if self.pending.get((posted.index, n)) is future:
+                        del self.pending[(posted.index, n)]
+
+        finished = set()
+
+        def each(index, body):
+            n, future = todo[index]
+            finished.add(n)
+            done(n, future, body)
+
+        try:
+            if len(todo) == 2:
+                self.pool.body_many([posted.segments[n][2] for n, _f in todo], each)
+                self.stats["net"] = self.stats.get("net", 0.0) + time.time() - started
+                self.stats["pairs"] = self.stats.get("pairs", 0) + 1
+        except Exception:                           # noqa: BLE001 - the pair failed: the rest each on its own
+            pass
+        for n, future in todo:
+            if n not in finished:
+                done(n, future, None)
 
     def _ahead(self, posted, number):
         """Ask for the articles after this one, so they are there before Kodi wants them."""
@@ -222,10 +305,20 @@ class Release:
         with self.lock:
             if self.closed:
                 return
-            for n in range(number + 1, min(len(posted.segments), number + 1 + count)):
-                key = (posted.index, n)
-                if key not in self.cache and key not in self.pending:
-                    self.pending[key] = self.workers.submit(self._fetch, posted, n)
+            wanted = [n for n in range(number + 1, min(len(posted.segments), number + 1 + count))
+                      if (posted.index, n) not in self.cache and (posted.index, n) not in self.pending]
+            at = 0
+            while at < len(wanted):
+                pair = wanted[at:at + 2]
+                if PIPELINE and len(pair) == 2 and pair[1] == pair[0] + 1:
+                    futures = [Future(), Future()]
+                    for n, future in zip(pair, futures):
+                        self.pending[(posted.index, n)] = future
+                    self.workers.submit(self._fetch_pair, posted, pair, futures)
+                    at += 2
+                else:
+                    self.pending[(posted.index, pair[0])] = self.workers.submit(self._fetch, posted, pair[0])
+                    at += 1
 
     # ------------------------------------------------------------------ opening
     def check(self, sample=40):
@@ -273,7 +366,9 @@ class Release:
                     done += 1
                     gone += lost
             finally:
-                pool_run.shutdown(wait=False, cancel_futures=True)
+                for job in jobs:                     # (shutdown's cancel_futures needs Python 3.9; older Kodi has 3.8)
+                    job.cancel()
+                pool_run.shutdown(wait=False)
             if done < len(parts) and len(gone) > len(flat_ids) * FILL_SHARE:
                 raise StreamError("%d of %d articles are gone already (count not finished)" % (len(gone), len(flat_ids)))
             if done < len(parts):
@@ -618,6 +713,7 @@ class Release:
             self.pending.clear()
             self.cache.clear()
         self.workers.shutdown(wait=False)
+        self.urgent.shutdown(wait=False)
 
 
 SNIFF_FILES = 12                            # at most this many first articles to look inside a release with hidden names
@@ -670,7 +766,7 @@ def _sniff(pool, files, log):
 
 
 def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=None, cache=None, pack=False, backup=None,
-                 fill=False):
+                 fill=False, minutes=0):
     """NZB -> an opened Release, or StreamError / nzbfile.NzbError with the reason."""
     files = nzbfile.parse(nzb_bytes)
     try:
@@ -690,4 +786,5 @@ def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=Non
     except (nntp.NntpError, OSError, yenc.YencError, StreamError, nzbfile.NzbError):
         release.close()
         raise
+    release.fit_to_film(minutes)
     return release

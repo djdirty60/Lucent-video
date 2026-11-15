@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import time
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -80,8 +81,11 @@ def fetch(meta):
         try:
             return newznab.search(slot, base, key, meta, titles, background=bool(meta.get("background")))
         except newznab.IndexerError as error:
-            util.log("usenet: indexer %d: %s%s" % (slot, error, " (the API key is not accepted)" if str(error) in ("HTTP 401", "HTTP 403") else
-                                                    " (%s today; asked again tomorrow)" % newznab.usage(base, log=True) if str(error) == "daily limit" else ""))
+            if str(error) == "daily limit":
+                why = newznab.pause_text(base) or "Lucent's own stop at 90% of the limit"
+                util.log("usenet: indexer %d: not asked, %s; %s today" % (slot, why, newznab.usage(base, log=True)))
+            else:
+                util.log("usenet: indexer %d: %s%s" % (slot, error, " (the API key is not accepted)" if str(error) in ("HTTP 401", "HTTP 403") else ""))
             return None
 
     def fits(name):
@@ -110,6 +114,7 @@ def fetch(meta):
     show_badges = util.flag("nzb_badges")
     seconds = int(meta.get("runtime") or 0) * 60
     out, seen = [], set()
+    dead, skipped = _dead_now(), 0
     for rows in answers:
         for row in rows or []:
             name = row["title"]
@@ -117,12 +122,15 @@ def fetch(meta):
             pack = meta["kind"] != "movie" and is_pack(name, titles, meta)
             if key in seen or not fits(name):
                 continue
+            if _dead_key(row["link"]) in dead:
+                skipped += 1                    # found to be taken down before: not shown again
+                continue
             low = name.lower()
             if any(word in low for word in (".iso", " iso ", "sample")):
                 continue
             seen.add(key)
             job = {"scraper": "Usenet", "slot": row["slot"], "link": row["link"], "param": row["param"], "name": name,
-                   "season": meta.get("season"), "episode": meta.get("episode")}
+                   "season": meta.get("season"), "episode": meta.get("episode"), "minutes": int(meta.get("runtime") or 0)}
             where = names.get(row["slot"]) or ""
             badges = _badges(row) if show_badges else ""
             # needs more per second than this box ever got from Usenet: say so (it may stop to buffer)
@@ -148,9 +156,12 @@ def fetch(meta):
             source["pack"] = True
             source["always"] = True
             out.append(source)
+    if skipped:
+        util.log("usenet: %d release(s) left out that were found taken down before" % skipped)
     return out
 
 
+DUTCH = ("dutch", "nederlands", "flemish", "vlaams", "nl", "nld", "dut")
 AUDIO_INFO = (("atmos", "ATMOS"), ("truehd", "TRUEHD"), ("dts:x", "DTS-X"), ("dts-x", "DTS-X"), ("dts-hd ma", "DTS-HDMA"), ("dts-hd", "DTS-HD"),
               ("e-ac-3", "DD+"), ("eac3", "DD+"), ("dd+", "DD+"), ("ac-3", "DD"), ("ac3", "DD"), ("aac", "AAC"), ("opus", "OPUS"))
 VIDEO_INFO = (("hevc", "HEVC"), ("h.265", "HEVC"), ("x265", "HEVC"), ("avc", "AVC"), ("h.264", "AVC"), ("x264", "AVC"), ("av1", "AV1"))
@@ -160,12 +171,12 @@ def _info_flags(info):
     """Labels from what the indexer itself says is inside (Newznab extended attributes), next to those from the name."""
     out = []
     languages = [w.strip().lower() for w in re.split(r"[,/|;-]", info.get("language") or "") if w.strip()]
-    if any(w in ("dutch", "nederlands", "flemish") for w in languages):
+    if any(w in DUTCH for w in languages):
         out.append("aio_NL")
     if len(set(languages)) > 1:
         out.append("aio_MULTI")
-    subs = (info.get("subs") or "").lower()
-    if "dutch" in subs or "nederlands" in subs:
+    subs = [w.strip().lower() for w in re.split(r"[,/|;\s-]+", info.get("subs") or "") if w.strip()]
+    if any(w in DUTCH for w in subs):
         out.append("aio_NL-SUBS")
     audio = (info.get("audio") or "").lower()
     for mark, flag in AUDIO_INFO:
@@ -198,6 +209,118 @@ def _add_info(source, row):
             source["resolution"] = found
 
 
+# ------------------------------------------------------------------ releases that are gone (taken down)
+DEAD = "nzb_dead.json"
+DEAD_DAYS = 60
+CHECK_TOP = 8               # look among this many best sources
+CHECK_MOST = 4              # check at most this many Usenet releases there
+CHECK_SAMPLE = 8            # articles per release
+CHECK_SECONDS = 8           # the whole check never takes longer than this
+NZB_FRESH = 6 * 3600
+
+
+def _nzb_name(job):
+    return hashlib.sha1(job["link"].encode("utf-8")).hexdigest()[:16] + ".nzb"
+
+
+def _saved_nzb(name):
+    path = os.path.join(server.folder(), name)
+    try:
+        return os.path.getsize(path) > 0 and time.time() - os.path.getmtime(path) < NZB_FRESH
+    except OSError:
+        return False
+
+
+def _save_nzb(name, data):
+    path = os.path.join(server.folder(), name)
+    with open(path + ".tmp", "wb") as handle:
+        handle.write(data)
+    os.replace(path + ".tmp", path)
+
+
+def _dead_key(link):
+    return hashlib.sha1(link.encode("utf-8")).hexdigest()[:16]
+
+
+def _mark_dead(job):
+    dead = util.load_json(DEAD, {})
+    now = time.time()
+    dead = {k: v for k, v in dead.items() if now - v < DEAD_DAYS * 86400}
+    dead[_dead_key(job["link"])] = now
+    util.save_json(DEAD, dead)
+
+
+def _dead_now():
+    return util.load_json(DEAD, {})
+
+
+def _alive(job, pool, spare):
+    """True / False (taken down) / None (could not tell) for one release, from a few articles spread over it."""
+    from . import nzbfile, stream
+    name = _nzb_name(job)
+    try:
+        if not _saved_nzb(name):
+            match = next((base for slot, base, _key in newznab.indexers() if slot == job["slot"]), None)
+            if not match or not newznab.grab_room(match):
+                return None
+            _save_nzb(name, newznab.nzb(job))
+        with open(os.path.join(server.folder(), name), "rb") as handle:
+            files = nzbfile.parse(handle.read())
+        _kind, chosen = nzbfile.pick(files, job.get("season"), job.get("episode"), job.get("pack"))
+    except Exception:                           # noqa: BLE001 - hidden names, no room, an odd NZB: simply not checked
+        return None
+    flat = [seg[2] for posted in chosen for seg in posted.segments]
+    if not flat:
+        return None
+    step = max(1, len(flat) // CHECK_SAMPLE)
+    ids = list(dict.fromkeys([flat[0], flat[-1]] + flat[::step]))[:CHECK_SAMPLE + 2]
+    try:
+        answer = stream.Release._stat_spread(pool, ids)                    # noqa: SLF001 - same package
+        missing = [i for i, ok in answer.items() if not ok]
+        if missing and spare:
+            extra = stream.Release._stat_spread(spare, missing)            # noqa: SLF001
+            missing = [i for i in missing if not extra.get(i)]
+    except Exception:                           # noqa: BLE001
+        return None
+    return len(missing) <= len(ids) // 2
+
+
+def prune(ranked, meta):
+    """Before the list is shown (and before automatic start picks one): check the best Usenet releases and leave out
+    the ones that were taken down. Within CHECK_SECONDS; what could not be checked in time simply stays."""
+    from concurrent.futures import wait
+    from . import nntp
+    if not configured() or meta.get("background") or not ranked:
+        return ranked
+    jobs = [s for s in ranked[:CHECK_TOP] if (s.get("resolve") or {}).get("scraper") == "Usenet"][:CHECK_MOST]
+    if not jobs:
+        return ranked
+    started = time.time()
+    pool = nntp.Pool(server.provider(), limit=8)
+    spare_settings = server.provider(backup=True)
+    spare = nntp.Pool(spare_settings, limit=4) if spare_settings else None
+    run = ThreadPoolExecutor(max_workers=len(jobs))
+    futures = {run.submit(_alive, s["resolve"], pool, spare): s for s in jobs}
+    done, _late = wait(futures, timeout=CHECK_SECONDS)
+    for future in futures:
+        future.cancel()
+    run.shutdown(wait=False)
+    gone = []
+    for future in done:
+        try:
+            alive = future.result()
+        except Exception:                       # noqa: BLE001
+            alive = None
+        if alive is False:
+            gone.append(futures[future])
+            _mark_dead(futures[future]["resolve"])
+    pool.close()
+    if spare:
+        spare.close()
+    util.log("usenet: checked %d of the best releases in %.1f s: %d taken down, left out" % (len(done), time.time() - started, len(gone)))
+    return [s for s in ranked if not any(s is g for g in gone)]
+
+
 def _port():
     return util.HOME.getProperty(server.PORT_PROPERTY)
 
@@ -208,21 +331,21 @@ def link(job):
     if not port:
         util.log("usenet: the service's player server is not running")
         return None
-    try:
-        data = newznab.nzb(job)
-    except newznab.IndexerError as error:
-        util.log("usenet: %s" % error)
-        return None
-    name = hashlib.sha1(job["link"].encode("utf-8")).hexdigest()[:16] + ".nzb"
-    path = os.path.join(server.folder(), name)
-    with open(path + ".tmp", "wb") as handle:
-        handle.write(data)
-    os.replace(path + ".tmp", path)
+    name = _nzb_name(job)
+    if not _saved_nzb(name):                    # already fetched for the check while searching: no second grab
+        try:
+            _save_nzb(name, newznab.nzb(job))
+        except newznab.IndexerError as error:
+            host = next((urllib.parse.urlsplit(base).hostname for slot, base, _k in newznab.indexers() if slot == job.get("slot")), "?")
+            util.log("usenet: indexer %s (%s): %s" % (job.get("slot"), host, error))
+            return None
     query = {"nzb": name}
     if job.get("season") and job.get("episode"):
         query.update(season=job["season"], episode=job["episode"])
     if job.get("pack"):
         query["pack"] = "1"
+    if job.get("minutes"):
+        query["minutes"] = str(job["minutes"])
     try:
         with urllib.request.urlopen("http://127.0.0.1:%s/prepare?%s" % (port, urllib.parse.urlencode(query)), timeout=90) as response:
             answer = json.loads(response.read().decode("utf-8"))
@@ -231,6 +354,8 @@ def link(job):
         return None
     if not answer.get("ok"):
         util.log("usenet: release cannot be played (%s)" % answer.get("error"))
+        if any(word in str(answer.get("error")) for word in ("are gone", "encrypted", "password")):
+            _mark_dead(job)                     # taken down or locked with a password: never shown again
         if answer.get("error") == "login":
             util.notify(util.T("Usenet: inloggen bij je provider lukt niet", "Usenet: signing in to your provider fails"))
         return None
@@ -240,6 +365,7 @@ def link(job):
 def test():
     """(ok, lines) for the settings' test button: the provider login, then each indexer."""
     from . import nntp
+    server.native_setup()                       # Android: the fast unpacker may only load from inside the app
     lines, ok = [], True
     p = server.provider()
     if not p["host"]:

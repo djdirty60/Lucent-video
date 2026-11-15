@@ -209,12 +209,21 @@ def streams_size(size):
         return ""
 
 
+def _release_name(source):
+    """The release name for the skin's player info (file and container): only the name, never a link, key or user."""
+    name = (source.get("name") or "").strip().splitlines()[0] if (source.get("name") or "").strip() else ""
+    if "://" in name or "?" in name or "@" in name:
+        name = ""                                   # looks like a link or an address: leave it out
+    return name.replace("\\", "/").rsplit("/", 1)[-1][:200]
+
+
 def handoff(meta, resume, source, alternates=None, others=None, lighter=None, last=False):
     keep = ("kind", "tmdb", "imdb", "season", "episode", "title", "runtime", "show", "year")
     now = {k: meta.get(k) for k in keep}
     import learn
     now.update(resume=resume, started=time.time(), alternates=alternates or [], url=source.get("url"), size=source.get("size") or 0,
-               learn=learn.key(source), together=others or [], lighter=lighter or [], bedtime_last=bool(last))
+               learn=learn.key(source), together=others or [], lighter=lighter or [], bedtime_last=bool(last),
+               name=_release_name(source))
     util.HOME.setProperty(HANDOFF, json.dumps(now))
     return now
 

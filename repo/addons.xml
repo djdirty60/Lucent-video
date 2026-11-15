@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+61" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+62" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -83,17 +83,17 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 61: test mode only: what an indexer says about language, subtitles, sound and codec now gives labels and ranking; DDPA5.1 recognised.
+        <news>1.0.0 beta 1, update 62: release name in the player info; test mode only: removed Usenet releases left out while searching, faster opening and seeking, read-ahead fitted to the film, Dutch subtitles from the indexer.
+1.0.0 beta 1, update 61: test mode only: what an indexer says about language, subtitles, sound and codec now gives labels and ranking; DDPA5.1 recognised.
 1.0.0 beta 1, update 60: test mode only: removed Usenet releases are skipped within seconds instead of almost a minute.
 1.0.0 beta 1, update 59: test mode only: Usenet no longer gets stuck on large or removed releases with gap filling on; neater indexer usage in the connection test; sound like DDP5.1 is recognised, so Usenet and Easynews sources get the right labels and ranking.
 1.0.0 beta 1, update 58: test mode only: a personal code per tester, room for 10 indexers, and a clear warning when only the slow unpacker works.
 1.0.0 beta 1, update 57: test mode only: Usenet backup provider, 6 indexers asked one at a time, gap filling, MKV index kept in memory, age and downloads in the list, adjustable read-ahead and memory.
 1.0.0 beta 1, update 56: test mode only: Usenet reads further ahead, plays releases with uneven pieces, and finds an episode inside a season posted as one RAR set.
-1.0.0 beta 1, update 55: the AIOStreams add-on that found a source is shown too; test mode only: leaner Usenet fetching, fast C unpacking also for Android and Windows, 'may be too heavy' on Usenet sources.
-1.0.0 beta 1, update 54: the error report states which log it read, tries again through Kodi when reading fails, and adds the end of the previous log after a restart.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 61: Testmodus: indexers vertellen wat erin zit: Alleen voor testers: wat een indexer zelf over een release zegt (taal, ondertitels, geluid, codec, resolutie) telt nu mee. Zo krijgt een bron ook het label NL, Multi of NL-ondertitels als de naam het niet zegt, en kiest automatisch starten beter. DDPA5.1 (DD+ met Atmos) wordt nu ook herkend.
-1.0.0 beta 1, update 60: Testmodus: verwijderde releases sneller overgeslagen: Alleen voor testers: de controle of een Usenet-release nog compleet is, gebeurt nu over meerdere verbindingen tegelijk. Een verwijderde release wordt daardoor in seconden overgeslagen in plaats van na bijna een minuut.
-1.0.0 beta 1, update 59: Testmodus: Usenet loopt niet meer vast: Alleen voor testers: met 'Ontbrekende stukken opvullen' aan kon het openen van een grote of verwijderde release blijven hangen, waarna geen enkele Usenet-bron meer opende. Een verwijderde release wordt nu meteen overgeslagen, het natellen gaat sneller en duurt nooit langer dan 20 seconden, en één vastgelopen poging houdt de volgende niet meer tegen. De verbindingstest toont het gebruik van je indexers nu netter. Meer labels bij Usenet en Easynews: Geluid dat aan de kanalen vastzit, zoals DDP5.1, DD+5.1 of AAC2.0, wordt nu herkend. Bronnen van Usenet en Easynews krijgen zo de juiste labels (DD+, 5.1, DD, DTS, 10-bit) en schuiven op de goede plek in de lijst.</news>
+1.0.0 beta 1, update 55: the AIOStreams add-on that found a source is shown too; test mode only: leaner Usenet fetching, fast C unpacking also for Android and Windows, 'may be too heavy' on Usenet sources.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 62: Testmodus: Usenet sneller en slimmer: Alleen voor testers: verwijderde releases worden al bij het zoeken gecontroleerd en weggelaten, ook voor automatisch starten. Bij openen en spoelen gaat het stuk dat Kodi nodig heeft voor. Vooruit lezen past zich aan zware films (REMUX) aan, en vooruit lezen vraagt twee stukken tegelijk per verbinding. Nederlandse ondertitels die de indexer meldt worden herkend, en de log zegt waarom een indexer even rust. De verbindingstest meldt op Android nu juist of de snelle uitpakker werkt, releases met een wachtwoord worden niet meer getoond, en de log zegt welke indexer een NZB weigert en hoe snel Kodi zijn eerste beeld kreeg. Releasenaam in de speler-info: De speler-info van de skin toont bij Lucent Video nu de releasenaam en de container (zoals Matroska).
+1.0.0 beta 1, update 61: Testmodus: indexers vertellen wat erin zit: Alleen voor testers: wat een indexer zelf over een release zegt (taal, ondertitels, geluid, codec, resolutie) telt nu mee. Zo krijgt een bron ook het label NL, Multi of NL-ondertitels als de naam het niet zegt, en kiest automatisch starten beter. DDPA5.1 (DD+ met Atmos) wordt nu ook herkend.
+1.0.0 beta 1, update 60: Testmodus: verwijderde releases sneller overgeslagen: Alleen voor testers: de controle of een Usenet-release nog compleet is, gebeurt nu over meerdere verbindingen tegelijk. Een verwijderde release wordt daardoor in seconden overgeslagen in plaats van na bijna een minuut.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>
