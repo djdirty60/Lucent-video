@@ -339,8 +339,14 @@ def search_with_screen(params, before=None):
     return out["meta"], out["sources"]
 
 
+ASK_RESUME = "lucent.video.askresume"     # set by the skin (2.1.21+) when it started a library item with 'noresume'
+
+
 def play(params, handle):
     autoplay = params.get("autoplay") == "1"
+    # read and wipe at once, whatever happens next: it is meant for this one title only
+    skin_asks = util.HOME.getProperty(ASK_RESUME) == "1"
+    util.HOME.clearProperty(ASK_RESUME)
     if not autoplay:
         util.HOME.clearProperty(RUN)
     if params.get("type") in ("movie", "episode", "tvshow"):
@@ -401,8 +407,10 @@ def play(params, handle):
         order = [chosen] + [s for s in usable if s is not chosen]
     else:
         order = same_release_first(meta, usable)
-    # from the library Kodi itself asks about resuming; asking again would be a second pop-up
-    resume = 0 if autoplay or params.get("lib") == "1" or params.get("kodi_resumes") == "1" else ask_resume(meta)
+    # from the library Kodi itself asks about resuming (asking again would be a second pop-up), unless the skin started
+    # it with 'noresume' and asked us to show our own resume screen instead
+    library_kodi_asked = params.get("lib") == "1" and not skin_asks
+    resume = 0 if autoplay or library_kodi_asked or params.get("kodi_resumes") == "1" else ask_resume(meta)
     if resume is None:
         return _fail(handle)
 

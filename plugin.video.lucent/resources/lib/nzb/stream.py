@@ -13,7 +13,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from . import archive, nntp, nzbfile, yenc
+from . import archive, nntp, nzbfile, sevenzip, yenc
 
 
 class StreamError(Exception):
@@ -57,6 +57,7 @@ class Release:
         self.name = ""
         self.closed = False
         self.last_read = time.time()
+        self.want = None                    # for an episode: the pattern its name must have (if it has one at all)
 
     # ------------------------------------------------------------------ articles
     def _decode(self, posted, number):
@@ -139,6 +140,8 @@ class Release:
                 raise StreamError("size unknown")
             self.pieces = [Piece(posted, 0, info["size"], True)]
             self.name = posted.name
+        elif self.kind == "7z":
+            self._open_7z()
         else:
             self._open_rar()
         start = 0
@@ -170,6 +173,8 @@ class Release:
         except archive.Unsupported as error:
             raise StreamError("RAR: %s" % error) from None
         self.name = layout.name
+        if self.want and nzbfile.has_episode(layout.name) and not self.want.search(layout.name):
+            raise StreamError("RAR holds another episode (%s)" % layout.name)
         if len(volumes) == 1:
             self.pieces = [Piece(volumes[0], layout.data_offset, layout.data_length, True)]
             return
@@ -195,6 +200,49 @@ class Release:
                 pieces.append(Piece(posted, lay.data_offset, lay.data_length, True))
             if sum(p.data_length for p in pieces) != layout.total:
                 raise StreamError("RAR: volumes do not add up")
+        self.pieces = pieces
+
+    def _open_7z(self):
+        """A 7z set is one archive cut in equal volumes: read the header at the end, then point at the film's bytes."""
+        volumes = self.chosen
+        first, info = self._head(volumes[0])
+        try:
+            header_at, header_size = sevenzip.start_header(first[:32])
+        except sevenzip.Unsupported as error:
+            raise StreamError("7z: %s" % error) from None
+        size_one = info.get("size") or 0
+        size_last = size_one
+        if len(volumes) > 1:
+            _data, last_info = self._head(volumes[-1])
+            size_last = last_info.get("size") or 0
+        if not size_one or not size_last:
+            raise StreamError("7z: volume size unknown")
+        # the whole archive as one stream (volumes in order), to read the header from
+        self.pieces = [Piece(p, 0, size_one if n < len(volumes) - 1 else size_last, True) for n, p in enumerate(volumes)]
+        start = 0
+        for piece in self.pieces:
+            piece.start = start
+            start += piece.data_length
+        self.starts, self.size = [p.start for p in self.pieces], start
+        if header_at + header_size > self.size:
+            raise StreamError("7z: volumes missing or of uneven size")
+        try:
+            found = sevenzip.entries(self.read(header_at, header_size), self.read)
+        except sevenzip.Unsupported as error:
+            raise StreamError("7z: %s" % error) from None
+        videos = [e for e in found if archive.is_video(e.name)]
+        if self.want:
+            videos = [e for e in videos if self.want.search(e.name)] or [e for e in videos if not nzbfile.has_episode(e.name)]
+        if not videos:
+            raise StreamError("7z: no video inside")
+        entry = max(videos, key=lambda e: e.size)
+        self.name = entry.name
+        # cut the film's range [offset, offset + size) out of the volumes
+        pieces, end = [], entry.offset + entry.size
+        for piece in self.pieces:
+            low, high = max(entry.offset, piece.start), min(end, piece.start + piece.data_length)
+            if low < high:
+                pieces.append(Piece(piece.posted, low - piece.start, high - low, True))
         self.pieces = pieces
 
     def _verify(self, index):
@@ -265,11 +313,13 @@ class Release:
         self.workers.shutdown(wait=False)
 
 
-def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=None, cache=None):
+def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=None, cache=None, pack=False):
     """NZB -> an opened Release, or StreamError / nzbfile.NzbError with the reason."""
     files = nzbfile.parse(nzb_bytes)
-    kind, chosen = nzbfile.pick(files)
+    kind, chosen = nzbfile.pick(files, season, episode, pack)
     release = Release(pool, files, kind, chosen, log=log, **{k: v for k, v in (("ahead", ahead), ("cache", cache)) if v})
+    if season and episode:
+        release.want = nzbfile.episode_tag(season, episode)
     try:
         release.check()
         release.open()

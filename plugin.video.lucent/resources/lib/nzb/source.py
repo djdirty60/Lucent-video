@@ -7,10 +7,12 @@ link(job)    -> when you press play: fetch the NZB, let the service open the rel
 import hashlib
 import json
 import os
+import re
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
+import streams
 import usenet
 import util
 
@@ -23,6 +25,22 @@ def configured():
     return util.lab() and util.flag("nzb_on") and bool(util.setting("nzb_host")) and newznab.configured()
 
 
+def is_pack(name, titles, meta):
+    """'Show.S02.1080p...' or 'Show Season 2': the whole season (not an episode, not several seasons)."""
+    words = usenet._words(name)                      # noqa: SLF001 - same add-on
+    season = int(meta["season"])
+    for title in titles:
+        wanted = usenet._words(title)                # noqa: SLF001
+        if not wanted or words[:len(wanted)] != wanted:
+            continue
+        rest = " ".join(words[len(wanted):])
+        if re.search(r"\bs\d{1,2} ?e\d{1,3}\b|\b\d{1,2}x\d{2,3}\b|\bs\d{1,2} ?s\d{1,2}\b|\bcomplete series\b", rest):
+            return False
+        if re.search(r"\bs0*%d\b|\bseason 0*%d\b" % (season, season), rest):
+            return True
+    return False
+
+
 def fetch(meta):
     if not configured():
         return None
@@ -32,9 +50,10 @@ def fetch(meta):
     def ask(entry):
         slot, base, key = entry
         try:
-            return newznab.search(slot, base, key, meta, titles)
+            return newznab.search(slot, base, key, meta, titles, background=bool(meta.get("background")))
         except newznab.IndexerError as error:
-            util.log("usenet: indexer %d: %s%s" % (slot, error, " (the API key is not accepted)" if str(error) in ("HTTP 401", "HTTP 403") else ""))
+            util.log("usenet: indexer %d: %s%s" % (slot, error, " (the API key is not accepted)" if str(error) in ("HTTP 401", "HTTP 403") else
+                                                    " (%s today; asked again tomorrow)" % newznab.usage(base) if str(error) == "daily limit" else ""))
             return None
 
     with ThreadPoolExecutor(max_workers=len(ixs)) as pool:
@@ -46,7 +65,8 @@ def fetch(meta):
         for row in rows or []:
             name = row["title"]
             key = name.lower()
-            if key in seen or not usenet.title_matches(name, titles, meta):
+            pack = meta["kind"] != "movie" and is_pack(name, titles, meta)
+            if key in seen or not (pack or usenet.title_matches(name, titles, meta)):
                 continue
             low = name.lower()
             if any(word in low for word in (".iso", " iso ", "sample")):
@@ -54,7 +74,16 @@ def fetch(meta):
             seen.add(key)
             job = {"scraper": "Usenet", "slot": row["slot"], "link": row["link"], "param": row["param"], "name": name,
                    "season": meta.get("season"), "episode": meta.get("episode")}
-            out.append(usenet._source(name, row["size"], SERVICE, resolve=job))       # noqa: SLF001 - same add-on
+            if not pack:
+                out.append(usenet._source(name, row["size"], SERVICE, resolve=job))       # noqa: SLF001 - same add-on
+                continue
+            # a pack: rank it by the size of one episode, show the size of the whole season
+            job["pack"] = True
+            episodes = int(meta.get("season_count") or 0) or 10
+            source = usenet._source(name, row["size"] // episodes, SERVICE, resolve=job)    # noqa: SLF001
+            source["meta"] = " · ".join((SERVICE, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"])))
+            source["pack"] = True
+            out.append(source)
     return out
 
 
@@ -81,6 +110,8 @@ def link(job):
     query = {"nzb": name}
     if job.get("season") and job.get("episode"):
         query.update(season=job["season"], episode=job["episode"])
+    if job.get("pack"):
+        query["pack"] = "1"
     try:
         with urllib.request.urlopen("http://127.0.0.1:%s/prepare?%s" % (port, urllib.parse.urlencode(query)), timeout=90) as response:
             answer = json.loads(response.read().decode("utf-8"))
@@ -132,5 +163,7 @@ def test():
             text = util.T("het antwoord van de indexer is onleesbaar (zie het foutrapport)", "the indexer's answer cannot be read (see the error report)")
         elif not good and text == "limit reached":
             text = util.T("het daglimiet is bereikt", "the daily limit is reached")
-        lines.append(util.T("Indexer %d (%s): %s", "Indexer %d (%s): %s") % (slot, host, util.T("werkt", "works") if good else text))
+        used = newznab.usage(base).replace("searches", util.T("zoekopdrachten", "searches")).replace("NZBs", util.T("NZB's", "NZBs"))
+        lines.append(util.T("Indexer %d (%s): %s", "Indexer %d (%s): %s") % (slot, host, (util.T("werkt", "works") if good else text)
+                                                                             + " · " + util.T("vandaag %s", "today %s") % used))
     return ok, lines

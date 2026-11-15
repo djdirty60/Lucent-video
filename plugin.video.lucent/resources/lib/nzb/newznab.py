@@ -8,6 +8,8 @@ NZB is fetched. Errors and log lines never show an address or a key.
 import gzip
 import hashlib
 import re
+import threading
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -60,6 +62,89 @@ def fetch(url, timeout=20):
     return gzip.decompress(body) if body[:2] == b"\x1f\x8b" else body
 
 
+# ------------------------------------------------------------------ daily limits
+HITS = "nzb_hits.json"                  # per indexer: today's API and NZB hits, the limits it told us, a pause
+STOP_AT = 0.9                           # stop at 90% of a known limit, so there is room left for the rest of the day
+STOP_AT_BACKGROUND = 0.5                # getting things ready beforehand may use at most half
+UNKNOWN_BACKGROUND = 25                 # an indexer that never tells its limit: at most this many background hits a day
+_hits_lock = threading.Lock()
+
+
+def _today():
+    return time.strftime("%Y-%m-%d", time.gmtime())
+
+
+def _entry(saved, base):
+    entry = saved.get(base) or {}
+    if entry.get("day") != _today():
+        entry = {"day": _today(), "api": 0, "grab": 0, "api_max": entry.get("api_max"), "grab_max": entry.get("grab_max"),
+                 "pause": entry.get("pause", 0)}
+    return entry
+
+
+def _update(base, change):
+    with _hits_lock:
+        saved = util.load_json(HITS, {})
+        entry = _entry(saved, base)
+        change(entry)
+        saved[base] = entry
+        util.save_json(HITS, saved)
+
+
+def _count(base, kind):
+    _update(base, lambda e: e.__setitem__(kind, int(e.get(kind) or 0) + 1))
+
+
+def _read_limits(base, root):
+    """Many indexers tell their limits in every answer: <newznab:apilimits apicurrent= apimax= grabcurrent= grabmax=>."""
+    for element in root.iter():
+        if element.tag.rsplit("}", 1)[-1].lower() != "apilimits":
+            continue
+        values = {}
+        for name, key in (("apicurrent", "api"), ("apimax", "api_max"), ("grabcurrent", "grab"), ("grabmax", "grab_max")):
+            raw = element.get(name)
+            if raw and raw.isdigit():
+                values[key] = int(raw)
+        if values:
+            _update(base, lambda e: e.update(values))
+        return
+
+
+def _pause(base, seconds=None):
+    """After 'limit reached': rest until the next day (UTC), or the given seconds (HTTP 429, too many at once)."""
+    if seconds is None:
+        now = time.time()
+        until = now - now % 86400 + 86400 + 300
+    else:
+        until = time.time() + seconds
+    _update(base, lambda e: e.__setitem__("pause", until))
+
+
+def allowed(base, kind="api", background=False):
+    """May we ask this indexer now? kind 'api' (a search) or 'grab' (an NZB)."""
+    entry = _entry(util.load_json(HITS, {}), base)
+    if entry.get("pause", 0) > time.time():
+        return False
+    used, most = int(entry.get(kind) or 0), entry.get(kind + "_max")
+    if most:
+        return used < int(most) * (STOP_AT_BACKGROUND if background else STOP_AT)
+    return not background or used < UNKNOWN_BACKGROUND
+
+
+def usage(base):
+    """'12/100 searches, 2/25 NZBs today' for the test button ('?' when the indexer does not tell)."""
+    entry = _entry(util.load_json(HITS, {}), base)
+    return "%d/%s searches, %d/%s NZBs" % (entry.get("api") or 0, entry.get("api_max") or "?", entry.get("grab") or 0, entry.get("grab_max") or "?")
+
+
+def _limit_hit(base, error):
+    text = str(error)
+    if text == "limit reached":
+        _pause(base)
+    elif text.startswith("HTTP 429"):
+        _pause(base, 3600)
+
+
 def indexers():
     """[(slot, base address, key)] of the filled-in indexers. The address may be the site or its /api."""
     out = []
@@ -80,8 +165,24 @@ def configured():
 
 
 def _get(base, key, params, timeout=20):
-    body = fetch(base + "?" + urllib.parse.urlencode(dict(params, apikey=key, o="xml")), timeout)
-    return body.replace(key.encode("utf-8"), b"[key]") if key else body
+    _count(base, "api")
+    try:
+        body = fetch(base + "?" + urllib.parse.urlencode(dict(params, apikey=key, o="xml")), timeout)
+    except IndexerError as error:
+        _limit_hit(base, error)
+        raise
+    return body.replace(key.encode("utf-8"), b"[key]") if len(key) >= 8 else body     # a real key, not a short word
+
+
+def _ask(base, key, params, timeout=20):
+    """_get + _root, and remember the limits the indexer told and a 'limit reached'."""
+    try:
+        root = _root(_get(base, key, params, timeout))
+    except IndexerError as error:
+        _limit_hit(base, error)
+        raise
+    _read_limits(base, root)
+    return root
 
 
 def _from_json(body):
@@ -217,8 +318,9 @@ def _queries(meta, base=""):
     return asks
 
 
-def search(slot, base, key, meta, text_titles):
-    """Rows from one indexer, from the cache when it asked the same in the last three hours."""
+def search(slot, base, key, meta, text_titles, background=False):
+    """Rows from one indexer, from the cache when it asked the same in the last three hours. Background searches (getting
+    things ready beforehand) stop at half of the daily limit; normal ones at 90%."""
     asks = _queries(meta, base)
     if meta["kind"] == "movie":
         asks += [{"t": "search", "q": "%s %s" % (t, meta.get("year") or ""), "cat": "2000"} for t in text_titles[:1]]
@@ -230,9 +332,12 @@ def search(slot, base, key, meta, text_titles):
         return saved
     rows, error = [], None
     for ask in asks:
+        if not allowed(base, "api", background):
+            error = IndexerError("daily limit")
+            break
         params = dict(ask, extended="1", limit="100")
         try:
-            rows = _rows(_root(_get(base, key, params)), slot)
+            rows = _rows(_ask(base, key, params), slot)
         except IndexerError as failed:
             error = failed
             if "key" in str(failed) or "limit" in str(failed) or "suspended" in str(failed):
@@ -242,10 +347,35 @@ def search(slot, base, key, meta, text_titles):
             if ask.get("imdbid"):
                 _remember_form(base, ask["imdbid"])
             break
+    if meta["kind"] != "movie" and (rows or error is None):
+        rows = rows + _packs(slot, base, key, meta, background)
     if not rows and error is not None:
         raise error
     util.cache_set(cache, rows)
     return rows
+
+
+def _packs(slot, base, key, meta, background):
+    """Season packs: the whole season in one release. One extra search (by id, without the episode); which rows really
+    are packs of this season is decided by the caller."""
+    season = int(meta["season"])
+    if meta.get("tvdb"):
+        ask = {"t": "tvsearch", "tvdbid": meta["tvdb"], "season": season, "cat": "5000"}
+    else:
+        forms = _imdb_forms(base, meta.get("show_imdb") or meta.get("imdb"))
+        if not forms:
+            return []
+        ask = {"t": "tvsearch", "imdbid": forms[0], "season": season, "cat": "5000"}
+    if not allowed(base, "api", background):
+        return []
+    try:
+        found = _rows(_ask(base, key, dict(ask, extended="1", limit="100")), slot)
+    except IndexerError as error:
+        util.log("usenet: season packs: %s" % error)
+        return []
+    for row in found:
+        row["maybe_pack"] = True
+    return found
 
 
 def nzb(row):
@@ -253,13 +383,17 @@ def nzb(row):
     match = next(((base, key) for slot, base, key in indexers() if slot == row["slot"]), None)
     if not match:
         raise IndexerError("indexer not set up any more")
-    _base, key = match
+    base, key = match
+    if not allowed(base, "grab"):
+        raise IndexerError("NZB: daily limit")
+    _count(base, "grab")
     parts = urllib.parse.urlsplit(row["link"])
     query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True) + [(row.get("param") or "apikey", key)]
     url = urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, urllib.parse.urlencode(query), ""))
     try:
         body = fetch(url, 30)
     except IndexerError as error:
+        _limit_hit(base, error)
         raise IndexerError("NZB: %s" % error) from None
     if b"<nzb" not in body[:4096] and b"<nzb" not in body:
         try:
@@ -274,8 +408,8 @@ def test(slot, base, key):
     """(ok, text) for the settings' test button. 'caps' needs no key at most indexers, so it proves nothing about the
     key: a real (tiny) search does. That costs one API hit."""
     try:
-        _root(_get(base, key, {"t": "caps"}, timeout=15))
-        _root(_get(base, key, {"t": "search", "q": "test", "limit": "1"}, timeout=15))
+        _ask(base, key, {"t": "caps"}, timeout=15)
+        _ask(base, key, {"t": "search", "q": "test", "limit": "1"}, timeout=15)
     except IndexerError as error:
         text = str(error)
         if text.startswith(("HTTP 401", "HTTP 403")) or text == "wrong API key":

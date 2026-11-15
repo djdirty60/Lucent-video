@@ -56,7 +56,8 @@ def _fetch(entry, subtitles=False):
     meta = player.title_meta(kind, tmdb_id, season, episode)
     if not meta:
         return None
-    sources, _problem = scrapers.search(meta if subtitles else dict(meta, no_subcheck=True))
+    # background=True: scrapers with a daily budget (your Usenet indexers) keep most of it for when you press play
+    sources, _problem = scrapers.search(dict(meta, background=True) if subtitles else dict(meta, no_subcheck=True, background=True))
     if not sources:
         return None
     return {"at": time.time(), "meta": meta, "sources": sources[:20]}

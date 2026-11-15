@@ -108,8 +108,6 @@ class Sources(Base):
             item.setProperty("scraper", SCRAPER_SHORT.get(source.get("scraper"), source.get("scraper") or ""))
             if source["cached"]:
                 item.setProperty("cached", "1")
-            if source is self.sources[0]:
-                item.setProperty("rec", T("★ AANBEVOLEN", "★ RECOMMENDED"))
             for number, flag in enumerate(source["flags"][:12], 1):
                 item.setProperty("flag%d" % number, "lucent/flags/%s.png" % flag)
             self.rows.addItem(item)

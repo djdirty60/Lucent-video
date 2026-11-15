@@ -534,7 +534,11 @@ def _usenet_tick(playing):
     _USENET["on"] = bool(server._state["http"])           # noqa: SLF001 - same add-on
 
 
+LIBRESUME = "lucent.video.libresume"      # tells the skin: library items may be started with 'noresume', we ask ourselves
+
+
 def run():
+    util.HOME.setProperty(LIBRESUME, "1")
     monitor = Events()
     monitor.onSettingsChanged()
     watcher = Watcher()

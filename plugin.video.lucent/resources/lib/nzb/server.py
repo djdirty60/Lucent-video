@@ -54,7 +54,7 @@ def _close_release():
         pool.close()
 
 
-def prepare(name, season=None, episode=None):
+def prepare(name, season=None, episode=None, pack=False):
     """Open the release in nzb/<name>. Returns a dict for the plugin: ok, key, name, size or error."""
     path = os.path.join(folder(), os.path.basename(name))
     try:
@@ -67,7 +67,7 @@ def prepare(name, season=None, episode=None):
         pool = nntp.Pool(provider())
         started = time.time()
         try:
-            release = stream.open_release(pool, data, season, episode, log=lambda text: util.log("usenet: " + text))
+            release = stream.open_release(pool, data, season, episode, log=lambda text: util.log("usenet: " + text), pack=pack)
         except nntp.AuthError:
             pool.close()
             return {"ok": False, "error": "login"}
@@ -103,7 +103,7 @@ class _Handler(BaseHTTPRequestHandler):
         parts = urllib.parse.urlsplit(self.path)
         query = dict(urllib.parse.parse_qsl(parts.query))
         if parts.path == "/prepare":
-            return self._json(prepare(query.get("nzb", ""), query.get("season"), query.get("episode")))
+            return self._json(prepare(query.get("nzb", ""), query.get("season"), query.get("episode"), query.get("pack") == "1"))
         match = re.match(r"^/(stream|close)/([0-9a-f]+)(?:/.*)?$", parts.path)
         release = _state["release"]
         if not match or not release or match.group(2) != _state["key"]:

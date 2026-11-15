@@ -22,7 +22,28 @@ RULES = [(re.compile(r"[a-z][a-z0-9+.-]*://[^\s\"'<>]+", re.I), lambda m: m.grou
 MAX_LINES = 1500
 
 
-def clean(line):
+# what you filled in yourself and must never leave the box: your Usenet provider and indexers (Kodi itself may log a
+# setting's value or a host name without 'http://' in front)
+PRIVATE_SETTINGS = ("nzb_host", "nzb_user", "nzb_pass", "nzb_ix1_url", "nzb_ix1_key", "nzb_ix2_url", "nzb_ix2_key",
+                    "nzb_ix3_url", "nzb_ix3_key", "easynews_user", "easynews_pass")
+
+
+def _private():
+    found = set()
+    for name in PRIVATE_SETTINGS:
+        value = (util.setting(name) or "").strip()
+        if len(value) < 4:
+            continue
+        found.add(value)
+        host = re.sub(r"^[a-z]+://", "", value, flags=re.I).split("/", 1)[0]
+        if len(host) >= 4:
+            found.add(host)
+    return sorted(found, key=len, reverse=True)
+
+
+def clean(line, private=()):
+    for value in private:
+        line = line.replace(value, "[private]")
     for pattern, replacement in RULES:
         line = pattern.sub(replacement, line)
     return line
@@ -37,7 +58,8 @@ def build():
         lines = []
     head = ["Lucent Video %s" % util.ADDON.getAddonInfo("version"), "Kodi %s" % xbmc.getInfoLabel("System.BuildVersion"), "Skin %s" % xbmc.getSkinDir(),
             "System %s %s" % (platform.system(), platform.machine()), "Made %s" % time.strftime("%Y-%m-%d %H:%M"), ""]
-    return "\n".join(head) + "".join(clean(line) for line in lines)
+    private = _private()
+    return "\n".join(head) + "".join(clean(line, private) for line in lines)
 
 
 def save():

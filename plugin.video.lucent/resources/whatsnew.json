@@ -2,6 +2,36 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+49",
+   "label": "Beta 1 · update 49",
+   "label_en": "Beta 1 · update 49",
+   "date": "2026-11-15",
+   "at": "2026-11-15T14:15Z",
+   "items": [
+    [
+     "play",
+     "Geen 'Aanbevolen'-label meer",
+     "De beste bron staat gewoon bovenaan de bronnenlijst. Het label is weg, dus de naam van de bron krijgt de volle breedte.",
+     "No more 'Recommended' badge",
+     "The best source is simply the top row of the source list. The badge is gone, so the release name gets the full width."
+    ],
+    [
+     "resume",
+     "Hervat-scherm ook vanuit de bibliotheek",
+     "Speel je een half gekeken titel af uit de Kodi-bibliotheek op Home, dan zie je het hervat-scherm van Lucent Video in plaats van het kleine menu van Kodi (met Lucent 2.1.21 of nieuwer).",
+     "Resume screen from the library too",
+     "Playing a half-watched title from the Kodi library on Home now shows Lucent Video's own resume screen instead of Kodi's small menu (with Lucent 2.1.21 or newer)."
+    ],
+    [
+     "settings",
+     "Testmodus: Usenet stap 2",
+     "Alleen voor testers: seizoenspakketten, 7z-releases, en de daglimieten van je indexers worden bijgehouden (stoppen op 90%, vooraf klaarzetten gebruikt hoogstens de helft). Je eigen Usenet-gegevens komen nooit in het foutrapport. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: Usenet step 2",
+     "Testers only: season packs, 7z releases, and your indexers' daily limits are tracked (stop at 90%, getting ready beforehand uses at most half). Your own Usenet details never end up in the error report. For everyone without a test code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+48",
    "label": "Beta 1 · update 48",
    "label_en": "Beta 1 · update 48",
