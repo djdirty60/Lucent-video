@@ -174,11 +174,18 @@ def nzb(row):
 
 
 def test(slot, base, key):
-    """(ok, text) for the settings' test button: does the indexer answer this key?"""
+    """(ok, text) for the settings' test button. 'caps' needs no key at most indexers, so it proves nothing about the
+    key: a real (tiny) search does. That costs one API hit."""
     try:
-        root = _root(_get(base, key, {"t": "caps"}, timeout=15))
+        _root(_get(base, key, {"t": "caps"}, timeout=15))
     except IndexerError as error:
         return False, str(error)
-    limits = root.find("limits")
-    return True, ("max %s results" % limits.get("max")) if limits is not None and limits.get("max") else "ok"
+    try:
+        _root(_get(base, key, {"t": "search", "q": "test", "limit": "1"}, timeout=15))
+    except IndexerError as error:
+        text = str(error)
+        if text in ("HTTP 401", "HTTP 403", "wrong API key"):
+            return False, "API key not accepted"
+        return False, text
+    return True, "ok"
 

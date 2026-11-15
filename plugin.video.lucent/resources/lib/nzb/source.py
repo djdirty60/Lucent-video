@@ -34,7 +34,7 @@ def fetch(meta):
         try:
             return newznab.search(slot, base, key, meta, titles)
         except newznab.IndexerError as error:
-            util.log("usenet: indexer %d: %s" % (slot, error))
+            util.log("usenet: indexer %d: %s%s" % (slot, error, " (the API key is not accepted)" if str(error) in ("HTTP 401", "HTTP 403") else ""))
             return None
 
     with ThreadPoolExecutor(max_workers=len(ixs)) as pool:
@@ -122,5 +122,9 @@ def test():
         good, text = newznab.test(slot, base, key)
         ok = ok and good
         host = urllib.parse.urlsplit(base).hostname or "?"
+        if not good and text == "API key not accepted":
+            text = util.T("de API-sleutel wordt niet geaccepteerd", "the API key is not accepted")
+        elif not good and text == "limit reached":
+            text = util.T("het daglimiet is bereikt", "the daily limit is reached")
         lines.append(util.T("Indexer %d (%s): %s", "Indexer %d (%s): %s") % (slot, host, util.T("werkt", "works") if good else text))
     return ok, lines

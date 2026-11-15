@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+44",
+   "label": "Beta 1 · update 44",
+   "label_en": "Beta 1 · update 44",
+   "date": "2026-11-15",
+   "at": "2026-11-15T12:52Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: sleutel echt gecontroleerd",
+     "Alleen voor testers: Verbinding testen controleert nu ook echt of een indexer je API-sleutel accepteert. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: key really checked",
+     "Testers only: Test connection now really checks whether an indexer accepts your API key. For everyone without a test code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+43",
    "label": "Beta 1 · update 43",
    "label_en": "Beta 1 · update 43",
