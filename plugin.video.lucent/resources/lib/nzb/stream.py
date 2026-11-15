@@ -22,6 +22,7 @@ FILL_RUN = 4               # and at most 4 articles in a row
 SAMPLE_GONE = 0.1          # more than this share gone in the sample: refuse at once, without counting
 COUNT_LIMIT = 20           # seconds the full gap count may take before playing starts
 COUNT_PART = 500           # articles per STAT round
+SAMPLE_PART = 10           # sample articles per connection
 COUNT_WORKERS = 8          # connections used for counting
 PIN_START = 4 * 1024 * 1024
 PIN_END = 16 * 1024 * 1024
@@ -238,11 +239,13 @@ class Release:
         flat = [s[2] for p in self.chosen for s in p.segments]
         ids += flat[::step]
         ids = list(dict.fromkeys(ids))[:sample * 2]
-        answer = self.pool.stat_many(ids)
+        started = time.time()
+        answer = self._stat_spread(self.pool, ids)
         missing = [i for i, ok in answer.items() if not ok]
         if missing and self.backup:
-            on_backup = self.backup.stat_many(missing)
+            on_backup = self._stat_spread(self.backup, missing)
             missing = [i for i in missing if not on_backup.get(i)]
+        self.log("checked %d articles in %.1f s, %d gone" % (len(answer), time.time() - started, len(missing)))
         if not missing:
             return
         if self.fill and len(missing) > max(2, len(answer) * SAMPLE_GONE):
@@ -288,6 +291,18 @@ class Release:
                 return
             raise StreamError("%d of %d articles are gone (%d in a row)" % (len(gone), len(flat_ids), longest))
         raise StreamError("%d of %d checked articles are gone" % (len(missing), len(answer)))
+
+    @staticmethod
+    def _stat_spread(pool, ids):
+        """STAT over several connections at once: some providers answer a missing article slowly, one by one."""
+        parts = [ids[at:at + SAMPLE_PART] for at in range(0, len(ids), SAMPLE_PART)]
+        if len(parts) < 2:
+            return pool.stat_many(ids)
+        answer = {}
+        with ThreadPoolExecutor(max_workers=max(1, min(COUNT_WORKERS, pool.limit, len(parts)))) as run:
+            for found in run.map(pool.stat_many, parts):
+                answer.update(found)
+        return answer
 
     def _count_part(self, part, started):
         """The gone articles of one part, or None when the count ran out of time before it started."""

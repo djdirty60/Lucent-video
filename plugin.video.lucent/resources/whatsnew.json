@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+60",
+   "label": "Beta 1 · update 60",
+   "label_en": "Beta 1 · update 60",
+   "date": "2026-11-15",
+   "at": "2026-11-15T19:33Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: verwijderde releases sneller overgeslagen",
+     "Alleen voor testers: de controle of een Usenet-release nog compleet is, gebeurt nu over meerdere verbindingen tegelijk. Een verwijderde release wordt daardoor in seconden overgeslagen in plaats van na bijna een minuut.",
+     "Test mode: removed releases skipped faster",
+     "Testers only: the check whether a Usenet release is still complete now runs over several connections at once. A removed release is skipped within seconds instead of after almost a minute."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+59",
    "label": "Beta 1 · update 59",
    "label_en": "Beta 1 · update 59",
