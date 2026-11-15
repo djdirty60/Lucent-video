@@ -18,12 +18,12 @@ FROM_FLAG = {"DV": "dv", "DV2": "dv2", "HDR": "hdr", "HLG": "hlg", "SDR": "sdr",
              "AVC": "avc", "AV1": "av1"}
 BY_NAME = {"remux": "REMUX", "bluray": "(?:BLU-?RAY|BDRIP|BRRIP)", "web": "WEB(?:-?DL|-?RIP)?", "hdtv": "HDTV", "cam": "(?:CAM|HDCAM|HDTS|TS|TELESYNC|TC|SCREENER|SCR)",
            "dv": "(?:DV|DOVI|DOLBY[ ._]?VISION)", "dv2": "DV2", "fel": "FEL", "p7": "(?:DV[ ._-]?)?P7", "hdr10plus": r"HDR10(?:\+|PLUS)", "hdr": r"HDR(?:10)?", "hlg": "HLG",
-           "sdr": "SDR", "3d": "3D", "imax": "IMAX", "10bit": r"(?:10[- ]?BIT|HI10P?)", "atmos": "ATMOS", "truehd": r"TRUEHD(?:[257][. ]?[01])?", "dtsx": "DTS[-.:]?X", "dtsma": "DTS[-. ]?HD[-. ]?MA", "dtshd": "DTS[-. ]?HD",
-           "dts": "DTS", "ddplus": r"(?:DDP|DD\+|EAC3)(?:[257][. ]?[01])?", "dd": r"(?:DD|AC3)(?:[257][. ]?[01])?", "aac": r"AAC(?:[257][. ]?[01])?", "opus": r"OPUS(?:[257][. ]?[01])?", "hevc": "(?:HEVC|X265|H[. ]?265)", "avc": "(?:AVC|X264|H[. ]?264)",
+           "sdr": "SDR", "3d": "3D", "imax": "IMAX", "10bit": r"(?:10[- ]?BIT|HI10P?)", "atmos": r"(?:ATMOS|DDPA(?:[257][. ]?[01])?|DD\+A(?:[257][. ]?[01])?)", "truehd": r"TRUEHD(?:[257][. ]?[01])?", "dtsx": "DTS[-.:]?X", "dtsma": "DTS[-. ]?HD[-. ]?MA", "dtshd": "DTS[-. ]?HD",
+           "dts": "DTS", "ddplus": r"(?:DDPA?|DD\+A?|EAC3)(?:[257][. ]?[01])?", "dd": r"(?:DD|AC3)(?:[257][. ]?[01])?", "aac": r"AAC(?:[257][. ]?[01])?", "opus": r"OPUS(?:[257][. ]?[01])?", "hevc": "(?:HEVC|X265|H[. ]?265)", "avc": "(?:AVC|X264|H[. ]?264)",
            "av1": "AV1", "upscale": "(?:UPSCALED?|REGRADED?|AI[. ]?UPSCALE)", "hardcoded": "(?:HC|HARDCODED|HARDSUBS?)", "nl": "(?:DUTCH|NLD?(?![-. ]?SUBS?))", "71": r"7[. ]1", "51": r"5[. ]1", "20": r"2[. ]0", "multi": "MULTI", "nlsubs": "(?:NL[. ]?SUBS?|DUTCH[. ]?SUBS?)"}
 COMPILED = {tag: re.compile(MARKS % pattern, re.I) for tag, pattern in BY_NAME.items()}
 # channels glued to the sound format, as in DDP5.1, DD+5.1, AAC2.0 or TrueHD7.1
-GLUED = r"(?:^|[ ._\-\[(]|(?<=DDP)|(?<=DD\+)|(?<=DD)|(?<=AC3)|(?<=EAC3)|(?<=AAC)|(?<=OPUS)|(?<=TRUEHD)|(?<=ATMOS))%s(?=$|[ ._\-\])])"
+GLUED = r"(?:^|[ ._\-\[(]|(?<=DDP)|(?<=DDPA)|(?<=DD\+)|(?<=DD)|(?<=AC3)|(?<=EAC3)|(?<=AAC)|(?<=OPUS)|(?<=TRUEHD)|(?<=ATMOS))%s(?=$|[ ._\-\])])"
 COMPILED.update({tag: re.compile(GLUED % BY_NAME[tag], re.I) for tag in ("71", "51", "20")})
 GROUP_RE = re.compile(r"-([A-Za-z0-9]{2,20})(?:\.[a-z0-9]{2,4})?$")
 

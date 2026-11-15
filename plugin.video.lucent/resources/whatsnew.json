@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+61",
+   "label": "Beta 1 · update 61",
+   "label_en": "Beta 1 · update 61",
+   "date": "2026-11-15",
+   "at": "2026-11-15T19:38Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: indexers vertellen wat erin zit",
+     "Alleen voor testers: wat een indexer zelf over een release zegt (taal, ondertitels, geluid, codec, resolutie) telt nu mee. Zo krijgt een bron ook het label NL, Multi of NL-ondertitels als de naam het niet zegt, en kiest automatisch starten beter. DDPA5.1 (DD+ met Atmos) wordt nu ook herkend.",
+     "Test mode: indexers tell what is inside",
+     "Testers only: what an indexer itself says about a release (language, subtitles, sound, codec, resolution) now counts. A source gets the NL, Multi or NL subtitles label even when the name does not say so, and automatic start chooses better. DDPA5.1 (DD+ with Atmos) is recognised too."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+60",
    "label": "Beta 1 · update 60",
    "label_en": "Beta 1 · update 60",

@@ -130,6 +130,7 @@ def fetch(meta):
             warn = util.T("mogelijk te zwaar", "may be too heavy") if heavy else ""
             if not pack:
                 source = usenet._source(name, row["size"], SERVICE, resolve=job)          # noqa: SLF001 - same add-on
+                _add_info(source, row)
                 source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"]), badges, warn) if p)
                 source["always"] = True
                 out.append(source)
@@ -138,6 +139,7 @@ def fetch(meta):
             job["pack"] = True
             episodes = int(meta.get("season_count") or 0) or 10
             source = usenet._source(name, row["size"] // episodes, SERVICE, resolve=job)    # noqa: SLF001
+            _add_info(source, row)
             if most and seconds and row["size"] / episodes / seconds > most * 0.95:
                 warn = util.T("mogelijk te zwaar", "may be too heavy")
             else:
@@ -147,6 +149,53 @@ def fetch(meta):
             source["always"] = True
             out.append(source)
     return out
+
+
+AUDIO_INFO = (("atmos", "ATMOS"), ("truehd", "TRUEHD"), ("dts:x", "DTS-X"), ("dts-x", "DTS-X"), ("dts-hd ma", "DTS-HDMA"), ("dts-hd", "DTS-HD"),
+              ("e-ac-3", "DD+"), ("eac3", "DD+"), ("dd+", "DD+"), ("ac-3", "DD"), ("ac3", "DD"), ("aac", "AAC"), ("opus", "OPUS"))
+VIDEO_INFO = (("hevc", "HEVC"), ("h.265", "HEVC"), ("x265", "HEVC"), ("avc", "AVC"), ("h.264", "AVC"), ("x264", "AVC"), ("av1", "AV1"))
+
+
+def _info_flags(info):
+    """Labels from what the indexer itself says is inside (Newznab extended attributes), next to those from the name."""
+    out = []
+    languages = [w.strip().lower() for w in re.split(r"[,/|;-]", info.get("language") or "") if w.strip()]
+    if any(w in ("dutch", "nederlands", "flemish") for w in languages):
+        out.append("aio_NL")
+    if len(set(languages)) > 1:
+        out.append("aio_MULTI")
+    subs = (info.get("subs") or "").lower()
+    if "dutch" in subs or "nederlands" in subs:
+        out.append("aio_NL-SUBS")
+    audio = (info.get("audio") or "").lower()
+    for mark, flag in AUDIO_INFO:
+        if mark in audio and flag not in out:
+            if flag == "DD" and "DD+" in out or flag == "DTS-HD" and "DTS-HDMA" in out:
+                continue
+            out.append(flag)
+    for mark, flag in (("7.1", "7.1"), ("5.1", "5.1"), ("2.0", "2.0")):
+        if mark in audio:
+            out.append(flag)
+            break
+    video = (info.get("video") or "").lower()
+    for mark, flag in VIDEO_INFO:
+        if mark in video:
+            out.append(flag)
+            break
+    return out
+
+
+def _add_info(source, row):
+    info = row.get("info") or {}
+    if not info:
+        return
+    for flag in _info_flags(info):
+        if flag not in source["flags"]:
+            source["flags"].append(flag)
+    if source.get("resolution") == "SD":
+        found = streams.resolution({}, info.get("resolution") or "")
+        if found != "SD":
+            source["resolution"] = found
 
 
 def _port():

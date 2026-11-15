@@ -304,8 +304,24 @@ def _rows(root, slot):
         link, param = _strip_key(link)
         out.append({"title": title, "size": size, "slot": slot, "link": link, "param": param,
                     "grabs": int(attrs.get("grabs") or 0) if (attrs.get("grabs") or "0").isdigit() else 0,
-                    "posted": item.findtext("pubDate") or ""})
+                    "posted": item.findtext("pubDate") or "",
+                    "info": {k: attrs[k] for k in INFO if attrs.get(k)}})
+    _tell_attrs(slot, root)
     return out
+
+
+INFO = ("language", "subs", "audio", "video", "resolution")      # Newznab extended attributes that say what is inside
+_told = set()
+
+
+def _tell_attrs(slot, root):
+    """Once per indexer per session: which attribute names it gives (names only), for an error report."""
+    if slot in _told:
+        return
+    names = sorted({a.get("name") for item in root.iter("item") for a in item.iter(NS + "attr") if a.get("name")})
+    if names:
+        _told.add(slot)
+        util.log("usenet: indexer %s gives: %s" % (slot, ", ".join(names)))
 
 
 FORMATS = "nzb_imdb_format.json"       # per indexer: does it want the IMDb id with 'tt' (some do, the spec says digits)
