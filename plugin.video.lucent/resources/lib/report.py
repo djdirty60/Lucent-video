@@ -51,17 +51,53 @@ def clean(line, private=()):
     return line
 
 
-def build():
-    path = xbmcvfs.translatePath("special://logpath/kodi.log")
+def _read(path):
+    """(lines, note) of a log file: read straight from disk, else through Kodi. The note says what happened."""
+    try:
+        size = os.path.getsize(path)
+    except OSError as error:
+        size = None
+        missing = type(error).__name__
+    else:
+        missing = ""
     try:
         with open(path, encoding="utf-8", errors="replace") as handle:
             lines = handle.readlines()[-MAX_LINES:]
-    except OSError:
-        lines = []
+        if lines or size == 0:
+            return lines, "%d lines, %s bytes" % (len(lines), size)
+        way = "read directly: 0 lines"
+    except (OSError, ValueError) as error:
+        way = "read directly: %s" % type(error).__name__
+    try:                                        # the same file through Kodi's own file layer
+        handle = xbmcvfs.File(path)
+        text = handle.read()
+        handle.close()
+        lines = text.splitlines(True)[-MAX_LINES:]
+        return lines, "%s; through Kodi: %d lines, %s bytes" % (way, len(lines), size)
+    except Exception as error:                  # noqa: BLE001 - the report must always come out
+        return [], "%s; through Kodi: %s%s" % (way, type(error).__name__, (" (file: %s)" % missing) if missing else "")
+
+
+def build():
+    folder = xbmcvfs.translatePath("special://logpath")
+    path = os.path.join(folder, "kodi.log")
+    lines, note = _read(path)
     head = ["Lucent Video %s" % util.ADDON.getAddonInfo("version"), "Kodi %s" % xbmc.getInfoLabel("System.BuildVersion"), "Skin %s" % xbmc.getSkinDir(),
-            "System %s %s" % (platform.system(), platform.machine()), "Made %s" % time.strftime("%Y-%m-%d %H:%M"), ""]
+            "System %s %s" % (platform.system(), platform.machine()), "Made %s" % time.strftime("%Y-%m-%d %H:%M"),
+            "Log kodi.log: %s" % note]
+    older = []
+    if len(lines) < 200:                        # just after a restart: the end of the previous log is the interesting part
+        older, old_note = _read(os.path.join(folder, "kodi.old.log"))
+        older = older[-(MAX_LINES - len(lines)):]
+        head.append("Log kodi.old.log: %s" % old_note)
+    head.append("")
     private = _private()
-    return "\n".join(head) + "".join(clean(line, private) for line in lines)
+    body = ""
+    if older:
+        body += "----- kodi.old.log (the previous run) -----\n" + "".join(clean(line, private) for line in older)
+        body += "\n----- kodi.log (this run) -----\n"
+    body += "".join(clean(line, private) for line in lines)
+    return "\n".join(head) + "\n" + body
 
 
 def save():

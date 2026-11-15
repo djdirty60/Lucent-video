@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+54",
+   "label": "Beta 1 · update 54",
+   "label_en": "Beta 1 · update 54",
+   "date": "2026-11-15",
+   "at": "2026-11-15T15:58Z",
+   "items": [
+    [
+     "info",
+     "Foutrapport zegt waarom het log leeg is",
+     "Het foutrapport schrijft bovenaan welk logbestand het las en hoe groot het was. Lukt lezen niet, dan probeert het via Kodi zelf. Is het log bijna leeg (net na een herstart), dan komt ook het einde van het vorige log mee.",
+     "Error report says why the log is empty",
+     "The error report states which log file it read and how big it was. If reading fails, it tries through Kodi itself. If the log is nearly empty (just after a restart), the end of the previous log is included too."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+53",
    "label": "Beta 1 · update 53",
    "label_en": "Beta 1 · update 53",
