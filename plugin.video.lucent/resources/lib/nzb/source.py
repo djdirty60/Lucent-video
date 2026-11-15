@@ -124,6 +124,11 @@ def test():
         host = urllib.parse.urlsplit(base).hostname or "?"
         if not good and text == "API key not accepted":
             text = util.T("de API-sleutel wordt niet geaccepteerd", "the API key is not accepted")
+        elif not good and text == "answer is a web page":
+            text = util.T("de indexer geeft een webpagina terug in plaats van een antwoord (adres fout, of geblokkeerd)",
+                          "the indexer answers with a web page instead (wrong address, or blocked)")
+        elif not good and text in ("answer is not XML", "answer is not readable", "answer is not a Newznab answer"):
+            text = util.T("het antwoord van de indexer is onleesbaar (zie het foutrapport)", "the indexer's answer cannot be read (see the error report)")
         elif not good and text == "limit reached":
             text = util.T("het daglimiet is bereikt", "the daily limit is reached")
         lines.append(util.T("Indexer %d (%s): %s", "Indexer %d (%s): %s") % (slot, host, util.T("werkt", "works") if good else text))

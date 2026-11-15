@@ -58,14 +58,71 @@ def configured():
 
 
 def _get(base, key, params, timeout=20):
-    return fetch(base + "?" + urllib.parse.urlencode(dict(params, apikey=key)), timeout)
+    body = fetch(base + "?" + urllib.parse.urlencode(dict(params, apikey=key, o="xml")), timeout)
+    return body.replace(key.encode("utf-8"), b"[key]") if key else body
+
+
+def _from_json(body):
+    """Some indexers answer JSON even when asked for XML (nZEDb style): turn it into the same XML tree."""
+    import json
+    data = json.loads(body.decode("utf-8", "replace"))
+    if isinstance(data, dict) and data.get("error"):
+        error = data["error"] if isinstance(data["error"], dict) else {"code": str(data["error"])}
+        attrs = error.get("@attributes") or error
+        root = ET.Element("error")
+        root.set("code", str(attrs.get("code") or "?"))
+        return root
+    channel = (data.get("channel") if isinstance(data, dict) else None) or data
+    items = channel.get("item") if isinstance(channel, dict) else channel
+    if isinstance(items, dict):
+        items = [items]
+    root = ET.Element("rss")
+    holder = ET.SubElement(root, "channel")
+    for raw in items or []:
+        if not isinstance(raw, dict):
+            continue
+        item = ET.SubElement(holder, "item")
+        ET.SubElement(item, "title").text = str(raw.get("title") or "")
+        ET.SubElement(item, "link").text = str(raw.get("link") or "")
+        enclosure = raw.get("enclosure") or {}
+        enclosure = enclosure.get("@attributes") or enclosure
+        if enclosure.get("url"):
+            ET.SubElement(item, "enclosure", url=str(enclosure["url"]), length=str(enclosure.get("length") or 0))
+        attrs = raw.get("attr") or raw.get("newznab:attr") or []
+        for attr in attrs if isinstance(attrs, list) else [attrs]:
+            attr = (attr or {}).get("@attributes") or attr or {}
+            if attr.get("name"):
+                ET.SubElement(item, NS + "attr", name=str(attr["name"]), value=str(attr.get("value") or ""))
+    return root
+
+
+def _describe(body):
+    """What a non-XML answer looks like, for the log: the start of it, letters only, never long."""
+    head = body[:400].decode("utf-8", "replace")
+    if "<html" in head.lower() or "<!doctype html" in head.lower():
+        return "a web page (blocked or a login page?)"
+    text = re.sub(r"[^\w .,:;/()\-]", " ", head)
+    return "'%s'" % re.sub(r"\s+", " ", text).strip()[:80]
 
 
 def _root(body):
-    try:
-        root = ET.fromstring(body)
-    except ET.ParseError:
-        raise IndexerError("answer is not XML") from None
+    stripped = body.lstrip()
+    if stripped[:1] in (b"{", b"["):
+        try:
+            root = _from_json(stripped)
+        except (ValueError, AttributeError, TypeError):
+            util.log("usenet: indexer answer not readable: %s" % _describe(body))
+            raise IndexerError("answer is not readable") from None
+    else:
+        try:
+            root = ET.fromstring(body)
+        except ET.ParseError:
+            util.log("usenet: indexer answer not readable: %s" % _describe(body))
+            raise IndexerError("answer is %s" % ("a web page" if "web page" in _describe(body) else "not XML")) from None
+    tag = root.tag.rsplit("}", 1)[-1].lower()
+    if tag not in ("rss", "caps", "error"):
+        util.log("usenet: indexer answer not readable: %s" % _describe(body))
+        raise IndexerError("answer is %s" % ("a web page" if tag == "html" else "not a Newznab answer"))
     if root.tag == "error":
         code = root.get("code") or "?"
         raise IndexerError({"100": "wrong API key", "101": "account suspended", "429": "limit reached",

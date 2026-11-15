@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+45",
+   "label": "Beta 1 · update 45",
+   "label_en": "Beta 1 · update 45",
+   "date": "2026-11-15",
+   "at": "2026-11-15T12:56Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: meer indexers",
+     "Alleen voor testers: Lucent leest nu ook indexers die JSON terugsturen, en zegt duidelijker wat er mis is als een indexer iets onleesbaars of een webpagina terugstuurt. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: more indexers",
+     "Testers only: Lucent now also reads indexers that answer in JSON, and says more clearly what is wrong when an indexer answers with something unreadable or a web page. For everyone without a test code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+44",
    "label": "Beta 1 · update 44",
    "label_en": "Beta 1 · update 44",
