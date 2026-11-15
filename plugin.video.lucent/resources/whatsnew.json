@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+51",
+   "label": "Beta 1 · update 51",
+   "label_en": "Beta 1 · update 51",
+   "date": "2026-11-15",
+   "at": "2026-11-15T14:56Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: snelheid preciezer gemeten",
+     "Alleen voor testers: het log laat tijdens Usenet-kijken ook zien hoe snel één verbinding is, hoeveel verbindingen bezig zijn en hoeveel tijd het uitpakken kost. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: speed measured more precisely",
+     "Testers only: while watching via Usenet the log also shows how fast one connection is, how many connections are busy and how much time unpacking takes. For everyone without a test code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+50",
    "label": "Beta 1 · update 50",
    "label_en": "Beta 1 · update 50",

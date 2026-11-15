@@ -63,7 +63,14 @@ class Release:
     # ------------------------------------------------------------------ articles
     def _decode(self, posted, number):
         _n, _size, message_id = posted.segments[number]
-        data, info = yenc.decode(self.pool.body(message_id))
+        started = time.time()
+        body = self.pool.body(message_id)
+        fetched = time.time()
+        data, info = yenc.decode(body)
+        stats = self.stats
+        stats["net"] = stats.get("net", 0.0) + fetched - started      # waiting for the provider (all connections added up)
+        stats["raw"] = stats.get("raw", 0) + len(body)
+        stats["decode"] = stats.get("decode", 0.0) + time.time() - fetched   # unpacking in Python
         part = self.part.get(posted.index)
         if part is None:
             # the poster's part size: from where this article starts (any article but the first), else its length

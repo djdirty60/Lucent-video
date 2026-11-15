@@ -190,10 +190,15 @@ def _speed_line(release):
     if before is not None and _speed.get("release") is release and now - _speed["at"] >= SPEED_EVERY:
         seconds = now - _speed["at"]
         cores = os.cpu_count() or 1
-        util.log("usenet: speed: in %.1f MB/s, to Kodi %.1f MB/s, Kodi waited %d time(s) (%.1f s), processor %d%% of %d core(s), cache %d MB"
+        net = stats.get("net", 0.0) - before.get("net", 0.0)
+        raw = stats.get("raw", 0) - before.get("raw", 0)
+        unpack = stats.get("decode", 0.0) - before.get("decode", 0.0)
+        util.log("usenet: speed: in %.1f MB/s, to Kodi %.1f MB/s, Kodi waited %d time(s) (%.1f s), processor %d%% of %d core(s), cache %d MB; "
+                 "one connection %.1f MB/s, %d connection(s) busy on average, unpacking %d%% of the time"
                  % ((stats["in"] - before["in"]) / seconds / 1e6, (stats["out"] - before["out"]) / seconds / 1e6,
                     stats["waits"] - before["waits"], stats["waited"] - before["waited"],
-                    round(100 * (cpu - _speed["cpu"]) / seconds / cores), cores, release.cached // 1000000))
+                    round(100 * (cpu - _speed["cpu"]) / seconds / cores), cores, release.cached // 1000000,
+                    raw / net / 1e6 if net else 0, round(net / seconds), round(100 * unpack / seconds)))
     elif before is not None and _speed.get("release") is release:
         return
     _speed.update(at=now, cpu=cpu, stats=stats, release=release)
