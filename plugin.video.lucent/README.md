@@ -3,7 +3,7 @@
 Films and series for Kodi, made for the Lucent skin but working in any skin:
 - browse with TMDB;
 - play through your own AIOStreams address, Easynews, TorBox, debrid services, or the scraper packs CocoScrapers, FenomScrapers and OpenScrapers;
-- keep your progress on Trakt, Simkl or only this device.
+- keep your progress on Trakt, Simkl, PunchPlay or only this device.
 
 ## For other add-ons and skins
 

@@ -137,6 +137,13 @@ def rate(kind, tmdb_id, value, send=True):
             trakt.call("sync/ratings", data={bucket: [{"rating": {2: 9, 1: 7, -1: 3}[value], "ids": {"tmdb": int(tmdb_id)}}]})
         except util.HttpError as error:
             util.log("rating to Trakt: %s" % error)
+    if send and value is not None and util.setting("kompas_trakt").lower() != "false":
+        import punchplay
+        if punchplay.logged_in() and (tracker.name() == "PunchPlay" or "punchplay" in [m.__name__ for m in tracker.mirrors()]):
+            try:
+                punchplay.rate(kind, tmdb_id, {2: 9, 1: 7, -1: 3}[value])
+            except util.HttpError as error:
+                util.log("rating to PunchPlay: %s" % error)
 
 
 def history():

@@ -202,13 +202,14 @@ def trakt_menu(handle, _params):
     import prefetch
     entries = [(T("Klaar voor vanavond", "Ready for tonight"), "tonight")] if prefetch.tonight() else []
     entries += [(T("Komt binnenkort uit", "Coming soon"), "coming_watchlist"), (T("Kijklijst films", "Watchlist movies"), "watchlist_movie"), (T("Kijklijst series", "Watchlist shows"), "watchlist_tv")]
-    if tracker.logged_in():
+    if tracker.logged_in() and tracker.name() != "PunchPlay":        # PunchPlay: no collection in Lucent
         entries += [(T("Collectie films", "Collection movies"), "collection_movie"), (T("Collectie series", "Collection shows"), "collection_tv")]
     rows = [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
     if tracker.has_lists():
         rows.append(items.folder(T("Mijn eigen lijsten", "My own lists"), util.url_for(action="traktlists", kind="mine")))
-        rows.append(items.folder(T("Lijsten die je leuk vindt", "Liked lists"), util.url_for(action="traktlists", kind="liked")))
-        rows.append(items.folder(T("Openbare lijsten", "Public lists"), util.url_for(action="publiclists")))
+        if tracker.name() == "Trakt":
+            rows.append(items.folder(T("Lijsten die je leuk vindt", "Liked lists"), util.url_for(action="traktlists", kind="liked")))
+            rows.append(items.folder(T("Openbare lijsten", "Public lists"), util.url_for(action="publiclists")))
     if mdblist.available():
         rows.append(items.folder("MDBList", util.url_for(action="mdblistmenu")))
     if floppy.available():
@@ -944,6 +945,15 @@ def _run(argv):
             return linked
         if action == "logout_simkl":
             simkl.logout()
+            return trakt_status()
+        if action == "auth_punchplay":
+            import punchplay
+            linked = punchplay.login()
+            trakt_status()
+            return linked
+        if action == "logout_punchplay":
+            import punchplay
+            punchplay.logout()
             return trakt_status()
         if action == "test_mdblist":
             return check_service(mdblist, "MDBList")

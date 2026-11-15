@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-"""'Copy your library': your watchlist and what you watched, from Trakt to Simkl or from Simkl to Trakt
+"""'Copy your library': your watchlist and what you watched, from one account to another (Trakt, Simkl, PunchPlay)
 (action=transfer, a button under Settings > Account). Only copies: nothing is removed anywhere, and what the other
 account already has is left out. Sent in parts, so a large history does not hit a service's limits."""
+import time
+
+import xbmc
 import xbmcgui
 
+import punchplay
 import simkl
 import trakt
 import util
@@ -17,8 +21,11 @@ def _count(n, one_nl, many_nl, one_en, many_en):
     return "%d %s" % (n, T(one_nl if n == 1 else many_nl, one_en if n == 1 else many_en))
 
 
+ACCOUNTS = (trakt, simkl, punchplay)
+
+
 def _name(account):
-    return "Trakt" if account is trakt else "Simkl"
+    return {trakt: "Trakt", simkl: "Simkl", punchplay: "PunchPlay"}[account]
 
 
 def _when(stamp):
@@ -93,15 +100,36 @@ def history_bodies(account, movies, episodes):
         yield count, {"shows": shows}
 
 
+def punchplay_jobs(todo):
+    """PunchPlay's own bulk form: up to 100 items per request, each with its own id (a second copy is skipped)."""
+    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    watch = [{"kind": "movie" if kind == "movie" else "show", "tmdb_id": int(tmdb_id)} for kind, tmdb_id in todo["watchlist"]]
+    seen = [{"client_item_id": "lv-m-%s" % tmdb_id, "kind": "movie", "tmdb_id": int(tmdb_id), "watched_at": _when(when) or now}
+            for tmdb_id, when in sorted(todo["movies"].items())]
+    seen += [{"client_item_id": "lv-e-%s-%d-%d" % (show, season, episode), "kind": "episode", "tmdb_id": int(show), "season": season,
+              "episode": episode, "watched_at": _when(when) or now}
+             for show, eps in sorted(todo["episodes"].items()) for (season, episode), when in sorted(eps.items())]
+    jobs = [("sync/watchlist", len(watch[s:s + PART]), {"items": watch[s:s + PART]}) for s in range(0, len(watch), PART)]
+    jobs += [("sync/history", len(seen[s:s + PART]), {"items": seen[s:s + PART]}) for s in range(0, len(seen), PART)]
+    return jobs
+
+
 def _post(account, path, body):
+    if account is punchplay:
+        punchplay.call(path, data=body, idempotent=True)
+        xbmc.Monitor().waitForAbort(2.1)        # PunchPlay takes 30 bulk requests a minute
+        return
     account.call(path, data=body)
 
 
 def send(target, todo, progress=None):
     """Sends what is missing to the target. Returns (items sent, parts that failed)."""
-    jobs = [("sync/watchlist" if target is trakt else "sync/add-to-list", n, body)
-            for n, body in watchlist_bodies(target, todo["watchlist"])]
-    jobs += [("sync/history", n, body) for n, body in history_bodies(target, todo["movies"], todo["episodes"])]
+    if target is punchplay:
+        jobs = punchplay_jobs(todo)
+    else:
+        jobs = [("sync/watchlist" if target is trakt else "sync/add-to-list", n, body)
+                for n, body in watchlist_bodies(target, todo["watchlist"])]
+        jobs += [("sync/history", n, body) for n, body in history_bodies(target, todo["movies"], todo["episodes"])]
     total = sum(n for _p, n, _b in jobs) or 1
     sent = failed = 0
     for path, n, body in jobs:
@@ -120,15 +148,17 @@ def send(target, todo, progress=None):
 
 
 def run():
-    if not (trakt.logged_in() and simkl.logged_in()):
-        return xbmcgui.Dialog().ok("Lucent", T("Log eerst in bij Trakt én bij Simkl (Instellingen > Account). Daarna kun je je bibliotheek van de een naar de ander kopiëren.",
-                                               "Sign in to both Trakt and Simkl first (Settings > Account). Then you can copy your library from one to the other."))
+    linked = [account for account in ACCOUNTS if account.logged_in()]
+    if len(linked) < 2:
+        return xbmcgui.Dialog().ok("Lucent", T("Log eerst in bij twee accounts (Trakt, Simkl of PunchPlay, onder Instellingen > Account). Daarna kun je je bibliotheek van de een naar de ander kopiëren.",
+                                               "Sign in to two accounts first (Trakt, Simkl or PunchPlay, under Settings > Account). Then you can copy your library from one to the other."))
     dialog = xbmcgui.Dialog()
+    ways = [(a, b) for a in linked for b in linked if a is not b]
     way = dialog.select(T("Bibliotheek kopiëren", "Copy your library"),
-                        [T("Van Trakt naar Simkl", "From Trakt to Simkl"), T("Van Simkl naar Trakt", "From Simkl to Trakt")])
+                        [T("Van %s naar %s", "From %s to %s") % (_name(a), _name(b)) for a, b in ways])
     if way < 0:
         return None
-    source, target = (trakt, simkl) if way == 0 else (simkl, trakt)
+    source, target = ways[way]
     parts = dialog.multiselect(T("Wat wil je kopiëren?", "What do you want to copy?"),
                                [T("Kijklijst (films en series)", "Watchlist (films and shows)"), T("Wat je gezien hebt (films en afleveringen)", "What you watched (films and episodes)")],
                                preselect=[0, 1])

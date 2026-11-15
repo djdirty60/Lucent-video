@@ -5,3 +5,5 @@
 TMDB_KEY = ""
 TRAKT_CLIENT_ID = "Ygmc_TAb8t2Y_c3VoSLYyG0i4jZ_cAVBqn18kiyvuvY"
 SIMKL_CLIENT_ID = ""
+# PunchPlay: Lucent Video's app is a public client (device code, no secret), so its Client ID may be public too.
+PUNCHPLAY_CLIENT_ID = "ppc_6c991312667ab58dd351d99e"

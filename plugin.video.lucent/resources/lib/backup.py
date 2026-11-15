@@ -16,7 +16,7 @@ import util
 
 T = util.T
 SKIP_DIRS = ("library",)
-SKIP_FILES = ("library.lock", "settings.xml")
+SKIP_FILES = ("library.lock", "settings.xml", "punchplay.lock")
 PREFIX = "lucent-video-backup"
 
 

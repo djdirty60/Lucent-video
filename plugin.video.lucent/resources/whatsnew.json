@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+39",
+   "label": "Beta 1 · update 39",
+   "label_en": "Beta 1 · update 39",
+   "date": "2026-11-15",
+   "at": "2026-11-15T11:25Z",
+   "items": [
+    [
+     "trakt",
+     "PunchPlay als account",
+     "Naast Trakt en Simkl kun je nu ook je gratis PunchPlay-account koppelen (Instellingen > Account), met een code op je telefoon. Lucent geeft door wat je kijkt en waar je stopt, en haalt je kijklijst, je eigen lijsten, Verder kijken en Volgende aflevering bij PunchPlay. Ben je ook bij Trakt of Simkl ingelogd, dan kan alles naar beide gaan.",
+     "PunchPlay as an account",
+     "Next to Trakt and Simkl you can now link your free PunchPlay account (Settings > Account) with a code on your phone. Lucent passes on what you watch and where you stop, and gets your watchlist, own lists, Continue watching and Next episode from PunchPlay. Signed in to Trakt or Simkl too? Then everything can go to both."
+    ],
+    [
+     "refresh",
+     "Bibliotheek kopiëren tussen alle accounts",
+     "Bibliotheek kopiëren werkt nu tussen Trakt, Simkl en PunchPlay, in elke richting. Wat het andere account al heeft, slaat Lucent over; er wordt niets verwijderd.",
+     "Copy your library between all accounts",
+     "Copying your library now works between Trakt, Simkl and PunchPlay, in any direction. What the other account already has is skipped; nothing is removed."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+38",
    "label": "Beta 1 · update 38",
    "label_en": "Beta 1 · update 38",

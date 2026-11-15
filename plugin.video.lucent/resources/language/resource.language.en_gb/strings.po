@@ -529,7 +529,7 @@ msgid "After a film, ask what you thought of it"
 msgstr ""
 
 msgctxt "#32184"
-msgid "Also send ratings to Trakt"
+msgid "Also send ratings to Trakt and PunchPlay"
 msgstr ""
 
 msgctxt "#32185"
@@ -751,7 +751,7 @@ msgid "After a film Lucent briefly asks what you thought. That way Kompas learns
 msgstr ""
 
 msgctxt "#32310"
-msgid "Your ratings also go to your Trakt account."
+msgid "Your ratings also go to your Trakt or PunchPlay account."
 msgstr ""
 
 msgctxt "#32311"
@@ -775,11 +775,11 @@ msgid "Choose languages you do not want to see films or series in."
 msgstr ""
 
 msgctxt "#32316"
-msgid "Link Trakt or Simkl so Lucent keeps track of what you watch."
+msgid "Link Trakt, Simkl or PunchPlay so Lucent keeps track of what you watch."
 msgstr ""
 
 msgctxt "#32317"
-msgid "Where Lucent keeps track of what you watched: Trakt, Simkl or only this device."
+msgid "Where Lucent keeps track of what you watched: Trakt, Simkl, PunchPlay or only this device."
 msgstr ""
 
 msgctxt "#32318"
@@ -1522,13 +1522,45 @@ msgid "Also update your other account"
 msgstr ""
 
 msgctxt "#32447"
-msgid "When you are signed in to both Trakt and Simkl, what you watch, what you mark as watched and a cleared resume point go to both. Your lists and Continue watching come from the account you choose above."
+msgid "When you are signed in to more than one account (Trakt, Simkl, PunchPlay), what you watch, what you mark as watched and a cleared resume point go to all of them. Your lists and Continue watching come from the account you choose above."
 msgstr ""
 
 msgctxt "#32448"
-msgid "Copy your library (Trakt ↔ Simkl)"
+msgid "Copy your library between accounts"
 msgstr ""
 
 msgctxt "#32449"
-msgid "Copies your watchlist and what you watched from Trakt to Simkl or the other way round. What the other account already has is skipped; nothing is removed."
+msgid "Copies your watchlist and what you watched from one account to another (Trakt, Simkl, PunchPlay). What the other account already has is skipped; nothing is removed."
+msgstr ""
+
+msgctxt "#32450"
+msgid "PunchPlay"
+msgstr ""
+
+msgctxt "#32451"
+msgid "Linked with PunchPlay as"
+msgstr ""
+
+msgctxt "#32452"
+msgid "Link PunchPlay account"
+msgstr ""
+
+msgctxt "#32453"
+msgid "Unlink PunchPlay account"
+msgstr ""
+
+msgctxt "#32454"
+msgid "The PunchPlay account Lucent is linked with now."
+msgstr ""
+
+msgctxt "#32455"
+msgid "Link your free PunchPlay account with a code on your phone or computer."
+msgstr ""
+
+msgctxt "#32456"
+msgid "Removes the link with PunchPlay from this device."
+msgstr ""
+
+msgctxt "#32457"
+msgid "Shows which PunchPlay account you are linked with and how much you watched."
 msgstr ""

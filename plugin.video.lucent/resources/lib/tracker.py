@@ -9,6 +9,7 @@ import time
 
 import floppy
 import mdblist
+import punchplay
 import simkl
 import tmdb
 import trakt
@@ -22,7 +23,7 @@ PROGRESS = "progress.json"
 
 
 def choice():
-    return users.tracker_choice()     # 0 Trakt, 1 Simkl, 2 only this device
+    return users.tracker_choice()     # 0 Trakt, 1 Simkl, 2 only this device, 3 PunchPlay
 
 
 def active():
@@ -32,17 +33,19 @@ def active():
         return trakt
     if mode == 1 and simkl.logged_in():
         return simkl
+    if mode == 3 and punchplay.logged_in():
+        return punchplay
     return None
 
 
 def mirrors():
-    """The other account (Trakt or Simkl) you are also signed in to, when 'Also update your other account' is on."""
+    """The other accounts (Trakt, Simkl, PunchPlay) you are also signed in to, when 'Also update your other account' is on."""
     if not util.flag("also_other"):
         return []
     main = active()
     if main is None and choice() == 2:
         return []                           # only this device: nothing goes out
-    return [m for m in (trakt, simkl) if m is not main and m.logged_in()]
+    return [m for m in (trakt, simkl, punchplay) if m is not main and m.logged_in()]
 
 
 def _mirror(job, *args):
@@ -51,7 +54,11 @@ def _mirror(job, *args):
         try:
             job(account, *args)
         except Exception as error:      # noqa: BLE001
-            util.log("%s (other account): %s" % ("Trakt" if account is trakt else "Simkl", type(error).__name__))
+            util.log("%s (other account): %s" % (_label(account), type(error).__name__))
+
+
+def _label(account):
+    return {trakt: "Trakt", simkl: "Simkl", punchplay: "PunchPlay"}.get(account, "")
 
 
 def logged_in():
@@ -59,7 +66,7 @@ def logged_in():
 
 
 def name():
-    return {trakt: "Trakt", simkl: "Simkl"}.get(active(), "")
+    return _label(active())
 
 
 def user():
@@ -304,11 +311,19 @@ def scrobble(state, meta, percent, position=0, total=0):
                 sent_state = "pause"
             elif percent < 80.0:
                 sent_percent = 100.0
-        account.scrobble(sent_state, meta, sent_percent)
-        _mirror(lambda other: other.scrobble(sent_state, meta, sent_percent))
+        _send(account, sent_state, meta, sent_percent, total)
+        _mirror(lambda other: _send(other, sent_state, meta, sent_percent, total))
     floppy.scrobble("pause" if state == "stop" and percent < util.watched_at() else state, meta, position, total)
     import wetrakr
     wetrakr.scrobble(state, meta, percent, total)
+
+
+def _send(account, state, meta, percent, total):
+    """PunchPlay also wants the running time (to keep the position in seconds); Trakt and Simkl only the percent."""
+    if getattr(account, "WANTS_TOTAL", False):
+        account.scrobble(state, meta, percent, total=total)
+    else:
+        account.scrobble(state, meta, percent)
 
 
 def tidy_watchlist(meta):

@@ -210,7 +210,7 @@ def streams_size(size):
 
 
 def handoff(meta, resume, source, alternates=None, others=None, lighter=None, last=False):
-    keep = ("kind", "tmdb", "imdb", "season", "episode", "title", "runtime")
+    keep = ("kind", "tmdb", "imdb", "season", "episode", "title", "runtime", "show", "year")
     now = {k: meta.get(k) for k in keep}
     import learn
     now.update(resume=resume, started=time.time(), alternates=alternates or [], url=source.get("url"), size=source.get("size") or 0,

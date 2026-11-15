@@ -68,7 +68,7 @@ def remove(user_id):
 
 
 def tracker_choice():
-    """0 Trakt, 1 Simkl, 2 only this device."""
+    """0 Trakt, 1 Simkl, 2 only this device, 3 PunchPlay."""
     user = current()
     if user["id"] == MAIN:
         return util.number("tracker", 0)

@@ -13,6 +13,7 @@ import library
 import mdblist
 import ranking
 import ranking_ui
+import punchplay
 import simkl
 import streams
 import tmdb
@@ -62,6 +63,10 @@ TEXT = {
 }
 
 
+# the order on screen; the number is what is saved (2 stays 'only this device' for everyone who chose it before)
+ACCOUNTS = [(0, "Trakt", trakt), (1, "Simkl", simkl), (3, "PunchPlay", punchplay), (2, T("Alleen dit apparaat", "Only this device"), None)]
+
+
 class Setup(dialogs.Base):
     def onInit(self):
         self.at = 0
@@ -86,8 +91,8 @@ class Setup(dialogs.Base):
             mode = users.tracker_choice()
             link = T("Koppelen met code", "Link with a code")
             linked = T("Gekoppeld", "Linked")
-            return [("Trakt", linked if trakt.logged_in() else link, mode == 0), ("Simkl", linked if simkl.logged_in() else link, mode == 1),
-                    (T("Alleen dit apparaat", "Only this device"), T("Geen account nodig", "No account needed"), mode == 2)]
+            return [(label, (linked if module.logged_in() else link) if module else T("Geen account nodig", "No account needed"), mode == value)
+                    for value, label, module in ACCOUNTS]
         if key == "keys":
             out = [(CODE_IN, "", None), (KEY_FILE, "", None), (T("TMDB-sleutel", "TMDB key"), filled if tmdb.key() else empty, None)]
             mode = users.tracker_choice()
@@ -163,8 +168,8 @@ class Setup(dialogs.Base):
 
     def activate(self, key, at):
         if key == "account":
-            users.set_tracker(at)
-            module = {0: trakt, 1: simkl}.get(at)
+            value, _label, module = ACCOUNTS[at]
+            users.set_tracker(value)
             if module and not module.logged_in():
                 module.login()
             library.publish_status()
@@ -263,11 +268,12 @@ class Who(dialogs.Base):
         name = xbmcgui.Dialog().input(T("Naam van het profiel", "Name of the profile"))
         if not name:
             return
-        choice = xbmcgui.Dialog().select(T("Waarmee houdt dit profiel bij wat het kijkt?", "What keeps track for this profile?"), ["Trakt", "Simkl", T("Alleen dit apparaat", "Only this device")])
-        if choice < 0:
+        picked = xbmcgui.Dialog().select(T("Waarmee houdt dit profiel bij wat het kijkt?", "What keeps track for this profile?"),
+                                         [label for _value, label, _module in ACCOUNTS])
+        if picked < 0:
             return
+        choice, _label, module = ACCOUNTS[picked]
         users.add(name, choice)
-        module = {0: trakt, 1: simkl}.get(choice)
         if module:
             module.login()
         self.close()
