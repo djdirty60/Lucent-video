@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+37" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+38" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -76,24 +76,24 @@
         </menu>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <reuselanguageinvoker>true</reuselanguageinvoker>
         <summary lang="en_GB">Movies and series for Lucent, with AIOStreams and Trakt</summary>
         <summary lang="nl_NL">Films en series voor Lucent, met AIOStreams en Trakt</summary>
         <description lang="en_GB">Browse with TMDB, play through your own AIOStreams address and keep your progress on Trakt.</description>
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 37: menus and widgets load up to three times faster (Kodi reuses Python instead of starting it for every list); the service loads the source search and the phone remote only when needed; a new preferred subtitle language counts within a minute instead of after a restart.
+        <news>1.0.0 beta 1, update 38: Kodi could crash after update 37; Kodi no longer keeps Python running between calls (that mode is off again). The other improvements of update 37 stay.
+1.0.0 beta 1, update 37: menus and widgets load up to three times faster (Kodi reuses Python instead of starting it for every list); the service loads the source search and the phone remote only when needed; a new preferred subtitle language counts within a minute instead of after a restart.
 1.0.0 beta 1, update 36: Continue watching shows each film and episode only once; Trakt sometimes kept two progress points for the same film (started twice or on two devices), now only the newest counts.
 1.0.0 beta 1, update 35: titles taken from Trakt use Trakt's translation in your language when there is one (as Seren does), else the English title.
 1.0.0 beta 1, update 34: when TMDB only has 'Episode 7' (in English too), the title and description come from Trakt, like Seren; also without a Trakt account, in lists and in the library.
 1.0.0 beta 1, update 33: library episodes with only a placeholder title ('Episode 7') or no description get the English ones, and a changed episode is now refreshed in Kodi's library instead of keeping the old text.
 1.0.0 beta 1, update 32: new poster label lucent.season.towatch counts the episode itself too (episode 1 of 4 aired: '4 to watch'); lucent.season.left keeps its meaning for skins.
 1.0.0 beta 1, update 31: Kodi now shows Wilfried van der Voort as the maker of Lucent Video.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 37: Sneller en lichter: Menu's en widgets van Lucent Video laden tot drie keer sneller: Kodi start Python niet meer voor elke lijst opnieuw op. De achtergronddienst laadt het zoeken naar bronnen en de telefoon-afstandsbediening pas als ze nodig zijn, en 'Serie openen waar je bent' kijkt niet meer mee als je die optie uit hebt staan. Nieuwe voorkeurstaal telt meteen: Verander je in Kodi de voorkeurstaal voor ondertitels, dan gebruikt Lucent Video die binnen een minuut. Eerder pas na een herstart van Kodi.
+        <news lang="nl_NL">1.0.0 beta 1, update 38: Kodi loopt niet meer vast: Update 37 liet Kodi Python laten doordraaien om menu's sneller te laden. Daardoor kon Kodi vastlopen. Die stand staat weer uit; de andere verbeteringen van update 37 blijven.
+1.0.0 beta 1, update 37: Sneller en lichter: Menu's en widgets van Lucent Video laden tot drie keer sneller: Kodi start Python niet meer voor elke lijst opnieuw op. De achtergronddienst laadt het zoeken naar bronnen en de telefoon-afstandsbediening pas als ze nodig zijn, en 'Serie openen waar je bent' kijkt niet meer mee als je die optie uit hebt staan. Nieuwe voorkeurstaal telt meteen: Verander je in Kodi de voorkeurstaal voor ondertitels, dan gebruikt Lucent Video die binnen een minuut. Eerder pas na een herstart van Kodi.
 1.0.0 beta 1, update 36: Elke film maar één keer in Verder kijken: Verder kijken toont elke film en aflevering maar één keer. Trakt bewaarde soms twee voortgangen van dezelfde film (twee keer gestart, of op twee apparaten); nu telt alleen de nieuwste.
-1.0.0 beta 1, update 35: Nederlandse titels van Trakt als die er zijn: Haalt Lucent een titel bij Trakt omdat TMDB alleen 'Aflevering 7' kent, dan neemt hij de Nederlandse vertaling van Trakt als die bestaat, anders de Engelse. Zo doet Seren het ook.
-1.0.0 beta 1, update 34: Echte titels voor 'Aflevering 7': Kent TMDB een aflevering alleen als 'Aflevering 7' (ook in het Engels), dan haalt Lucent de titel en beschrijving nu bij Trakt, net als Seren. Dat werkt ook zonder Trakt-account, in de lijsten en in de bibliotheek.</news>
+1.0.0 beta 1, update 35: Nederlandse titels van Trakt als die er zijn: Haalt Lucent een titel bij Trakt omdat TMDB alleen 'Aflevering 7' kent, dan neemt hij de Nederlandse vertaling van Trakt als die bestaat, anders de Engelse. Zo doet Seren het ook.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

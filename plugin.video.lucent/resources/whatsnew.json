@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+38",
+   "label": "Beta 1 · update 38",
+   "label_en": "Beta 1 · update 38",
+   "date": "2026-11-15",
+   "at": "2026-11-15T11:08Z",
+   "items": [
+    [
+     "settings",
+     "Kodi loopt niet meer vast",
+     "Update 37 liet Kodi Python laten doordraaien om menu's sneller te laden. Daardoor kon Kodi vastlopen. Die stand staat weer uit; de andere verbeteringen van update 37 blijven.",
+     "Kodi no longer crashes",
+     "Update 37 let Kodi keep Python running to load menus faster. That could make Kodi crash. That mode is off again; the other improvements of update 37 stay."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+37",
    "label": "Beta 1 · update 37",
    "label_en": "Beta 1 · update 37",
