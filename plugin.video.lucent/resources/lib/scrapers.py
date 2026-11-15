@@ -114,7 +114,7 @@ def configured():
         out.append("Easynews")
     if util.setting("torbox_key"):
         out.append("TorBox")
-    if util.lab() and util.flag("nzb_on") and util.setting("nzb_host") and util.setting("nzb_ix1_url") + util.setting("nzb_ix2_url") + util.setting("nzb_ix3_url"):
+    if util.lab() and util.flag("nzb_on") and util.setting("nzb_host") and any(util.setting("nzb_ix%d_url" % n) for n in range(1, 11)):
         out.append("Usenet")
     if debrid.active():
         out += [n for n in coco.PACKS if coco.installed(n)]

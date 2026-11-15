@@ -1840,3 +1840,35 @@ msgstr ""
 msgctxt "#32526"
 msgid "In the source list: how many days ago the release was posted and how often it was downloaded."
 msgstr ""
+
+msgctxt "#32527"
+msgid "Indexer 7 – address"
+msgstr ""
+
+msgctxt "#32528"
+msgid "Indexer 7 – API key"
+msgstr ""
+
+msgctxt "#32529"
+msgid "Indexer 8 – address"
+msgstr ""
+
+msgctxt "#32530"
+msgid "Indexer 8 – API key"
+msgstr ""
+
+msgctxt "#32531"
+msgid "Indexer 9 – address"
+msgstr ""
+
+msgctxt "#32532"
+msgid "Indexer 9 – API key"
+msgstr ""
+
+msgctxt "#32533"
+msgid "Indexer 10 – address"
+msgstr ""
+
+msgctxt "#32534"
+msgid "Indexer 10 – API key"
+msgstr ""

@@ -210,6 +210,10 @@ def test():
         except (nntp.NntpError, OSError) as error:
             ok = False
             lines.append(util.T("%s: geen verbinding (%s).", "%s: no connection (%s).") % (who, type(error).__name__))
+    from . import yenc
+    lines.append(util.T("Uitpakken: snel (C).", "Unpacking: fast (C).") if yenc.fast() else
+                 util.T("Uitpakken: langzaam (Python), afspelen kan haperen. Stuur graag een foutrapport.",
+                        "Unpacking: slow (Python), playback may stutter. Please send an error report."))
     ixs = newznab.indexers()
     if not ixs:
         ok = False

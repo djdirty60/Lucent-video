@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+58",
+   "label": "Beta 1 · update 58",
+   "label_en": "Beta 1 · update 58",
+   "date": "2026-11-15",
+   "at": "2026-11-15T17:55Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: meer testers en 10 indexers",
+     "Alleen voor testers: elke tester heeft nu een eigen code, er is ruimte voor 10 indexers, en de verbindingstest zegt of de snelle uitpakker werkt. Werkt alleen de langzame, dan meldt Lucent dat één keer bij het afspelen. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: more testers and 10 indexers",
+     "Testers only: every tester now has a personal code, there is room for 10 indexers, and the connection test tells whether the fast unpacker works. If only the slow one works, Lucent says so once when playing. Nothing changes for anyone without a test code."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+57",
    "label": "Beta 1 · update 57",
    "label_en": "Beta 1 · update 57",

@@ -127,6 +127,11 @@ def _c_unpack(fn, ctypes, raw):
     return bytes(memoryview(out)[:size])
 
 
+def fast():
+    """True when the fast C unpacker works on this device."""
+    return bool(_load())
+
+
 def mode():
     """'C' or 'Python (reason)', for the log."""
     return "C, %s" % _native.get("label", "") if _load() else "Python (%s)" % (_native["why"] or "?")

@@ -19,7 +19,7 @@ import util
 
 NS = "{http://www.newznab.com/DTD/2010/feeds/attributes/}"
 KEEP = 3 * 3600                         # a search answer is reused for three hours
-SLOTS = 6
+SLOTS = 10
 KEY_PARAMS = ("apikey", "r")            # Newznab uses apikey=; nZEDb-style sites put the key in r=
 
 

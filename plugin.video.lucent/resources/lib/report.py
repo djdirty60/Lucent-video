@@ -27,7 +27,7 @@ MAX_LINES = 1500
 # what you filled in yourself and must never leave the box: your Usenet provider and indexers (Kodi itself may log a
 # setting's value or a host name without 'http://' in front)
 PRIVATE_SETTINGS = ("nzb_host", "nzb_user", "nzb_pass", "nzb2_host", "nzb2_user", "nzb2_pass", "easynews_user", "easynews_pass") \
-    + tuple("nzb_ix%d_%s" % (n, part) for n in range(1, 7) for part in ("url", "key"))
+    + tuple("nzb_ix%d_%s" % (n, part) for n in range(1, 11) for part in ("url", "key"))
 
 
 def _private():

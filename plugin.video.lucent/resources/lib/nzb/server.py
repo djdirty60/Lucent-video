@@ -91,7 +91,20 @@ def prepare(name, season=None, episode=None, pack=False):
             return {"ok": False, "error": "%s: %s" % (type(error).__name__, error)}
         _state["release"], _state["pool"], _state["key"], _state["backup"] = release, pool, uuid.uuid4().hex[:12], spare
         util.log("usenet: release ready in %.1f s" % (time.time() - started))
+        _warn_slow()
         return {"ok": True, "key": _state["key"], "name": release.name, "size": release.size}
+
+
+SLOW_WARNED = "lucent.video.slowunpack"
+
+
+def _warn_slow():
+    """Once per Kodi session: say it plainly when only the slow Python unpacker works here."""
+    if yenc.fast() or util.HOME.getProperty(SLOW_WARNED):
+        return
+    util.HOME.setProperty(SLOW_WARNED, "1")
+    util.notify(util.T("Snelle uitpakker werkt niet op dit apparaat: afspelen kan haperen. Stuur graag een foutrapport.",
+                       "Fast unpacker does not work on this device: playback may stutter. Please send an error report."))
 
 
 class _Handler(BaseHTTPRequestHandler):
