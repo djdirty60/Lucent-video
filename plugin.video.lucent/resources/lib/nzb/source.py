@@ -122,8 +122,9 @@ def test():
         good, text = newznab.test(slot, base, key)
         ok = ok and good
         host = urllib.parse.urlsplit(base).hostname or "?"
-        if not good and text == "API key not accepted":
-            text = util.T("de API-sleutel wordt niet geaccepteerd", "the API key is not accepted")
+        if not good and text.startswith("API key not accepted"):
+            reason = text.split(": ", 1)[1] if ": " in text else ""
+            text = util.T("de API-sleutel wordt niet geaccepteerd", "the API key is not accepted") + ((" – %s" % reason) if reason else "")
         elif not good and text == "answer is a web page":
             text = util.T("de indexer geeft een webpagina terug in plaats van een antwoord (adres fout, of geblokkeerd)",
                           "the indexer answers with a web page instead (wrong address, or blocked)")

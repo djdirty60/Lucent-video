@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+46",
+   "label": "Beta 1 · update 46",
+   "label_en": "Beta 1 · update 46",
+   "date": "2026-11-15",
+   "at": "2026-11-15T13:03Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: indexers beter begrepen",
+     "Alleen voor testers: Lucent stelt zich bij indexers netjes voor, laat de reden zien als een indexer je sleutel weigert, en zoekt films ook met het IMDb-nummer in de vorm die de indexer wil. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: indexers understood better",
+     "Testers only: Lucent introduces itself properly to indexers, shows the reason when an indexer refuses your key, and searches films with the IMDb id in the form the indexer wants. For everyone without a test code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+45",
    "label": "Beta 1 · update 45",
    "label_en": "Beta 1 · update 45",

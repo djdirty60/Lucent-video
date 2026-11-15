@@ -21,18 +21,40 @@ SLOTS = 3
 KEY_PARAMS = ("apikey", "r")            # Newznab uses apikey=; nZEDb-style sites put the key in r=
 
 
+AGENT = "LucentVideo/1.0 (Kodi video add-on; Newznab search for Usenet streaming; +https://github.com/djdirty60/Lucent-video)"
+
+
+def _reason(error):
+    """The indexer's own words when it refuses (most send <error code="..." description="..."/> with a 401 or 403).
+    Only the description, cut short; it never holds the key (that is only in our request)."""
+    try:
+        body = error.read()[:2000]
+        if body[:2] == b"\x1f\x8b":
+            body = gzip.decompress(body)
+        text = body.decode("utf-8", "replace")
+    except Exception:          # noqa: BLE001 - the reason is a courtesy
+        return ""
+    found = re.search(r'description="([^"]{1,160})"', text) or re.search(r'"(?:description|message|error)"\s*:\s*"([^"]{1,160})"', text)
+    if found:
+        return found.group(1)
+    plain = re.sub(r"<[^>]+>", " ", text)
+    plain = re.sub(r"\s+", " ", plain).strip()
+    return plain[:100] if plain and "<html" not in text[:300].lower() else ""
+
+
 class IndexerError(Exception):
     """The indexer said no (wrong key, limit reached) or could not be reached."""
 
 
 def fetch(url, timeout=20):
     """The raw answer of an address. The error never holds the address (it carries the key)."""
-    request = urllib.request.Request(url, headers={"User-Agent": "Lucent-Video", "Accept-Encoding": "gzip"})
+    request = urllib.request.Request(url, headers={"User-Agent": AGENT, "Accept-Encoding": "gzip"})
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             body = response.read()
     except urllib.error.HTTPError as error:
-        raise IndexerError("HTTP %d" % error.code) from None
+        reason = _reason(error)
+        raise IndexerError("HTTP %d%s" % (error.code, (" (%s)" % reason) if reason else "")) from None
     except (urllib.error.URLError, OSError, ValueError):
         raise IndexerError("unreachable") from None
     return gzip.decompress(body) if body[:2] == b"\x1f\x8b" else body
@@ -161,27 +183,43 @@ def _rows(root, slot):
     return out
 
 
-def _queries(meta):
-    """The questions to ask, best first: by id, then by name."""
+FORMATS = "nzb_imdb_format.json"       # per indexer: does it want the IMDb id with 'tt' (some do, the spec says digits)
+
+
+def _imdb_forms(base, imdb):
+    digits = re.sub(r"\D", "", imdb or "")
+    if not digits:
+        return []
+    forms = [digits, "tt" + digits]
+    if util.load_json(FORMATS, {}).get(base) == "tt":
+        forms.reverse()
+    return forms
+
+
+def _remember_form(base, form):
+    saved = util.load_json(FORMATS, {})
+    wanted = "tt" if str(form).startswith("tt") else "digits"
+    if saved.get(base) != wanted:
+        saved[base] = wanted
+        util.save_json(FORMATS, saved)
+
+
+def _queries(meta, base=""):
+    """The questions to ask, best first: by id (both IMDb forms), then by name."""
     if meta["kind"] == "movie":
-        asks = []
-        imdb = re.sub(r"\D", "", meta.get("imdb") or "")
-        if imdb:
-            asks.append({"t": "movie", "imdbid": imdb, "cat": "2000"})
-        return asks
+        return [{"t": "movie", "imdbid": form, "cat": "2000"} for form in _imdb_forms(base, meta.get("imdb"))]
     season, episode = int(meta["season"]), int(meta["episode"])
     asks = []
     if meta.get("tvdb"):
         asks.append({"t": "tvsearch", "tvdbid": meta["tvdb"], "season": season, "ep": episode, "cat": "5000"})
-    imdb = re.sub(r"\D", "", meta.get("show_imdb") or meta.get("imdb") or "")
-    if imdb:
-        asks.append({"t": "tvsearch", "imdbid": imdb, "season": season, "ep": episode, "cat": "5000"})
+    asks += [{"t": "tvsearch", "imdbid": form, "season": season, "ep": episode, "cat": "5000"}
+             for form in _imdb_forms(base, meta.get("show_imdb") or meta.get("imdb"))[:1]]
     return asks
 
 
 def search(slot, base, key, meta, text_titles):
     """Rows from one indexer, from the cache when it asked the same in the last three hours."""
-    asks = _queries(meta)
+    asks = _queries(meta, base)
     if meta["kind"] == "movie":
         asks += [{"t": "search", "q": "%s %s" % (t, meta.get("year") or ""), "cat": "2000"} for t in text_titles[:1]]
     else:
@@ -201,6 +239,8 @@ def search(slot, base, key, meta, text_titles):
                 break
             continue
         if rows:
+            if ask.get("imdbid"):
+                _remember_form(base, ask["imdbid"])
             break
     if not rows and error is not None:
         raise error
@@ -235,14 +275,12 @@ def test(slot, base, key):
     key: a real (tiny) search does. That costs one API hit."""
     try:
         _root(_get(base, key, {"t": "caps"}, timeout=15))
-    except IndexerError as error:
-        return False, str(error)
-    try:
         _root(_get(base, key, {"t": "search", "q": "test", "limit": "1"}, timeout=15))
     except IndexerError as error:
         text = str(error)
-        if text in ("HTTP 401", "HTTP 403", "wrong API key"):
-            return False, "API key not accepted"
+        if text.startswith(("HTTP 401", "HTTP 403")) or text == "wrong API key":
+            reason = text.split("(", 1)[1].rstrip(")") if "(" in text else ""
+            return False, "API key not accepted" + ((": " + reason) if reason else "")
         return False, text
     return True, "ok"
 
