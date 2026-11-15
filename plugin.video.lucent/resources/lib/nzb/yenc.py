@@ -40,32 +40,77 @@ _ARCH = {"aarch64": "aarch64", "arm64": "aarch64", "armv8l": "armv7", "armv7l": 
          "x86_64": "x86_64", "amd64": "x86_64"}
 
 
+_COPY_DIR = {"path": ""}
+
+
+def set_copy_dir(path):
+    """Android: a folder inside the app (not on the 'sdcard', where Android refuses to load code) to copy the unpacker
+    to when it cannot be loaded from the add-on's own folder."""
+    _COPY_DIR["path"] = path or ""
+
+
+def _candidates():
+    """(path, label) of the unpacker files to try for this system, best first."""
+    here = os.path.join(os.path.dirname(os.path.abspath(__file__)), "native")
+    system = platform.system().lower()
+    arch = _ARCH.get(platform.machine().lower())
+    if system == "windows":
+        return [(os.path.join(here, "windows-x86_64", "ydec.dll"), "windows-x86_64")] if arch == "x86_64" else []
+    if system != "linux" or not arch:
+        return []
+    if os.environ.get("ANDROID_ROOT") or os.environ.get("ANDROID_DATA"):
+        name = os.path.join(here, "android-%s" % arch, "libydec.so")
+        out = [(name, "android-%s" % arch)]
+        if _COPY_DIR["path"]:
+            out.append((os.path.join(_COPY_DIR["path"], "libydec-%s.so" % arch), "android-%s (copied into the app)" % arch))
+        return out
+    return [(os.path.join(here, "linux-%s" % arch, "libydec.so"), "linux-%s" % arch)]
+
+
+def _try(path, ctypes, source=None):
+    if source and not os.path.isfile(path):
+        import shutil
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        shutil.copyfile(source, path + ".tmp")
+        os.chmod(path + ".tmp", 0o700)
+        os.replace(path + ".tmp", path)
+    lib = ctypes.CDLL(path)                     # CDLL: Python's lock is let go during each call
+    fn = lib.lucent_ydecode
+    fn.restype = ctypes.c_ulong
+    fn.argtypes = [ctypes.c_char_p, ctypes.c_ulong, ctypes.c_void_p]
+    sample = bytes(range(256)) * 4
+    if _c_unpack(fn, ctypes, _python_lines(encode(sample, "t", len(sample), 1))) != sample:
+        raise OSError("self-test failed")
+    return fn
+
+
 def _load():
-    """The C unpacker for this processor, or None (then Python does it, as before). Loaded once, checked with a test
+    """The C unpacker for this system, or None (then Python does it, as before). Loaded once, checked with a test
     article: a wrong or unreadable file can never give wrong pictures, it is simply not used."""
     with _native_lock:
         if _native["done"]:
             return _native["fn"]
         _native["done"] = True
-        arch = _ARCH.get(platform.machine().lower())
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "native", "linux-%s" % arch, "libydec.so")
-        if platform.system().lower() != "linux" or not arch or not os.path.isfile(path):
+        tries = _candidates()
+        if not tries:
             _native["why"] = "no fast version for %s %s" % (platform.system(), platform.machine())
             return None
         try:
             import ctypes
-            lib = ctypes.CDLL(path)                 # CDLL: Python's lock is let go during each call
-            fn = lib.lucent_ydecode
-            fn.restype = ctypes.c_ulong
-            fn.argtypes = [ctypes.c_char_p, ctypes.c_ulong, ctypes.c_void_p]
-            sample = bytes(range(256)) * 4
-            if _c_unpack(fn, ctypes, _python_lines(encode(sample, "t", len(sample), 1))) != sample:
-                raise OSError("self-test failed")
-        except (ImportError, OSError, AttributeError, ValueError) as error:
-            _native["why"] = "fast version not usable (%s)" % (str(error)[:80] or type(error).__name__)
+        except ImportError:
+            _native["why"] = "ctypes missing"
             return None
-        _native["fn"] = (fn, ctypes)
-        return _native["fn"]
+        reasons, first = [], tries[0][0]
+        for number, (path, label) in enumerate(tries):
+            try:
+                fn = _try(path, ctypes, source=first if number else None)
+            except (OSError, AttributeError, ValueError) as error:
+                reasons.append("%s: %s" % (label, (str(error).split(":")[-1].strip() or type(error).__name__)[:60]))
+                continue
+            _native["fn"], _native["label"] = (fn, ctypes), label
+            return _native["fn"]
+        _native["why"] = "fast version not usable (%s)" % "; ".join(reasons)
+        return None
 
 
 def _python_lines(article):
@@ -84,7 +129,7 @@ def _c_unpack(fn, ctypes, raw):
 
 def mode():
     """'C' or 'Python (reason)', for the log."""
-    return "C" if _load() else "Python (%s)" % (_native["why"] or "?")
+    return "C, %s" % _native.get("label", "") if _load() else "Python (%s)" % (_native["why"] or "?")
 
 
 def _decode_fast(body, native):

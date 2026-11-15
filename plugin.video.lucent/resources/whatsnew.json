@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+55",
+   "label": "Beta 1 · update 55",
+   "label_en": "Beta 1 · update 55",
+   "date": "2026-11-15",
+   "at": "2026-11-15T16:22Z",
+   "items": [
+    [
+     "play",
+     "Ook de add-on van AIOStreams in de bronnenlijst",
+     "Bij bronnen die geen Usenet zijn staat nu ook welke add-on binnen AIOStreams de bron vond, bijvoorbeeld Debridio of StremThru Torz.",
+     "AIOStreams add-on in the source list too",
+     "Sources that are not Usenet now also show which add-on inside AIOStreams found them, for example Debridio or StremThru Torz."
+    ],
+    [
+     "settings",
+     "Testmodus: Usenet zuiniger en slimmer",
+     "Alleen voor testers: het ophalen kost minder processortijd, het snelle uitpakken in C bestaat nu ook voor Android en Windows, en een Usenet-bron die meer vraagt dan je kastje ooit haalde, krijgt 'mogelijk te zwaar'. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: Usenet leaner and smarter",
+     "Testers only: fetching costs less processor time, the fast unpacking in C now also exists for Android and Windows, and a Usenet source that needs more than your box ever got is marked 'may be too heavy'. For everyone without a test code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+54",
    "label": "Beta 1 · update 54",
    "label_en": "Beta 1 · update 54",

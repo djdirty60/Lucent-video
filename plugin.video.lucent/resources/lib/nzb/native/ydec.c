@@ -8,7 +8,13 @@
  * It uses nothing from the system (no C library), so one build works on every Linux of that processor type.
  * Build: see build.sh next to this file.
  */
-unsigned long lucent_ydecode(const unsigned char *in, unsigned long n, unsigned char *out)
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT __attribute__((visibility("default")))
+#endif
+
+EXPORT unsigned long lucent_ydecode(const unsigned char *in, unsigned long n, unsigned char *out)
 {
     unsigned long i, o = 0;
     int escaped = 0;
@@ -29,7 +35,7 @@ unsigned long lucent_ydecode(const unsigned char *in, unsigned long n, unsigned 
 }
 
 /* So Lucent can check it loaded the right file. */
-unsigned long lucent_ydecode_version(void)
+EXPORT unsigned long lucent_ydecode_version(void)
 {
     return 1;
 }

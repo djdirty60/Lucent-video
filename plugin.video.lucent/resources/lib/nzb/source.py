@@ -72,6 +72,8 @@ def fetch(meta):
     if all(a is None for a in answers):
         raise util.HttpError("indexers")
     names = {slot: _indexer_name(base) for slot, base, _key in ixs}
+    most = server.most_per_second()
+    seconds = int(meta.get("runtime") or 0) * 60
     out, seen = [], set()
     for rows in answers:
         for row in rows or []:
@@ -87,9 +89,12 @@ def fetch(meta):
             job = {"scraper": "Usenet", "slot": row["slot"], "link": row["link"], "param": row["param"], "name": name,
                    "season": meta.get("season"), "episode": meta.get("episode")}
             where = names.get(row["slot"]) or ""
+            # needs more per second than this box ever got from Usenet: say so (it may stop to buffer)
+            heavy = bool(most and seconds and row["size"] / seconds > most * 0.95)
+            warn = util.T("mogelijk te zwaar", "may be too heavy") if heavy else ""
             if not pack:
                 source = usenet._source(name, row["size"], SERVICE, resolve=job)          # noqa: SLF001 - same add-on
-                source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"])) if p)
+                source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"]), warn) if p)
                 source["always"] = True
                 out.append(source)
                 continue
@@ -97,7 +102,11 @@ def fetch(meta):
             job["pack"] = True
             episodes = int(meta.get("season_count") or 0) or 10
             source = usenet._source(name, row["size"] // episodes, SERVICE, resolve=job)    # noqa: SLF001
-            source["meta"] = " · ".join(p for p in (SERVICE, where, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"])) if p)
+            if most and seconds and row["size"] / episodes / seconds > most * 0.95:
+                warn = util.T("mogelijk te zwaar", "may be too heavy")
+            else:
+                warn = ""
+            source["meta"] = " · ".join(p for p in (SERVICE, where, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"]), warn) if p)
             source["pack"] = True
             source["always"] = True
             out.append(source)

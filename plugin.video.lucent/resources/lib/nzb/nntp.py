@@ -38,7 +38,7 @@ def _too_many(code, text):
 
 class Connection:
     def __init__(self, host, port, use_ssl, user, password, timeout=TIMEOUT):
-        self.buffer = b""
+        self.buffer = bytearray()            # grows in place: an SSL socket hands over 16 KB at a time, and copying
         raw = socket.create_connection((host, int(port)), timeout=timeout)
         try:
             if use_ssl:
@@ -69,12 +69,16 @@ class Connection:
         chunk = self.sock.recv(READ)
         if not chunk:
             raise NntpError("connection closed")
-        self.buffer += chunk
+        self.buffer += chunk                # bytearray: appended in place, not copied again for every piece
 
     def _line(self):
-        while b"\r\n" not in self.buffer:
+        at = self.buffer.find(b"\r\n")
+        while at < 0:
+            start = max(0, len(self.buffer) - 1)
             self._fill()
-        line, self.buffer = self.buffer.split(b"\r\n", 1)
+            at = self.buffer.find(b"\r\n", start)
+        line = bytes(self.buffer[:at])
+        del self.buffer[:at + 2]
         text = line.decode("utf-8", "replace")
         try:
             return int(text[:3]), text[4:]
@@ -91,10 +95,12 @@ class Connection:
         while True:
             at = self.buffer.find(b"\r\n.\r\n", max(0, start - 4))
             if at >= 0:
-                body, self.buffer = self.buffer[:at + 2], self.buffer[at + 5:]
+                body = bytes(self.buffer[:at + 2])
+                del self.buffer[:at + 5]
                 break
             if self.buffer.startswith(b".\r\n"):         # an empty body
-                body, self.buffer = b"", self.buffer[3:]
+                body = b""
+                del self.buffer[:3]
                 break
             start = len(self.buffer)
             self._fill()

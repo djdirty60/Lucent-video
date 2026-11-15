@@ -120,9 +120,14 @@ def convert(raw, include_uncached=True):
         service_name = str(service.get("id") or data.get("addon") or "").upper()
         size_label = size_text(size if isinstance(size, (int, float)) else 0)
         indexer = str(data.get("indexer") or "").strip()[:24]      # which indexer or tracker found it, when AIOStreams says
+        # which add-on inside AIOStreams found it (Debridio, StremThru Torz, Torrentio ...): for everything but Usenet,
+        # where the indexer already says it; never twice, never 'AIOStreams' itself
+        addon = str(data.get("addon") or "").strip()[:24] if kind != "usenet" else ""
+        if addon.lower() in (service_name.lower(), indexer.lower(), "aiostreams"):
+            addon = ""
         out.append({
             "flags": flags_of(parsed, name),
-            "meta": " · ".join(p for p in (service_name, indexer, size_label) if p),
+            "meta": " · ".join(p for p in (service_name, addon, indexer, size_label) if p),
             "always": kind in ("usenet", "http"),        # nothing to cache: 'CACHED' would say nothing
             "url": with_headers(stream["url"], hints),
             "name": name,

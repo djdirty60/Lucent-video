@@ -160,6 +160,12 @@ class _Handler(BaseHTTPRequestHandler):
 def start():
     if _state["http"]:
         return
+    try:                                        # Android: a folder inside the app for the fast unpacker (see yenc)
+        import xbmcvfs
+        inside = os.path.dirname(os.path.dirname(xbmcvfs.translatePath("special://xbmc").rstrip("/\\")))
+        yenc.set_copy_dir(os.path.join(inside, "lucent_native"))
+    except Exception:                           # noqa: BLE001 - only a faster way, never a reason not to start
+        pass
     server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
     server.daemon_threads = True
     _state["http"] = server
@@ -178,6 +184,22 @@ def stop():
 
 
 SPEED_EVERY = 30
+SPEED_FILE = "nzb_speed.json"               # the most this box got from Usenet while Kodi was waiting for more
+
+
+def _remember_speed(per_second, waits):
+    """Only a half minute where Kodi kept waiting says what the box can do at most (otherwise Lucent simply did not
+    need more). The best such half minute is kept; the source list uses it to warn about releases that are too heavy."""
+    if waits < 10 or per_second <= 0:
+        return
+    saved = util.load_json(SPEED_FILE, {})
+    if per_second > float(saved.get("max") or 0):
+        util.save_json(SPEED_FILE, {"max": round(per_second), "at": int(time.time())})
+
+
+def most_per_second():
+    """Bytes per second this box got from Usenet at most, or 0 when never measured."""
+    return float(util.load_json(SPEED_FILE, {}).get("max") or 0)
 _speed = {"at": 0.0, "cpu": 0.0, "stats": None}
 
 
@@ -199,6 +221,7 @@ def _speed_line(release):
                     stats["waits"] - before["waits"], stats["waited"] - before["waited"],
                     round(100 * (cpu - _speed["cpu"]) / seconds / cores), cores, release.cached // 1000000,
                     raw / net / 1e6 if net else 0, round(net / seconds), round(100 * unpack / seconds)))
+        _remember_speed((stats["in"] - before["in"]) / seconds, stats["waits"] - before["waits"])
     elif before is not None and _speed.get("release") is release:
         return
     _speed.update(at=now, cpu=cpu, stats=stats, release=release)
