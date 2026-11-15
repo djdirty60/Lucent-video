@@ -908,6 +908,7 @@ def run(argv):
     afterwards: Kodi closes the settings for such a button, and settings changed while they are open would be lost."""
     params = dict(urllib.parse.parse_qsl((argv[2] if len(argv) > 2 else "").lstrip("?")))
     back = params.get("back", "")
+    util.publish_lab()                 # the test blocks in the settings also show when the service is still the old one
     try:
         return _run(argv)
     finally:

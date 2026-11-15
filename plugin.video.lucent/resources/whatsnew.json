@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+43",
+   "label": "Beta 1 · update 43",
+   "label_en": "Beta 1 · update 43",
+   "date": "2026-11-15",
+   "at": "2026-11-15T12:35Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus ook zonder herstart",
+     "De testcode werkt nu meteen na het invullen, ook als Kodi nog niet herstart is. Voor iedereen zonder code verandert er niets.",
+     "Test mode without a restart",
+     "The test code now works right after you fill it in, also before Kodi restarted. For everyone without a code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+42",
    "label": "Beta 1 · update 42",
    "label_en": "Beta 1 · update 42",

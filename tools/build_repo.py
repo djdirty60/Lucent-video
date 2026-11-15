@@ -7,7 +7,7 @@ src, dst = sys.argv[1], sys.argv[2]
 shutil.rmtree(os.path.join(dst, 'plugin.video.lucent'), ignore_errors=True)
 shutil.copytree(src, os.path.join(dst, 'plugin.video.lucent'), ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
 out = os.path.join(dst, 'repo'); zd = os.path.join(out, 'zips', 'plugin.video.lucent')
-shutil.rmtree(zd, ignore_errors=True); os.makedirs(zd)
+os.makedirs(zd, exist_ok=True)       # the previous zips stay: a Kodi with an older list must still find its zip
 x = open(src + '/addon.xml', encoding='utf-8').read()
 v = re.search(r'<addon [^>]*version="([^"]+)"', x).group(1)
 with zipfile.ZipFile(os.path.join(zd, 'plugin.video.lucent-%s.zip' % v), 'w', zipfile.ZIP_DEFLATED) as zf:
@@ -17,6 +17,12 @@ with zipfile.ZipFile(os.path.join(zd, 'plugin.video.lucent-%s.zip' % v), 'w', zi
             if f.endswith('.pyc'): continue
             full = os.path.join(root, f); zf.write(full, os.path.join('plugin.video.lucent', os.path.relpath(full, src)))
 shutil.copy(src + '/icon.png', zd + '/icon.png')
+KEEP = 3                               # the new zip and the two before it
+def _order(name):
+    return [int(n) for n in re.findall(r'\d+', name)]
+zips = sorted((n for n in os.listdir(zd) if n.startswith('plugin.video.lucent-') and n.endswith('.zip')), key=_order)
+for old in zips[:-KEEP]:
+    os.remove(os.path.join(zd, old))
 body = re.sub(r'^<\?xml[^>]*\?>\s*', '', x).rstrip()
 xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<addons>\n' + body + '\n</addons>\n'
 open(out + '/addons.xml', 'w', encoding='utf-8').write(xml)
