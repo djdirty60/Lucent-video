@@ -7,6 +7,7 @@ plays, it reads two labels four times a second.
 """
 import re
 import threading
+import time
 import urllib.parse
 
 import xbmc
@@ -135,12 +136,20 @@ class Jumper:
 
 
 def start(monitor):
-    """Runs the watcher in its own thread, four checks a second, until Kodi stops."""
+    """Runs the watcher in its own thread, four checks a second, until Kodi stops. Switched off: one check every two seconds."""
     jumper, player = Jumper(), xbmc.Player()
 
     def loop():
-        while not monitor.waitForAbort(0.25):
+        wait, on, checked = 0.25, True, 0.0
+        while not monitor.waitForAbort(wait):
             try:
+                now = time.time()
+                if now - checked >= 2:                  # the setting: read every two seconds, not four times a second
+                    on, checked = util.flag("series_jump"), now
+                if not on:
+                    wait, jumper.last, jumper.focus = 2.0, "", None     # switched off: only look now and then if it is back on
+                    continue
+                wait = 0.25
                 jumper.tick(player.isPlaying())
             except Exception as error:      # noqa: BLE001
                 util.log("series jump: %s" % type(error).__name__)

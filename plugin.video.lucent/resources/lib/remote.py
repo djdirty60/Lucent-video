@@ -11,7 +11,6 @@ import socket
 import threading
 import time
 import urllib.parse
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import xbmc
 
@@ -114,81 +113,87 @@ def _do(kind, tmdb_id, what, title):
 PAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "remote.html")
 
 
-class Handler(BaseHTTPRequestHandler):
-    def log_message(self, *_args):          # never log addresses or codes
-        pass
+def _handler():
+    """The web page's request handler. Built when the page starts: http.server is only loaded for people who use it."""
+    from http.server import BaseHTTPRequestHandler
 
-    def _send(self, status, body, kind="application/json"):
-        data = body.encode("utf-8") if isinstance(body, str) else body
-        self.send_response(status)
-        self.send_header("Content-Type", kind + "; charset=utf-8")
-        self.send_header("Cache-Control", "no-store")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_args):          # never log addresses or codes
+            pass
 
-    def _ok(self, query):
-        return self._check((query.get("code") or [""])[0])
+        def _send(self, status, body, kind="application/json"):
+            data = body.encode("utf-8") if isinstance(body, str) else body
+            self.send_response(status)
+            self.send_header("Content-Type", kind + "; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
 
-    def _check(self, given):
-        ip = self.client_address[0]
-        if _blocked(ip):
+        def _ok(self, query):
+            return self._check((query.get("code") or [""])[0])
+
+        def _check(self, given):
+            ip = self.client_address[0]
+            if _blocked(ip):
+                return False
+            if str(given) == code():
+                _fails.pop(ip, None)
+                touch()
+                return True
+            _wrong(ip)
             return False
-        if str(given) == code():
-            _fails.pop(ip, None)
-            touch()
-            return True
-        _wrong(ip)
-        return False
 
-    def do_GET(self):
-        parts = urllib.parse.urlsplit(self.path)
-        query = urllib.parse.parse_qs(parts.query)
-        if parts.path in ("/", "/index.html"):
-            with open(PAGE, encoding="utf-8") as handle:
-                page = handle.read().replace("{{LANG}}", "nl" if util.NL else "en")
-            return self._send(200, page, "text/html")
-        if _blocked(self.client_address[0]):
-            return self._send(429, json.dumps({"error": "wait"}))
-        if not self._ok(query):
-            return self._send(403, json.dumps({"error": "code"}))
-        try:
-            if parts.path == "/api/search":
-                return self._send(200, json.dumps(_search((query.get("q") or [""])[0])))
-            if parts.path == "/api/title":
-                return self._send(200, json.dumps(_title((query.get("type") or ["movie"])[0], (query.get("id") or [""])[0])))
-            if parts.path == "/api/report":
-                return self._report()
-        except util.HttpError:
-            return self._send(502, json.dumps({"error": "tmdb"}))
-        return self._send(404, json.dumps({"error": "not found"}))
+        def do_GET(self):
+            parts = urllib.parse.urlsplit(self.path)
+            query = urllib.parse.parse_qs(parts.query)
+            if parts.path in ("/", "/index.html"):
+                with open(PAGE, encoding="utf-8") as handle:
+                    page = handle.read().replace("{{LANG}}", "nl" if util.NL else "en")
+                return self._send(200, page, "text/html")
+            if _blocked(self.client_address[0]):
+                return self._send(429, json.dumps({"error": "wait"}))
+            if not self._ok(query):
+                return self._send(403, json.dumps({"error": "code"}))
+            try:
+                if parts.path == "/api/search":
+                    return self._send(200, json.dumps(_search((query.get("q") or [""])[0])))
+                if parts.path == "/api/title":
+                    return self._send(200, json.dumps(_title((query.get("type") or ["movie"])[0], (query.get("id") or [""])[0])))
+                if parts.path == "/api/report":
+                    return self._report()
+            except util.HttpError:
+                return self._send(502, json.dumps({"error": "tmdb"}))
+            return self._send(404, json.dumps({"error": "not found"}))
 
-    def _report(self):
-        """The error report as a file for your phone (addresses, keys and passwords taken out, see report.py)."""
-        import report
-        data = report.build().encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "text/plain; charset=utf-8")
-        self.send_header("Content-Disposition", 'attachment; filename="lucent-video-rapport-%s.txt"' % time.strftime("%Y%m%d-%H%M"))
-        self.send_header("Cache-Control", "no-store")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
-        return None
+        def _report(self):
+            """The error report as a file for your phone (addresses, keys and passwords taken out, see report.py)."""
+            import report
+            data = report.build().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Disposition", 'attachment; filename="lucent-video-rapport-%s.txt"' % time.strftime("%Y%m%d-%H%M"))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return None
 
-    def do_POST(self):
-        parts = urllib.parse.urlsplit(self.path)
-        length = min(int(self.headers.get("Content-Length") or 0), 4096)
-        try:
-            body = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
-        except ValueError:
-            body = {}
-        if _blocked(self.client_address[0]):
-            return self._send(429, json.dumps({"error": "wait"}))
-        if parts.path != "/api/do" or not self._check(body.get("code")):
-            return self._send(403, json.dumps({"error": "code"}))
-        ok = _do(body.get("type"), str(body.get("id")), body.get("what"), body.get("title"))
-        return self._send(200 if ok else 400, json.dumps({"ok": ok}))
+        def do_POST(self):
+            parts = urllib.parse.urlsplit(self.path)
+            length = min(int(self.headers.get("Content-Length") or 0), 4096)
+            try:
+                body = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
+            except ValueError:
+                body = {}
+            if _blocked(self.client_address[0]):
+                return self._send(429, json.dumps({"error": "wait"}))
+            if parts.path != "/api/do" or not self._check(body.get("code")):
+                return self._send(403, json.dumps({"error": "code"}))
+            ok = _do(body.get("type"), str(body.get("id")), body.get("what"), body.get("title"))
+            return self._send(200 if ok else 400, json.dumps({"ok": ok}))
+
+    return Handler
 
 
 def wanted():
@@ -199,7 +204,8 @@ def start():
     if _server["http"]:
         return
     try:
-        server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+        from http.server import ThreadingHTTPServer
+        server = ThreadingHTTPServer(("0.0.0.0", PORT), _handler())
     except OSError as error:
         util.log("phone keyboard: port %d not free (%s)" % (PORT, type(error).__name__))
         return

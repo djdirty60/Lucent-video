@@ -9,11 +9,10 @@ lucent.video.tonight (number of titles ready for tonight)."""
 import datetime
 import time
 
-import player
-import ranking
-import scrapers
 import tracker
 import util
+
+player, ranking, scrapers = (util.lazy(n) for n in ("player", "ranking", "scrapers"))
 
 T = util.T
 FILE = "prefetch.json"

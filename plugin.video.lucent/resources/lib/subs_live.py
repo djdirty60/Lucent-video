@@ -69,7 +69,7 @@ _MINE = {}
 def my_code():
     """Your subtitle language: Kodi's 'Preferred subtitle language' (Settings > Player > Language) when that is a real
     language, otherwise the language of the Kodi interface. Works for every language."""
-    if "code" not in _MINE:
+    if "code" not in _MINE or time.time() - _MINE.get("at", 0) > 60:     # read again after a minute: you can change it any time
         code = ""
         try:
             pref = rpc("Settings.GetSettingValue", {"setting": "locale.subtitlelanguage"}).get("value")
@@ -78,6 +78,7 @@ def my_code():
         except Exception:  # noqa: BLE001
             code = ""
         _MINE["code"] = code if len(code) == 2 else (xbmc.getLanguage(xbmc.ISO_639_1) or "en").lower()
+        _MINE["at"] = time.time()
     return _MINE["code"]
 
 

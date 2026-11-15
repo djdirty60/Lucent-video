@@ -7,8 +7,9 @@ plays well never jumps above 4K. Kept per device (not per profile), because it i
 """
 import time
 
-import ranking
 import util
+
+ranking = util.lazy("ranking")
 
 FILE = "learned.json"
 GOOD_AFTER = 120          # seconds of playing that count as 'played well'

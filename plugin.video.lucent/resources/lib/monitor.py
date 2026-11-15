@@ -6,19 +6,16 @@ import time
 
 import xbmc
 
-import alerts
-import dialogs
-import learn
 import library
 import libwatch
-import player
 import newseason
-import prefetch
 import remote
-import scrapers
 import tmdb
 import tracker
 import util
+
+# only loaded the first time they are needed: the service stays small while nothing plays
+alerts, dialogs, learn, player, prefetch, scrapers = (util.lazy(n) for n in ("alerts", "dialogs", "learn", "player", "prefetch", "scrapers"))
 
 BROKEN_BEFORE_END = 180     # seconds
 PREFETCH_BEFORE_END = 300   # seconds

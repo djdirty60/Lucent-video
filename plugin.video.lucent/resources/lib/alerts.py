@@ -9,12 +9,11 @@ For the skin: Home window properties lucent.video.alerts (number of new ones), l
 import datetime
 import time
 
-import player
-import ranking
-import scrapers
 import tmdb
 import tracker
 import util
+
+player, ranking, scrapers = (util.lazy(n) for n in ("player", "ranking", "scrapers"))
 
 T = util.T
 FILE = "alerts.json"

@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+37",
+   "label": "Beta 1 · update 37",
+   "label_en": "Beta 1 · update 37",
+   "date": "2026-11-15",
+   "at": "2026-11-15T10:53Z",
+   "items": [
+    [
+     "settings",
+     "Sneller en lichter",
+     "Menu's en widgets van Lucent Video laden tot drie keer sneller: Kodi start Python niet meer voor elke lijst opnieuw op. De achtergronddienst laadt het zoeken naar bronnen en de telefoon-afstandsbediening pas als ze nodig zijn, en 'Serie openen waar je bent' kijkt niet meer mee als je die optie uit hebt staan.",
+     "Faster and lighter",
+     "Lucent Video's menus and widgets load up to three times faster: Kodi no longer starts Python again for every list. The background service only loads the source search and the phone remote when they are needed, and 'Open a series where you left off' no longer watches when you switched it off."
+    ],
+    [
+     "subtitles",
+     "Nieuwe voorkeurstaal telt meteen",
+     "Verander je in Kodi de voorkeurstaal voor ondertitels, dan gebruikt Lucent Video die binnen een minuut. Eerder pas na een herstart van Kodi.",
+     "A new preferred language counts at once",
+     "When you change Kodi's preferred subtitle language, Lucent Video uses it within a minute. Before, only after restarting Kodi."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+36",
    "label": "Beta 1 · update 36",
    "label_en": "Beta 1 · update 36",

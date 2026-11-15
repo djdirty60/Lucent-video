@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
@@ -39,7 +40,8 @@ def _settings():
         ids = [s.get("id") for s in root.iter("setting") if s.get("id") and s.get("type") != "action"]
     except (ET.ParseError, OSError):
         pass
-    return {key: util.ADDON.getSetting(key) for key in ids}
+    addon = xbmcaddon.Addon(util.ADDON_ID)          # a fresh object: never values from an earlier moment
+    return {key: addon.getSetting(key) for key in ids}
 
 
 def make():
