@@ -11,8 +11,18 @@ import streams
 import usenet
 import util
 
-REGISTRY = {"AIOStreams": streams.fetch, "Easynews": usenet.easynews, "TorBox": usenet.torbox}
-LINKS = {"TorBox": usenet.torbox_link}
+def _usenet_fetch(meta):
+    from nzb import source           # loaded only when searching: the rest of Lucent never pays for it
+    return source.fetch(meta)
+
+
+def _usenet_link(job):
+    from nzb import source
+    return source.link(job)
+
+
+REGISTRY = {"AIOStreams": streams.fetch, "Easynews": usenet.easynews, "TorBox": usenet.torbox, "Usenet": _usenet_fetch}
+LINKS = {"TorBox": usenet.torbox_link, "Usenet": _usenet_link}
 for _pack in coco.PACKS:                     # CocoScrapers, FenomScrapers, OpenScrapers: only used when installed
     REGISTRY[_pack] = (lambda pack: lambda meta: coco.fetch(meta, pack))(_pack)
     LINKS[_pack] = coco.link
@@ -46,7 +56,7 @@ def _finished(name, job, limit):
 
 def names(profile):
     """Scraper names in the order of the profile; new ones at the end."""
-    usable = [n for n in REGISTRY if n not in coco.PACKS or coco.installed(n)]       # packs only when installed
+    usable = [n for n in REGISTRY if (n not in coco.PACKS or coco.installed(n)) and (n != "Usenet" or util.lab())]   # packs only when installed; Usenet only for testers
     order = [n for n in profile["scrapers"].get("order") or [] if n in usable]
     return order + [n for n in usable if n not in order]
 
@@ -104,6 +114,8 @@ def configured():
         out.append("Easynews")
     if util.setting("torbox_key"):
         out.append("TorBox")
+    if util.lab() and util.flag("nzb_on") and util.setting("nzb_host") and util.setting("nzb_ix1_url") + util.setting("nzb_ix2_url") + util.setting("nzb_ix3_url"):
+        out.append("Usenet")
     if debrid.active():
         out += [n for n in coco.PACKS if coco.installed(n)]
     return out

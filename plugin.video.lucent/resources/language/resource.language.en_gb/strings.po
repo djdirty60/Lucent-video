@@ -1564,3 +1564,111 @@ msgstr ""
 msgctxt "#32457"
 msgid "Shows which PunchPlay account you are linked with and how much you watched."
 msgstr ""
+
+msgctxt "#32458"
+msgid "Usenet (own provider)"
+msgstr ""
+
+msgctxt "#32459"
+msgid "Use Usenet (own provider, test)"
+msgstr ""
+
+msgctxt "#32460"
+msgid "Plays releases straight from your own Usenet provider and indexers, without AIOStreams. Lucent Video does all the work on this device: search, fetch and play while it comes in. Only stored (uncompressed) releases can be played."
+msgstr ""
+
+msgctxt "#32461"
+msgid "Server"
+msgstr ""
+
+msgctxt "#32462"
+msgid "The news server of your Usenet provider, for example news.provider.com."
+msgstr ""
+
+msgctxt "#32463"
+msgid "Port"
+msgstr ""
+
+msgctxt "#32464"
+msgid "Usually 563 (encrypted) or 119."
+msgstr ""
+
+msgctxt "#32465"
+msgid "Encrypted (SSL)"
+msgstr ""
+
+msgctxt "#32466"
+msgid "Keep this on: then your provider and others cannot see what you fetch."
+msgstr ""
+
+msgctxt "#32467"
+msgid "Username"
+msgstr ""
+
+msgctxt "#32468"
+msgid "Your provider's username. It stays on this device only."
+msgstr ""
+
+msgctxt "#32469"
+msgid "Password"
+msgstr ""
+
+msgctxt "#32470"
+msgid "Your provider's password. It stays on this device only and never reaches a log."
+msgstr ""
+
+msgctxt "#32471"
+msgid "Connections"
+msgstr ""
+
+msgctxt "#32472"
+msgid "How many connections Lucent may use at once while playing. Never more than your subscription allows."
+msgstr ""
+
+msgctxt "#32473"
+msgid "Indexer 1 – address"
+msgstr ""
+
+msgctxt "#32474"
+msgid "Indexer 1 – API key"
+msgstr ""
+
+msgctxt "#32475"
+msgid "Indexer 2 – address"
+msgstr ""
+
+msgctxt "#32476"
+msgid "Indexer 2 – API key"
+msgstr ""
+
+msgctxt "#32477"
+msgid "Indexer 3 – address"
+msgstr ""
+
+msgctxt "#32478"
+msgid "Indexer 3 – API key"
+msgstr ""
+
+msgctxt "#32479"
+msgid "The address of a Newznab indexer, for example https://api.indexer.info. Lucent adds /api itself."
+msgstr ""
+
+msgctxt "#32480"
+msgid "Your API key at this indexer (on its website under your profile). It stays on this device only."
+msgstr ""
+
+msgctxt "#32481"
+msgid "Test connection"
+msgstr ""
+
+msgctxt "#32482"
+msgid "Signs in at your provider and asks every indexer whether your key works."
+msgstr ""
+
+msgctxt "#32483"
+msgid "Test code"
+msgstr ""
+
+msgctxt "#32484"
+msgid "Only for testers: a code switches on functions that are still being tested. Leave empty."
+msgstr ""

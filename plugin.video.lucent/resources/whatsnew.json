@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+42",
+   "label": "Beta 1 · update 42",
+   "label_en": "Beta 1 · update 42",
+   "date": "2026-11-15",
+   "at": "2026-11-15T12:20Z",
+   "items": [
+    [
+     "settings",
+     "Verborgen testmodus",
+     "Nieuwe functies kunnen nu eerst door testers worden uitgeprobeerd met een testcode. Voor iedereen zonder code verandert er niets: je ziet en merkt er niets van.",
+     "Hidden test mode",
+     "New functions can now be tried by testers first, with a test code. For everyone without a code nothing changes: you will not see or notice it."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+41",
    "label": "Beta 1 · update 41",
    "label_en": "Beta 1 · update 41",

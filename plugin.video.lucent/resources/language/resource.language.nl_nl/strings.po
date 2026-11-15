@@ -1564,3 +1564,111 @@ msgstr "Haalt de koppeling met PunchPlay weg van dit apparaat."
 msgctxt "#32457"
 msgid "Shows which PunchPlay account you are linked with and how much you watched."
 msgstr "Laat zien met welk PunchPlay-account je gekoppeld bent en hoeveel je hebt gekeken."
+
+msgctxt "#32458"
+msgid "Usenet (own provider)"
+msgstr "Usenet (eigen provider)"
+
+msgctxt "#32459"
+msgid "Use Usenet (own provider, test)"
+msgstr "Usenet gebruiken (eigen provider, test)"
+
+msgctxt "#32460"
+msgid "Plays releases straight from your own Usenet provider and indexers, without AIOStreams. Lucent Video does all the work on this device: search, fetch and play while it comes in. Only stored (uncompressed) releases can be played."
+msgstr "Speelt releases rechtstreeks af van je eigen Usenet-provider en indexers, zonder AIOStreams. Lucent Video doet al het werk op dit apparaat: zoeken, ophalen en afspelen terwijl het binnenkomt. Alleen niet-gecomprimeerde releases kunnen worden afgespeeld."
+
+msgctxt "#32461"
+msgid "Server"
+msgstr "Server"
+
+msgctxt "#32462"
+msgid "The news server of your Usenet provider, for example news.provider.com."
+msgstr "De nieuwsserver van je Usenet-provider, bijvoorbeeld news.provider.com."
+
+msgctxt "#32463"
+msgid "Port"
+msgstr "Poort"
+
+msgctxt "#32464"
+msgid "Usually 563 (encrypted) or 119."
+msgstr "Meestal 563 (versleuteld) of 119."
+
+msgctxt "#32465"
+msgid "Encrypted (SSL)"
+msgstr "Versleuteld (SSL)"
+
+msgctxt "#32466"
+msgid "Keep this on: then your provider and others cannot see what you fetch."
+msgstr "Laat dit aan: dan kan niemand onderweg zien wat je ophaalt."
+
+msgctxt "#32467"
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+msgctxt "#32468"
+msgid "Your provider's username. It stays on this device only."
+msgstr "De gebruikersnaam bij je provider. Die blijft alleen op dit apparaat."
+
+msgctxt "#32469"
+msgid "Password"
+msgstr "Wachtwoord"
+
+msgctxt "#32470"
+msgid "Your provider's password. It stays on this device only and never reaches a log."
+msgstr "Het wachtwoord bij je provider. Dat blijft alleen op dit apparaat en komt nooit in een log."
+
+msgctxt "#32471"
+msgid "Connections"
+msgstr "Verbindingen"
+
+msgctxt "#32472"
+msgid "How many connections Lucent may use at once while playing. Never more than your subscription allows."
+msgstr "Hoeveel verbindingen Lucent tegelijk mag gebruiken tijdens het afspelen. Nooit meer dan je abonnement toestaat."
+
+msgctxt "#32473"
+msgid "Indexer 1 – address"
+msgstr "Indexer 1 – adres"
+
+msgctxt "#32474"
+msgid "Indexer 1 – API key"
+msgstr "Indexer 1 – API-sleutel"
+
+msgctxt "#32475"
+msgid "Indexer 2 – address"
+msgstr "Indexer 2 – adres"
+
+msgctxt "#32476"
+msgid "Indexer 2 – API key"
+msgstr "Indexer 2 – API-sleutel"
+
+msgctxt "#32477"
+msgid "Indexer 3 – address"
+msgstr "Indexer 3 – adres"
+
+msgctxt "#32478"
+msgid "Indexer 3 – API key"
+msgstr "Indexer 3 – API-sleutel"
+
+msgctxt "#32479"
+msgid "The address of a Newznab indexer, for example https://api.indexer.info. Lucent adds /api itself."
+msgstr "Het adres van een Newznab-indexer, bijvoorbeeld https://api.indexer.info. Lucent zet er zelf /api achter."
+
+msgctxt "#32480"
+msgid "Your API key at this indexer (on its website under your profile). It stays on this device only."
+msgstr "Je API-sleutel bij deze indexer (op de website bij je profiel). Die blijft alleen op dit apparaat."
+
+msgctxt "#32481"
+msgid "Test connection"
+msgstr "Verbinding testen"
+
+msgctxt "#32482"
+msgid "Signs in at your provider and asks every indexer whether your key works."
+msgstr "Logt in bij je provider en vraagt elke indexer of je sleutel werkt."
+
+msgctxt "#32483"
+msgid "Test code"
+msgstr "Testcode"
+
+msgctxt "#32484"
+msgid "Only for testers: a code switches on functions that are still being tested. Leave empty."
+msgstr "Alleen voor testers: een code zet functies aan die nog getest worden. Laat leeg."

@@ -442,6 +442,7 @@ def run_count():
 
 class Events(xbmc.Monitor):
     def onSettingsChanged(self):
+        util.publish_lab()
         try:
             import replay
             replay.apply_key()
@@ -521,6 +522,18 @@ def _tidy_watchlist(meta):
 
 
 
+_USENET = {"on": False}
+
+
+def _usenet_tick(playing):
+    """Usenet with your own provider: the local player server runs while the setting is on (loaded only then)."""
+    if not (_USENET["on"] or (util.flag("nzb_on") and util.lab())):
+        return
+    from nzb import server
+    server.tick(playing)
+    _USENET["on"] = bool(server._state["http"])           # noqa: SLF001 - same add-on
+
+
 def run():
     monitor = Events()
     monitor.onSettingsChanged()
@@ -540,6 +553,8 @@ def run():
             if remote.wanted():
                 remote.start()
             remote.tidy()
+            if seconds % 5 == 0:
+                _usenet_tick(watcher.isPlayingVideo())
             subtitle_jobs.tick(seconds, watcher.isPlayingVideo())
             # first check two minutes after starting, then every minute; never during a video
             if seconds >= 120 and seconds % 60 == 0 and not watcher.isPlaying() and library.due():

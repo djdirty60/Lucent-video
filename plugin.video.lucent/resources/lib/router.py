@@ -959,6 +959,10 @@ def _run(argv):
             return check_service(mdblist, "MDBList")
         if action == "report":
             return report.save()
+        if action == "nzb_test":
+            from nzb import source as usenet_source
+            ok, lines = usenet_source.test()
+            return xbmcgui.Dialog().ok("Usenet" if ok else T("Niet alles werkt", "Not everything works"), "\n".join(lines))
         if action == "test_easynews":
             ok, text = usenet.check_easynews()
             return xbmcgui.Dialog().ok("Easynews" if ok else T("Niet gelukt", "Failed"), text)
