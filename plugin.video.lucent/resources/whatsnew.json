@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+52",
+   "label": "Beta 1 · update 52",
+   "label_en": "Beta 1 · update 52",
+   "date": "2026-11-15",
+   "at": "2026-11-15T15:13Z",
+   "items": [
+    [
+     "subtitles",
+     "Ondertitel-sleutel nooit meer in het log",
+     "Bij het automatisch kiezen van een ondertitel kon de link met je SubDL-sleutel in het Kodi-log komen. Dat gebeurt niet meer, en het foutrapport haalt zulke sleutels nu ook uit links.",
+     "Subtitle key never in the log",
+     "When a subtitle was picked automatically, the link with your SubDL key could end up in the Kodi log. That no longer happens, and the error report now also removes such keys from links."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+51",
    "label": "Beta 1 · update 51",
    "label_en": "Beta 1 · update 51",

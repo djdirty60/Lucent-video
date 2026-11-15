@@ -907,7 +907,7 @@ def background():
         log("background: download failed - nothing shown")
         return
     release, source = subs_extra.split_label2(best[0].get("label2", ""))
-    log(f"background: {release or best[0]['file']} from {best[1]} downloaded")
+    log(f"background: {release or 'a subtitle'} from {best[1]} downloaded")      # never the link: it can hold a key
     xbmcgui.Dialog().notification("Lucent", t(f"{full_name(mine, mine.upper())} subtitle on", f"Ondertitel ({full_name(mine, mine.upper())}) staat aan"),
                                   xbmcgui.NOTIFICATION_INFO, 3000)
     subs_extra.remember(release, source)

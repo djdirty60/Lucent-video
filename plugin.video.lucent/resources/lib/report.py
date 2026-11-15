@@ -15,6 +15,8 @@ T = util.T
 RULES = [(re.compile(r"[a-z][a-z0-9+.-]*://[^\s\"'<>]+", re.I), lambda m: m.group(0) if m.group(0).startswith(("plugin://", "special://")) else "[link]"),
          (re.compile(r"(authorization|api[_-]?key|apikey|token|password|passwd|secret)\s*[=:]\s*(?:bearer\s+|basic\s+)?\S+", re.I), r"\1=[hidden]"),
          (re.compile(r"\b(bearer|basic)\s+[A-Za-z0-9+/_.=-]{6,}", re.I), r"\1 [hidden]"),
+         # the same inside a link that is written out (plugin://…?item=%7B…api_key%3D…%22): '=' is '%3D' there
+         (re.compile(r"(api[_-]?key|apikey|token|password|secret)(%3D|%253D)[^&%\s\"']+", re.I), r"\1\2[hidden]"),
          (re.compile(r"\b[A-Za-z0-9+/_-]{40,}={0,2}"), "[hidden]"),
          (re.compile(r"\b[0-9a-fA-F]{32}\b"), "[hidden]"),
          (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "[e-mail]"),
