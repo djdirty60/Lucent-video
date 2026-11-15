@@ -81,7 +81,7 @@ def fetch(meta):
             return newznab.search(slot, base, key, meta, titles, background=bool(meta.get("background")))
         except newznab.IndexerError as error:
             util.log("usenet: indexer %d: %s%s" % (slot, error, " (the API key is not accepted)" if str(error) in ("HTTP 401", "HTTP 403") else
-                                                    " (%s today; asked again tomorrow)" % newznab.usage(base) if str(error) == "daily limit" else ""))
+                                                    " (%s today; asked again tomorrow)" % newznab.usage(base, log=True) if str(error) == "daily limit" else ""))
             return None
 
     def fits(name):
@@ -232,7 +232,7 @@ def test():
             text = util.T("het antwoord van de indexer is onleesbaar (zie het foutrapport)", "the indexer's answer cannot be read (see the error report)")
         elif not good and text == "limit reached":
             text = util.T("het daglimiet is bereikt", "the daily limit is reached")
-        used = newznab.usage(base).replace("searches", util.T("zoekopdrachten", "searches")).replace("NZBs", util.T("NZB's", "NZBs"))
+        used = newznab.usage(base)
         lines.append(util.T("Indexer %d (%s): %s", "Indexer %d (%s): %s") % (slot, host, (util.T("werkt", "works") if good else text)
                                                                              + " · " + util.T("vandaag %s", "today %s") % used))
     return ok, lines

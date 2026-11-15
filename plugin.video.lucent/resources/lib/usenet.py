@@ -24,14 +24,18 @@ TB_API = "https://api.torbox.app/v1/api"
 VIDEO = (".mkv", ".mp4", ".avi", ".ts", ".m2ts", ".mov", ".wmv", ".webm")
 MIN_SECONDS = 600
 KEEP_RESULTS = 600
-FLAG_OF = [("dv2", "DV2"), ("fel", "aio_FEL"), ("p7", "aio_P7"), ("hdr", "HDR"), ("hlg", "HDR"), ("sdr", "SDR"), ("3d", "3D"), ("imax", "aio_IMAX"), ("hevc", "HEVC"), ("avc", "AVC"), ("av1", "AV1"),
+FLAG_OF = [("dv2", "DV2"), ("fel", "aio_FEL"), ("p7", "aio_P7"), ("hdr", "HDR"), ("hlg", "HDR"), ("sdr", "SDR"), ("3d", "3D"), ("imax", "aio_IMAX"), ("10bit", "aio_10BIT"), ("hevc", "HEVC"), ("avc", "AVC"), ("av1", "AV1"),
            ("remux", "REMUX"), ("bluray", "BLURAY"), ("web", "WEB"), ("hdtv", "HDTV"), ("cam", "CAM"), ("atmos", "ATMOS"), ("truehd", "TRUEHD"), ("dtsx", "DTS-X"), ("dtsma", "DTS-HDMA"),
-           ("dtshd", "DTS-HD"), ("ddplus", "DD+"), ("aac", "AAC"), ("opus", "OPUS"), ("71", "7.1"), ("51", "5.1"), ("20", "2.0"), ("nl", "aio_NL"), ("multi", "aio_MULTI"), ("nlsubs", "aio_NL-SUBS")]
+           ("dtshd", "DTS-HD"), ("dts", "DTS"), ("ddplus", "DD+"), ("dd", "DD"), ("aac", "AAC"), ("opus", "OPUS"), ("71", "7.1"), ("51", "5.1"), ("20", "2.0"), ("nl", "aio_NL"), ("multi", "aio_MULTI"), ("nlsubs", "aio_NL-SUBS")]
 AGENT = "Lucent-Video"
 
 
 def _flags(name):
     tags = ranking.tags_of({"name": name, "resolution": "SD", "cached": True, "size": 0})
+    if tags & {"dtsx", "dtsma", "dtshd"}:
+        tags.discard("dts")                         # DTS-HD already says it
+    if "ddplus" in tags:
+        tags.discard("dd")
     flags = ["DV"] if "dv" in tags and "dv2" not in tags else []
     return flags + [flag for tag, flag in FLAG_OF if tag in tags]
 

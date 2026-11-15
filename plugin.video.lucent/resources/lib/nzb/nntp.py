@@ -13,6 +13,7 @@ import time
 
 READ = 262144
 TIMEOUT = 20
+STAT_BATCH = 200          # STAT questions sent before reading their answers
 
 
 class NntpError(Exception):
@@ -128,11 +129,14 @@ class Connection:
 
     def stat_many(self, message_ids):
         """{message id: True when the server has it}. All questions go out first, then the answers are read."""
-        self.sock.sendall(b"".join(b"STAT " + self._id(m) + b"\r\n" for m in message_ids))
         out = {}
-        for message_id in message_ids:
-            code, _text = self._line()
-            out[message_id] = code == 223
+        ids = list(message_ids)
+        for at in range(0, len(ids), STAT_BATCH):       # small batches: a long burst could fill both buffers and stall
+            part = ids[at:at + STAT_BATCH]
+            self.sock.sendall(b"".join(b"STAT " + self._id(m) + b"\r\n" for m in part))
+            for message_id in part:
+                code, _text = self._line()
+                out[message_id] = code == 223
         self.used = time.time()
         return out
 

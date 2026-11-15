@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+59",
+   "label": "Beta 1 · update 59",
+   "label_en": "Beta 1 · update 59",
+   "date": "2026-11-15",
+   "at": "2026-11-15T19:23Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: Usenet loopt niet meer vast",
+     "Alleen voor testers: met 'Ontbrekende stukken opvullen' aan kon het openen van een grote of verwijderde release blijven hangen, waarna geen enkele Usenet-bron meer opende. Een verwijderde release wordt nu meteen overgeslagen, het natellen gaat sneller en duurt nooit langer dan 20 seconden, en één vastgelopen poging houdt de volgende niet meer tegen. De verbindingstest toont het gebruik van je indexers nu netter.",
+     "Test mode: Usenet no longer gets stuck",
+     "Testers only: with 'Fill in missing pieces' on, opening a large or removed release could hang, after which no Usenet source opened at all. A removed release is now skipped at once, counting is faster and never takes longer than 20 seconds, and one stuck attempt no longer blocks the next. The connection test shows your indexer usage more neatly."
+    ],
+    [
+     "info",
+     "Meer labels bij Usenet en Easynews",
+     "Geluid dat aan de kanalen vastzit, zoals DDP5.1, DD+5.1 of AAC2.0, wordt nu herkend. Bronnen van Usenet en Easynews krijgen zo de juiste labels (DD+, 5.1, DD, DTS, 10-bit) en schuiven op de goede plek in de lijst.",
+     "More labels for Usenet and Easynews",
+     "Sound written together with its channels, like DDP5.1, DD+5.1 or AAC2.0, is now recognised. Usenet and Easynews sources get the right labels (DD+, 5.1, DD, DTS, 10-bit) and land in the right place in the list."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+58",
    "label": "Beta 1 · update 58",
    "label_en": "Beta 1 · update 58",

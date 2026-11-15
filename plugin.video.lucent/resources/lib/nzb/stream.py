@@ -19,6 +19,10 @@ from . import archive, nntp, nzbfile, sevenzip, yenc
 
 FILL_SHARE = 0.02          # at most 2% of a release may be filled with zeros
 FILL_RUN = 4               # and at most 4 articles in a row
+SAMPLE_GONE = 0.1          # more than this share gone in the sample: refuse at once, without counting
+COUNT_LIMIT = 20           # seconds the full gap count may take before playing starts
+COUNT_PART = 500           # articles per STAT round
+COUNT_WORKERS = 8          # connections used for counting
 PIN_START = 4 * 1024 * 1024
 PIN_END = 16 * 1024 * 1024
 
@@ -241,18 +245,38 @@ class Release:
             missing = [i for i in missing if not on_backup.get(i)]
         if not missing:
             return
+        if self.fill and len(missing) > max(2, len(answer) * SAMPLE_GONE):
+            # far too much gone in the sample already (often the whole release was taken down): no need to count
+            raise StreamError("%d of %d checked articles are gone" % (len(missing), len(answer)))
         if self.fill:
-            # the sample says some are gone: count them all (STAT is cheap and pipelined) before deciding
+            # the sample says some are gone: count them all before deciding. Over several connections at once and
+            # within COUNT_LIMIT seconds, so a large release can never keep the player waiting.
             flat_ids = [s[2] for p in self.chosen for s in p.segments]
-            gone = []
-            for at in range(0, len(flat_ids), 2000):
-                part = flat_ids[at:at + 2000]
-                found = self.pool.stat_many(part)
-                lost = [i for i in part if not found.get(i)]
-                if lost and self.backup:
-                    extra = self.backup.stat_many(lost)
-                    lost = [i for i in lost if not extra.get(i)]
-                gone += lost
+            parts = [flat_ids[at:at + COUNT_PART] for at in range(0, len(flat_ids), COUNT_PART)]
+            started = time.time()
+            gone, done = [], 0
+            workers = max(1, min(COUNT_WORKERS, self.pool.limit))
+            pool_run = ThreadPoolExecutor(max_workers=workers)
+            try:
+                jobs = [pool_run.submit(self._count_part, part, started) for part in parts]
+                for job in jobs:
+                    left = COUNT_LIMIT - (time.time() - started)
+                    try:
+                        lost = job.result(timeout=max(0.1, left))
+                    except Exception:                        # noqa: BLE001 - too slow or a broken connection
+                        lost = None
+                    if lost is None:
+                        continue
+                    done += 1
+                    gone += lost
+            finally:
+                pool_run.shutdown(wait=False, cancel_futures=True)
+            if done < len(parts) and len(gone) > len(flat_ids) * FILL_SHARE:
+                raise StreamError("%d of %d articles are gone already (count not finished)" % (len(gone), len(flat_ids)))
+            if done < len(parts):
+                self.log("counting gaps stopped after %.0f s (%d of %d parts, %d gone so far): playing, gaps are filled"
+                         % (time.time() - started, done, len(parts), len(gone)))
+                return
             where = {m: n for n, m in enumerate(flat_ids)}
             spots = sorted(where[m] for m in gone)
             run = longest = 0
@@ -264,6 +288,17 @@ class Release:
                 return
             raise StreamError("%d of %d articles are gone (%d in a row)" % (len(gone), len(flat_ids), longest))
         raise StreamError("%d of %d checked articles are gone" % (len(missing), len(answer)))
+
+    def _count_part(self, part, started):
+        """The gone articles of one part, or None when the count ran out of time before it started."""
+        if time.time() - started > COUNT_LIMIT:
+            return None
+        found = self.pool.stat_many(part)
+        lost = [i for i in part if not found.get(i)]
+        if lost and self.backup:
+            extra = self.backup.stat_many(lost)
+            lost = [i for i in lost if not extra.get(i)]
+        return lost
 
     def open(self):
         if self.kind == "video":

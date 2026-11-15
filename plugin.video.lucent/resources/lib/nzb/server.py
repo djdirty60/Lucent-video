@@ -24,6 +24,7 @@ from . import nntp, nzbfile, stream, yenc
 
 PORT_PROPERTY = "lucent.video.nzb.port"
 FOLDER = "nzb"
+LOCK_WAIT = 30                  # seconds a new release waits for one still being opened
 IDLE = 300                      # seconds without reads before a release is closed
 CHUNK = 1048576
 _state = {"http": None, "release": None, "key": "", "pool": None, "lock": threading.Lock()}
@@ -67,7 +68,11 @@ def prepare(name, season=None, episode=None, pack=False):
             data = handle.read()
     except OSError:
         return {"ok": False, "error": "nzb missing"}
-    with _state["lock"]:
+    util.log("usenet: opening release")
+    if not _state["lock"].acquire(timeout=LOCK_WAIT):
+        util.log("usenet: a previous release is still being opened")
+        return {"ok": False, "error": "busy"}
+    try:
         _close_release()
         pool = nntp.Pool(provider())
         spare_settings = provider(backup=True)
@@ -89,10 +94,18 @@ def prepare(name, season=None, episode=None, pack=False):
             if spare:
                 spare.close()
             return {"ok": False, "error": "%s: %s" % (type(error).__name__, error)}
+        except Exception as error:                  # noqa: BLE001 - never leave the player waiting without a reason
+            pool.close()
+            if spare:
+                spare.close()
+            util.log("usenet: opening failed (%s: %s)" % (type(error).__name__, str(error)[:120]))
+            return {"ok": False, "error": type(error).__name__}
         _state["release"], _state["pool"], _state["key"], _state["backup"] = release, pool, uuid.uuid4().hex[:12], spare
         util.log("usenet: release ready in %.1f s" % (time.time() - started))
         _warn_slow()
         return {"ok": True, "key": _state["key"], "name": release.name, "size": release.size}
+    finally:
+        _state["lock"].release()
 
 
 SLOW_WARNED = "lucent.video.slowunpack"

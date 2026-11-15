@@ -140,10 +140,25 @@ def allowed(base, kind="api", background=False):
     return not background or used < UNKNOWN_BACKGROUND
 
 
-def usage(base):
-    """'12/100 searches, 2/25 NZBs today' for the test button ('?' when the indexer does not tell)."""
+def usage(base, log=False):
+    """'41 searches (unlimited), 15 NZBs' for the test button: no huge numbers, no '?' when the indexer does not tell."""
     entry = _entry(util.load_json(HITS, {}), base)
-    return "%d/%s searches, %d/%s NZBs" % (entry.get("api") or 0, entry.get("api_max") or "?", entry.get("grab") or 0, entry.get("grab_max") or "?")
+    T = (lambda nl, en: en) if log else util.T
+
+    def part(used, most, nl, en):
+        used = used or 0
+        try:
+            most = int(most or 0)
+        except (TypeError, ValueError):
+            most = 0
+        if most >= 1000000:
+            return T("%d %s (onbeperkt)", "%d %s (unlimited)") % (used, T(nl, en))
+        if most > 0:
+            return T("%d van %d %s", "%d of %d %s") % (used, most, T(nl, en))
+        return "%d %s" % (used, T(nl, en))
+
+    return ", ".join((part(entry.get("api"), entry.get("api_max"), "zoekopdrachten", "searches"),
+                      part(entry.get("grab"), entry.get("grab_max"), "NZB's", "NZBs")))
 
 
 def _limit_hit(base, error):

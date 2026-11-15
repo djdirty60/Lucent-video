@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+58" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+59" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -82,7 +82,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 58: test mode only: a personal code per tester, room for 10 indexers, and a clear warning when only the slow unpacker works.
+        <news>1.0.0 beta 1, update 59: test mode only: Usenet no longer gets stuck on large or removed releases with gap filling on; neater indexer usage in the connection test; sound like DDP5.1 is recognised, so Usenet and Easynews sources get the right labels and ranking.
+1.0.0 beta 1, update 58: test mode only: a personal code per tester, room for 10 indexers, and a clear warning when only the slow unpacker works.
 1.0.0 beta 1, update 57: test mode only: Usenet backup provider, 6 indexers asked one at a time, gap filling, MKV index kept in memory, age and downloads in the list, adjustable read-ahead and memory.
 1.0.0 beta 1, update 56: test mode only: Usenet reads further ahead, plays releases with uneven pieces, and finds an episode inside a season posted as one RAR set.
 1.0.0 beta 1, update 55: the AIOStreams add-on that found a source is shown too; test mode only: leaner Usenet fetching, fast C unpacking also for Android and Windows, 'may be too heavy' on Usenet sources.
@@ -90,9 +91,8 @@
 1.0.0 beta 1, update 53: test mode only: Usenet unpacking in a small piece of C code that uses all processor cores (Linux, CoreELEC, LibreELEC), with Python as the fallback.
 1.0.0 beta 1, update 52: your SubDL key no longer ends up in the Kodi log, and the error report removes keys from links too.
 1.0.0 beta 1, update 51: test mode only: the Usenet speed line also shows one connection's speed, busy connections and unpacking time.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 58: Testmodus: meer testers en 10 indexers: Alleen voor testers: elke tester heeft nu een eigen code, er is ruimte voor 10 indexers, en de verbindingstest zegt of de snelle uitpakker werkt. Werkt alleen de langzame, dan meldt Lucent dat één keer bij het afspelen. Voor iedereen zonder testcode verandert er niets.
-1.0.0 beta 1, update 57: Testmodus: Usenet compleet: Alleen voor testers: een reserve-provider voor stukken die je provider mist, 6 indexers die één voor één gevraagd worden (spaart je quotum), kleine gaten in oudere releases worden opgevuld, de MKV-index blijft in het geheugen voor snel springen, en leeftijd en downloads in de bronnenlijst. Vooruit lezen, geheugen en hoe Lucent zich voorstelt aan indexers kun je zelf instellen. Voor iedereen zonder testcode verandert er niets.
-1.0.0 beta 1, update 56: Testmodus: meer Usenet-releases spelen af: Alleen voor testers: Lucent leest verder vooruit, speelt releases waarvan de stukken niet even groot zijn, en vindt een aflevering in een seizoen dat als één groot RAR-archief is gepost. Voor iedereen zonder testcode verandert er niets.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 59: Testmodus: Usenet loopt niet meer vast: Alleen voor testers: met 'Ontbrekende stukken opvullen' aan kon het openen van een grote of verwijderde release blijven hangen, waarna geen enkele Usenet-bron meer opende. Een verwijderde release wordt nu meteen overgeslagen, het natellen gaat sneller en duurt nooit langer dan 20 seconden, en één vastgelopen poging houdt de volgende niet meer tegen. De verbindingstest toont het gebruik van je indexers nu netter. Meer labels bij Usenet en Easynews: Geluid dat aan de kanalen vastzit, zoals DDP5.1, DD+5.1 of AAC2.0, wordt nu herkend. Bronnen van Usenet en Easynews krijgen zo de juiste labels (DD+, 5.1, DD, DTS, 10-bit) en schuiven op de goede plek in de lijst.
+1.0.0 beta 1, update 58: Testmodus: meer testers en 10 indexers: Alleen voor testers: elke tester heeft nu een eigen code, er is ruimte voor 10 indexers, en de verbindingstest zegt of de snelle uitpakker werkt. Werkt alleen de langzame, dan meldt Lucent dat één keer bij het afspelen. Voor iedereen zonder testcode verandert er niets.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>
