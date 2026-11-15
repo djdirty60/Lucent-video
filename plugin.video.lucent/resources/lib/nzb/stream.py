@@ -17,6 +17,12 @@ from concurrent.futures import ThreadPoolExecutor
 from . import archive, nntp, nzbfile, sevenzip, yenc
 
 
+FILL_SHARE = 0.02          # at most 2% of a release may be filled with zeros
+FILL_RUN = 4               # and at most 4 articles in a row
+PIN_START = 4 * 1024 * 1024
+PIN_END = 16 * 1024 * 1024
+
+
 class StreamError(Exception):
     """This release cannot be played; the text says why (shown in the log, never with a login in it)."""
 
@@ -40,8 +46,13 @@ class Piece:
 
 class Release:
     # read 64 MB ahead (some seconds of a heavy 4K remux) and keep 128 MB: more connections busy before a busy scene
-    def __init__(self, pool, files, kind, chosen, ahead=64 * 1024 * 1024, cache=128 * 1024 * 1024, log=None):
+    def __init__(self, pool, files, kind, chosen, ahead=64 * 1024 * 1024, cache=128 * 1024 * 1024, log=None, backup=None,
+                 fill=False):
         self.pool = pool
+        self.backup = backup                # a second provider, only asked for articles the first one lacks
+        self.fill = fill                    # play on over a few missing articles (zeros), up to FILL_SHARE / FILL_RUN
+        self.filled = set()                 # (file index, article) filled with zeros
+        self.pinned = set()                 # articles at the very start and end of the film (the MKV index): kept
         self.files = files
         self.kind = kind                    # 'video' or 'rar'
         self.chosen = chosen                # [nzbfile.Posted]
@@ -67,10 +78,21 @@ class Release:
         self.stats = {"in": 0, "out": 0, "waits": 0, "waited": 0.0}     # for the speed line in the log
 
     # ------------------------------------------------------------------ articles
+    def _body(self, message_id):
+        """The article from the provider, or from the backup provider when the first one does not have it."""
+        try:
+            return self.pool.body(message_id)
+        except nntp.Missing:
+            if not self.backup:
+                raise
+            body = self.backup.body(message_id)
+            self.stats["backup"] = self.stats.get("backup", 0) + 1
+            return body
+
     def _decode(self, posted, number):
         _n, _size, message_id = posted.segments[number]
         started = time.time()
-        body = self.pool.body(message_id)
+        body = self._body(message_id)
         fetched = time.time()
         data, info = yenc.decode(body)
         stats = self.stats
@@ -87,7 +109,8 @@ class Release:
             part = (info["begin"] - 1) // number if number and info.get("begin") else (info["end"] - info["begin"] + 1)
             if part > 0:
                 self.part[posted.index] = part
-        if info.get("begin") and part and info["begin"] - 1 != number * part and posted.index not in self.uneven:
+        short = info.get("begin") and part and number < len(posted.segments) - 1 and info["end"] - info["begin"] + 1 != part
+        if info.get("begin") and part and (info["begin"] - 1 != number * part or short) and posted.index not in self.uneven:
             self.uneven.add(posted.index)       # from now on this file is read article by article (see _locate)
             self.log("articles of uneven size in %s: mapped one by one" % (posted.name or posted.index))
         return data, info
@@ -131,12 +154,39 @@ class Release:
                 future = self.workers.submit(self._fetch, posted, number)
                 self.pending[key] = future
         started = time.time()
-        data = future.result(timeout=60)
+        try:
+            data = future.result(timeout=60)
+        except nntp.Missing:
+            data = self._filler(posted, number)
         waited = time.time() - started
         if waited > 0.05:                   # Kodi had to wait for this article: read-ahead was not far enough
             self.stats["waits"] += 1
             self.stats["waited"] += waited
         return data
+
+    def _filler(self, posted, number):
+        """Zeros for an article that is gone everywhere, when that is allowed: at most FILL_SHARE of all articles and
+        FILL_RUN in a row. The picture shows a short glitch; the film plays on. Otherwise the release is given up
+        (and the player moves on to the next source)."""
+        key = (posted.index, number)
+        part = self.part.get(posted.index)
+        total = sum(len(p.segments) for p in self.chosen) or 1
+        run = 1
+        while (posted.index, number - run) in self.filled:
+            run += 1
+        if not self.fill or not part or posted.index in self.uneven or run > FILL_RUN or len(self.filled) + 1 > max(1, total * FILL_SHARE):
+            raise StreamError("article %d of %s is gone" % (number, posted.name or posted.index))
+        size = part
+        whole = self.file_size.get(posted.index)
+        if whole and number == len(posted.segments) - 1:
+            size = whole - number * part
+        with self.lock:
+            self.filled.add(key)
+            self.ranges[key] = (number * part, number * part + size - 1)
+            self.cache[key] = bytes(size)
+            self.cached += size
+        self.log("article %d of %s is gone: filled in (%d so far)" % (number, posted.name or posted.index, len(self.filled)))
+        return self.cache[key]
 
     def _fetch(self, posted, number):
         key = (posted.index, number)
@@ -150,8 +200,13 @@ class Release:
             if key not in self.cache:
                 self.cache[key] = data
                 self.cached += len(data)
-                while self.cached > self.cache_limit and len(self.cache) > 1:
-                    _old, dropped = self.cache.popitem(last=False)
+                rounds = len(self.cache)
+                while self.cached > self.cache_limit and len(self.cache) > 1 and rounds > 0:
+                    rounds -= 1
+                    old, dropped = self.cache.popitem(last=False)
+                    if old in self.pinned:          # the MKV index: back at the end, it stays
+                        self.cache[old] = dropped
+                        continue
                     self.cached -= len(dropped)
         return data
 
@@ -181,8 +236,34 @@ class Release:
         ids = list(dict.fromkeys(ids))[:sample * 2]
         answer = self.pool.stat_many(ids)
         missing = [i for i, ok in answer.items() if not ok]
-        if missing:
-            raise StreamError("%d of %d checked articles are gone" % (len(missing), len(answer)))
+        if missing and self.backup:
+            on_backup = self.backup.stat_many(missing)
+            missing = [i for i in missing if not on_backup.get(i)]
+        if not missing:
+            return
+        if self.fill:
+            # the sample says some are gone: count them all (STAT is cheap and pipelined) before deciding
+            flat_ids = [s[2] for p in self.chosen for s in p.segments]
+            gone = []
+            for at in range(0, len(flat_ids), 2000):
+                part = flat_ids[at:at + 2000]
+                found = self.pool.stat_many(part)
+                lost = [i for i in part if not found.get(i)]
+                if lost and self.backup:
+                    extra = self.backup.stat_many(lost)
+                    lost = [i for i in lost if not extra.get(i)]
+                gone += lost
+            where = {m: n for n, m in enumerate(flat_ids)}
+            spots = sorted(where[m] for m in gone)
+            run = longest = 0
+            for n, spot in enumerate(spots):
+                run = run + 1 if n and spot == spots[n - 1] + 1 else 1
+                longest = max(longest, run)
+            if len(gone) <= max(1, len(flat_ids) * FILL_SHARE) and longest <= FILL_RUN:
+                self.log("%d of %d articles are gone: they will be filled in" % (len(gone), len(flat_ids)))
+                return
+            raise StreamError("%d of %d articles are gone (%d in a row)" % (len(gone), len(flat_ids), longest))
+        raise StreamError("%d of %d checked articles are gone" % (len(missing), len(answer)))
 
     def open(self):
         if self.kind == "video":
@@ -461,11 +542,14 @@ class Release:
                 break
             data = self.article(posted, number)
             first = self.ranges.get((posted.index, number), (None,))[0]
-            if first is not None and first != at - skip:          # this very article showed the sizes are uneven
+            if (first is not None and first != at - skip) or (skip >= len(data) and number < len(posted.segments) - 1):
+                # this very article showed the sizes are uneven (it starts elsewhere, or is shorter than the others)
                 self.uneven.add(posted.index)
                 number, skip = self._locate(posted, at)
                 data = self.article(posted, number)
             self._ahead(posted, number)
+            if offset < PIN_START or offset > self.size - PIN_END:
+                self.pinned.add((posted.index, number))      # start and end of the film: the MKV index lives there
             if index + 1 < len(self.pieces) and number + max(1, self.ahead // part) >= len(posted.segments):
                 self._ahead(self.pieces[index + 1].posted, -1)      # the next volume's start too
             chunk = data[skip:skip + length]
@@ -535,7 +619,8 @@ def _sniff(pool, files, log):
     return bool(found)
 
 
-def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=None, cache=None, pack=False):
+def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=None, cache=None, pack=False, backup=None,
+                 fill=False):
     """NZB -> an opened Release, or StreamError / nzbfile.NzbError with the reason."""
     files = nzbfile.parse(nzb_bytes)
     try:
@@ -544,7 +629,8 @@ def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=Non
         if not _sniff(pool, files, log or (lambda text: None)):
             raise
         kind, chosen = nzbfile.pick(files, season, episode, pack)
-    release = Release(pool, files, kind, chosen, log=log, **{k: v for k, v in (("ahead", ahead), ("cache", cache)) if v})
+    release = Release(pool, files, kind, chosen, log=log, backup=backup, fill=fill,
+                      **{k: v for k, v in (("ahead", ahead), ("cache", cache)) if v})
     if season and episode:
         release.want = nzbfile.episode_tag(season, episode)
         release._want_key = (int(season), int(episode))        # noqa: SLF001 - set right after making it

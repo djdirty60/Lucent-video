@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+57",
+   "label": "Beta 1 · update 57",
+   "label_en": "Beta 1 · update 57",
+   "date": "2026-11-15",
+   "at": "2026-11-15T17:24Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: Usenet compleet",
+     "Alleen voor testers: een reserve-provider voor stukken die je provider mist, 6 indexers die één voor één gevraagd worden (spaart je quotum), kleine gaten in oudere releases worden opgevuld, de MKV-index blijft in het geheugen voor snel springen, en leeftijd en downloads in de bronnenlijst. Vooruit lezen, geheugen en hoe Lucent zich voorstelt aan indexers kun je zelf instellen. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: Usenet complete",
+     "Testers only: a backup provider for pieces your provider misses, 6 indexers asked one at a time (saves your quota), small gaps in older releases are filled in, the MKV index stays in memory for fast seeking, and age and downloads in the source list. Read-ahead, memory and how Lucent introduces itself to indexers can be set. For everyone without a test code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+56",
    "label": "Beta 1 · update 56",
    "label_en": "Beta 1 · update 56",

@@ -19,11 +19,20 @@ import util
 
 NS = "{http://www.newznab.com/DTD/2010/feeds/attributes/}"
 KEEP = 3 * 3600                         # a search answer is reused for three hours
-SLOTS = 3
+SLOTS = 6
 KEY_PARAMS = ("apikey", "r")            # Newznab uses apikey=; nZEDb-style sites put the key in r=
 
 
 AGENT = "LucentVideo/1.0 (Kodi video add-on; Newznab search for Usenet streaming; +https://github.com/djdirty60/Lucent-video)"
+# some indexers refuse anything that is not a known download tool: the setting 'introduce yourself as' picks one of these
+AGENTS = [AGENT, "SABnzbd/4.4.1", "NZBGet/24.5", "Sonarr/4.0.14.2939", "Radarr/5.21.1.9799", "Prowlarr/1.32.2.4987"]
+
+
+def agent():
+    try:
+        return AGENTS[int(util.setting("nzb_identity") or 0)]
+    except (ValueError, IndexError):
+        return AGENT
 
 
 def _reason(error):
@@ -50,7 +59,7 @@ class IndexerError(Exception):
 
 def fetch(url, timeout=20):
     """The raw answer of an address. The error never holds the address (it carries the key)."""
-    request = urllib.request.Request(url, headers={"User-Agent": AGENT, "Accept-Encoding": "gzip"})
+    request = urllib.request.Request(url, headers={"User-Agent": agent(), "Accept-Encoding": "gzip"})
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             body = response.read()

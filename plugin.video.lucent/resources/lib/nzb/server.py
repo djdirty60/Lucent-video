@@ -35,10 +35,14 @@ def folder():
     return path
 
 
-def provider():
-    """The provider settings, read fresh (never logged)."""
-    return {"host": util.setting("nzb_host"), "port": util.number("nzb_port", 563), "ssl": util.setting("nzb_ssl").lower() != "false",
-            "user": util.setting("nzb_user"), "password": util.setting("nzb_pass"), "connections": util.number("nzb_conns", 20)}
+def provider(backup=False):
+    """The provider settings, read fresh (never logged). backup=True: the backup provider, or None when it is off."""
+    pre = "nzb2_" if backup else "nzb_"
+    if backup and not (util.flag("nzb2_on") and util.setting("nzb2_host")):
+        return None
+    return {"host": util.setting(pre + "host"), "port": util.number(pre + "port", 563), "ssl": util.setting(pre + "ssl").lower() != "false",
+            "user": util.setting(pre + "user"), "password": util.setting(pre + "pass"),
+            "connections": util.number(pre + "conns", 10 if backup else 20)}
 
 
 def wanted():
@@ -46,12 +50,13 @@ def wanted():
 
 
 def _close_release():
-    release, pool = _state["release"], _state["pool"]
-    _state["release"], _state["key"], _state["pool"] = None, "", None
+    release, pool, spare = _state["release"], _state["pool"], _state.get("backup")
+    _state["release"], _state["key"], _state["pool"], _state["backup"] = None, "", None, None
     if release:
         release.close()
-    if pool:
-        pool.close()
+    for one in (pool, spare):
+        if one:
+            one.close()
 
 
 def prepare(name, season=None, episode=None, pack=False):
@@ -65,16 +70,26 @@ def prepare(name, season=None, episode=None, pack=False):
     with _state["lock"]:
         _close_release()
         pool = nntp.Pool(provider())
+        spare_settings = provider(backup=True)
+        spare = nntp.Pool(spare_settings) if spare_settings else None
+        megabyte = 1024 * 1024
         started = time.time()
         try:
-            release = stream.open_release(pool, data, season, episode, log=lambda text: util.log("usenet: " + text), pack=pack)
+            release = stream.open_release(pool, data, season, episode, log=lambda text: util.log("usenet: " + text), pack=pack,
+                                          backup=spare, fill=util.flag("nzb_fill"),
+                                          ahead=max(16, util.number("nzb_ahead", 64)) * megabyte,
+                                          cache=max(32, util.number("nzb_cache", 128)) * megabyte)
         except nntp.AuthError:
             pool.close()
+            if spare:
+                spare.close()
             return {"ok": False, "error": "login"}
         except (nntp.NntpError, OSError, yenc.YencError, stream.StreamError, nzbfile.NzbError) as error:
             pool.close()
+            if spare:
+                spare.close()
             return {"ok": False, "error": "%s: %s" % (type(error).__name__, error)}
-        _state["release"], _state["pool"], _state["key"] = release, pool, uuid.uuid4().hex[:12]
+        _state["release"], _state["pool"], _state["key"], _state["backup"] = release, pool, uuid.uuid4().hex[:12], spare
         util.log("usenet: release ready in %.1f s" % (time.time() - started))
         return {"ok": True, "key": _state["key"], "name": release.name, "size": release.size}
 

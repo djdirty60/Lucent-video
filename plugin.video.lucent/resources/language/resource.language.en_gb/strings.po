@@ -1696,3 +1696,147 @@ msgstr ""
 msgctxt "#32490"
 msgid "Usenet is still being tested: fill in a test code under General first."
 msgstr ""
+
+msgctxt "#32491"
+msgid "Use a backup provider (for pieces your provider misses)"
+msgstr ""
+
+msgctxt "#32492"
+msgid "A second provider, often a cheap block account. It is only asked for articles your own provider does not have."
+msgstr ""
+
+msgctxt "#32493"
+msgid "Backup – server"
+msgstr ""
+
+msgctxt "#32494"
+msgid "Backup – port"
+msgstr ""
+
+msgctxt "#32495"
+msgid "Backup – secure connection (SSL)"
+msgstr ""
+
+msgctxt "#32496"
+msgid "Backup – username"
+msgstr ""
+
+msgctxt "#32497"
+msgid "Backup – password"
+msgstr ""
+
+msgctxt "#32498"
+msgid "Backup – connections"
+msgstr ""
+
+msgctxt "#32499"
+msgid "Indexer 4 – address"
+msgstr ""
+
+msgctxt "#32500"
+msgid "Indexer 4 – API key"
+msgstr ""
+
+msgctxt "#32501"
+msgid "Indexer 5 – address"
+msgstr ""
+
+msgctxt "#32502"
+msgid "Indexer 5 – API key"
+msgstr ""
+
+msgctxt "#32503"
+msgid "Indexer 6 – address"
+msgstr ""
+
+msgctxt "#32504"
+msgid "Indexer 6 – API key"
+msgstr ""
+
+msgctxt "#32505"
+msgid "Ask indexers"
+msgstr ""
+
+msgctxt "#32506"
+msgid "One at a time (saves your quota)"
+msgstr ""
+
+msgctxt "#32507"
+msgid "All at once"
+msgstr ""
+
+msgctxt "#32508"
+msgid "One at a time: Lucent stops asking once it has enough sources, so a free indexer's daily quota lasts. All at once is faster."
+msgstr ""
+
+msgctxt "#32509"
+msgid "Stop when there are this many sources"
+msgstr ""
+
+msgctxt "#32510"
+msgid "With 'one at a time': the next indexer is only asked while there are fewer sources than this."
+msgstr ""
+
+msgctxt "#32511"
+msgid "Introduce yourself to indexers as"
+msgstr ""
+
+msgctxt "#32512"
+msgid "Some indexers refuse streaming apps. If one says no, try SABnzbd or NZBGet here."
+msgstr ""
+
+msgctxt "#32513"
+msgid "Lucent Video"
+msgstr ""
+
+msgctxt "#32514"
+msgid "SABnzbd"
+msgstr ""
+
+msgctxt "#32515"
+msgid "NZBGet"
+msgstr ""
+
+msgctxt "#32516"
+msgid "Sonarr"
+msgstr ""
+
+msgctxt "#32517"
+msgid "Radarr"
+msgstr ""
+
+msgctxt "#32518"
+msgid "Prowlarr"
+msgstr ""
+
+msgctxt "#32519"
+msgid "Read ahead (MB)"
+msgstr ""
+
+msgctxt "#32520"
+msgid "How far ahead of the picture Lucent fetches. More helps heavy 4K; it costs memory."
+msgstr ""
+
+msgctxt "#32521"
+msgid "Memory (MB)"
+msgstr ""
+
+msgctxt "#32522"
+msgid "How much Lucent keeps in memory, so a short jump back does not fetch again."
+msgstr ""
+
+msgctxt "#32523"
+msgid "Fill in missing pieces (up to 2%)"
+msgstr ""
+
+msgctxt "#32524"
+msgid "Older releases often miss a few articles. They still play (at most a short glitch) as long as no more than 2% is missing, or 4 in a row."
+msgstr ""
+
+msgctxt "#32525"
+msgid "Show age and downloads"
+msgstr ""
+
+msgctxt "#32526"
+msgid "In the source list: how many days ago the release was posted and how often it was downloaded."
+msgstr ""

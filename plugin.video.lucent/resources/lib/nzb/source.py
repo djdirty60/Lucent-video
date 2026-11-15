@@ -41,6 +41,23 @@ def is_pack(name, titles, meta):
     return False
 
 
+def _badges(row):
+    """'120 d · 340×': how many days ago it was posted and how often it was downloaded (when the indexer says)."""
+    out = []
+    try:
+        import email.utils
+        import time as _time
+        when = email.utils.parsedate_to_datetime(row.get("posted") or "")
+        days = int((_time.time() - when.timestamp()) // 86400)
+        if days >= 0:
+            out.append(util.T("%d d", "%d d") % days)
+    except (TypeError, ValueError, OverflowError):
+        pass
+    if row.get("grabs"):
+        out.append("%d×" % int(row["grabs"]))
+    return " · ".join(out)
+
+
 def _indexer_name(base):
     """'NZBGEEK' for https://api.nzbgeek.info/api: the site's own name, for the source list."""
     host = (urllib.parse.urlsplit(base).hostname or "").lower()
@@ -67,12 +84,30 @@ def fetch(meta):
                                                     " (%s today; asked again tomorrow)" % newznab.usage(base) if str(error) == "daily limit" else ""))
             return None
 
-    with ThreadPoolExecutor(max_workers=len(ixs)) as pool:
-        answers = list(pool.map(ask, ixs))
+    def fits(name):
+        return (meta["kind"] != "movie" and is_pack(name, titles, meta)) or usenet.title_matches(name, titles, meta)
+
+    if util.number("nzb_search", 0) == 1 or len(ixs) == 1:
+        with ThreadPoolExecutor(max_workers=len(ixs)) as pool:
+            answers = list(pool.map(ask, ixs))
+    else:
+        # one at a time: stop as soon as there are enough sources, so a free indexer's daily quota lasts
+        enough = max(1, util.number("nzb_enough", 10))
+        answers, names_found = [], set()
+        for entry in ixs:
+            rows = ask(entry)
+            answers.append(rows)
+            names_found.update(r["title"].lower() for r in rows or [] if fits(r["title"]))
+            if len(names_found) >= enough:
+                skipped = len(ixs) - len(answers)
+                if skipped:
+                    util.log("usenet: %d sources after %d indexer(s), the other %d not asked" % (len(names_found), len(answers), skipped))
+                break
     if all(a is None for a in answers):
         raise util.HttpError("indexers")
     names = {slot: _indexer_name(base) for slot, base, _key in ixs}
     most = server.most_per_second()
+    show_badges = util.flag("nzb_badges")
     seconds = int(meta.get("runtime") or 0) * 60
     out, seen = [], set()
     for rows in answers:
@@ -80,7 +115,7 @@ def fetch(meta):
             name = row["title"]
             key = name.lower()
             pack = meta["kind"] != "movie" and is_pack(name, titles, meta)
-            if key in seen or not (pack or usenet.title_matches(name, titles, meta)):
+            if key in seen or not fits(name):
                 continue
             low = name.lower()
             if any(word in low for word in (".iso", " iso ", "sample")):
@@ -89,12 +124,13 @@ def fetch(meta):
             job = {"scraper": "Usenet", "slot": row["slot"], "link": row["link"], "param": row["param"], "name": name,
                    "season": meta.get("season"), "episode": meta.get("episode")}
             where = names.get(row["slot"]) or ""
+            badges = _badges(row) if show_badges else ""
             # needs more per second than this box ever got from Usenet: say so (it may stop to buffer)
             heavy = bool(most and seconds and row["size"] / seconds > most * 0.95)
             warn = util.T("mogelijk te zwaar", "may be too heavy") if heavy else ""
             if not pack:
                 source = usenet._source(name, row["size"], SERVICE, resolve=job)          # noqa: SLF001 - same add-on
-                source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"]), warn) if p)
+                source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"]), badges, warn) if p)
                 source["always"] = True
                 out.append(source)
                 continue
@@ -106,7 +142,7 @@ def fetch(meta):
                 warn = util.T("mogelijk te zwaar", "may be too heavy")
             else:
                 warn = ""
-            source["meta"] = " · ".join(p for p in (SERVICE, where, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"]), warn) if p)
+            source["meta"] = " · ".join(p for p in (SERVICE, where, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"]), badges, warn) if p)
             source["pack"] = True
             source["always"] = True
             out.append(source)
@@ -159,18 +195,21 @@ def test():
     p = server.provider()
     if not p["host"]:
         return False, [util.T("Vul eerst de server van je provider in.", "Enter your provider's server first.")]
-    try:
-        connection = nntp.Connection(p["host"], p["port"], p["ssl"], p["user"], p["password"])
-        connection.close()
-        lines.append(util.T("Provider: ingelogd.", "Provider: signed in."))
-    except nntp.AuthError:
-        ok = False
-        lines.append(util.T("Provider: gebruikersnaam of wachtwoord klopt niet.", "Provider: username or password is wrong."))
-    except nntp.TooMany:
-        lines.append(util.T("Provider: bereikbaar, maar al je verbindingen zijn in gebruik.", "Provider: reachable, but all your connections are in use."))
-    except (nntp.NntpError, OSError) as error:
-        ok = False
-        lines.append(util.T("Provider: geen verbinding (%s).", "Provider: no connection (%s).") % type(error).__name__)
+    for p, who in ((p, util.T("Provider", "Provider")), (server.provider(backup=True), util.T("Reserve-provider", "Backup provider"))):
+        if not p:
+            continue
+        try:
+            connection = nntp.Connection(p["host"], p["port"], p["ssl"], p["user"], p["password"])
+            connection.close()
+            lines.append(util.T("%s: ingelogd.", "%s: signed in.") % who)
+        except nntp.AuthError:
+            ok = False
+            lines.append(util.T("%s: gebruikersnaam of wachtwoord klopt niet.", "%s: username or password is wrong.") % who)
+        except nntp.TooMany:
+            lines.append(util.T("%s: bereikbaar, maar al je verbindingen zijn in gebruik.", "%s: reachable, but all your connections are in use.") % who)
+        except (nntp.NntpError, OSError) as error:
+            ok = False
+            lines.append(util.T("%s: geen verbinding (%s).", "%s: no connection (%s).") % (who, type(error).__name__))
     ixs = newznab.indexers()
     if not ixs:
         ok = False
