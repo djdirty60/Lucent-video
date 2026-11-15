@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+56",
+   "label": "Beta 1 · update 56",
+   "label_en": "Beta 1 · update 56",
+   "date": "2026-11-15",
+   "at": "2026-11-15T17:03Z",
+   "items": [
+    [
+     "settings",
+     "Testmodus: meer Usenet-releases spelen af",
+     "Alleen voor testers: Lucent leest verder vooruit, speelt releases waarvan de stukken niet even groot zijn, en vindt een aflevering in een seizoen dat als één groot RAR-archief is gepost. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: more Usenet releases play",
+     "Testers only: Lucent reads further ahead, plays releases whose pieces are not all the same size, and finds an episode in a season posted as one big RAR archive. For everyone without a test code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+55",
    "label": "Beta 1 · update 55",
    "label_en": "Beta 1 · update 55",

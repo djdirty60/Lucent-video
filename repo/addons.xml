@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+55" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+56" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -83,18 +83,18 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 55: the AIOStreams add-on that found a source is shown too; test mode only: leaner Usenet fetching, fast C unpacking also for Android and Windows, 'may be too heavy' on Usenet sources.
+        <news>1.0.0 beta 1, update 56: test mode only: Usenet reads further ahead, plays releases with uneven pieces, and finds an episode inside a season posted as one RAR set.
+1.0.0 beta 1, update 55: the AIOStreams add-on that found a source is shown too; test mode only: leaner Usenet fetching, fast C unpacking also for Android and Windows, 'may be too heavy' on Usenet sources.
 1.0.0 beta 1, update 54: the error report states which log it read, tries again through Kodi when reading fails, and adds the end of the previous log after a restart.
 1.0.0 beta 1, update 53: test mode only: Usenet unpacking in a small piece of C code that uses all processor cores (Linux, CoreELEC, LibreELEC), with Python as the fallback.
 1.0.0 beta 1, update 52: your SubDL key no longer ends up in the Kodi log, and the error report removes keys from links too.
 1.0.0 beta 1, update 51: test mode only: the Usenet speed line also shows one connection's speed, busy connections and unpacking time.
 1.0.0 beta 1, update 50: the indexer shows in the source list and Usenet sources no longer say 'CACHED'; test mode only: Usenet in its own settings tab, hidden release names recognised, speed in the log.
-1.0.0 beta 1, update 49: no 'Recommended' badge any more; Lucent's own resume screen for library items (with Lucent 2.1.21+); test mode only: Usenet season packs, 7z and indexer daily limits.
-1.0.0 beta 1, update 48: wider source list with the poster, year, rating and plot on the left; long names and up to 12 tags fit. 'Why on top?' moved to the menu button (or long press) on a source.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 55: Ook de add-on van AIOStreams in de bronnenlijst: Bij bronnen die geen Usenet zijn staat nu ook welke add-on binnen AIOStreams de bron vond, bijvoorbeeld Debridio of StremThru Torz. Testmodus: Usenet zuiniger en slimmer: Alleen voor testers: het ophalen kost minder processortijd, het snelle uitpakken in C bestaat nu ook voor Android en Windows, en een Usenet-bron die meer vraagt dan je kastje ooit haalde, krijgt 'mogelijk te zwaar'. Voor iedereen zonder testcode verandert er niets.
+1.0.0 beta 1, update 49: no 'Recommended' badge any more; Lucent's own resume screen for library items (with Lucent 2.1.21+); test mode only: Usenet season packs, 7z and indexer daily limits.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 56: Testmodus: meer Usenet-releases spelen af: Alleen voor testers: Lucent leest verder vooruit, speelt releases waarvan de stukken niet even groot zijn, en vindt een aflevering in een seizoen dat als één groot RAR-archief is gepost. Voor iedereen zonder testcode verandert er niets.
+1.0.0 beta 1, update 55: Ook de add-on van AIOStreams in de bronnenlijst: Bij bronnen die geen Usenet zijn staat nu ook welke add-on binnen AIOStreams de bron vond, bijvoorbeeld Debridio of StremThru Torz. Testmodus: Usenet zuiniger en slimmer: Alleen voor testers: het ophalen kost minder processortijd, het snelle uitpakken in C bestaat nu ook voor Android en Windows, en een Usenet-bron die meer vraagt dan je kastje ooit haalde, krijgt 'mogelijk te zwaar'. Voor iedereen zonder testcode verandert er niets.
 1.0.0 beta 1, update 54: Foutrapport zegt waarom het log leeg is: Het foutrapport schrijft bovenaan welk logbestand het las en hoe groot het was. Lukt lezen niet, dan probeert het via Kodi zelf. Is het log bijna leeg (net na een herstart), dan komt ook het einde van het vorige log mee.
-1.0.0 beta 1, update 53: Testmodus: Usenet tot 2,5 keer sneller: Alleen voor testers: het uitpakken van Usenet gebeurt nu in een klein stukje C-code dat alle processorkernen gebruikt (Linux, CoreELEC en LibreELEC). Waar dat niet kan, doet Python het zoals eerst. Voor iedereen zonder testcode verandert er niets.
-1.0.0 beta 1, update 52: Ondertitel-sleutel nooit meer in het log: Bij het automatisch kiezen van een ondertitel kon de link met je SubDL-sleutel in het Kodi-log komen. Dat gebeurt niet meer, en het foutrapport haalt zulke sleutels nu ook uit links.</news>
+1.0.0 beta 1, update 53: Testmodus: Usenet tot 2,5 keer sneller: Alleen voor testers: het uitpakken van Usenet gebeurt nu in een klein stukje C-code dat alle processorkernen gebruikt (Linux, CoreELEC en LibreELEC). Waar dat niet kan, doet Python het zoals eerst. Voor iedereen zonder testcode verandert er niets.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

@@ -9,6 +9,7 @@ a short step back does not hit the network again. Nothing is written to disk.
 """
 import bisect
 import collections
+import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -38,7 +39,8 @@ class Piece:
 
 
 class Release:
-    def __init__(self, pool, files, kind, chosen, ahead=24 * 1024 * 1024, cache=64 * 1024 * 1024, log=None):
+    # read 64 MB ahead (some seconds of a heavy 4K remux) and keep 128 MB: more connections busy before a busy scene
+    def __init__(self, pool, files, kind, chosen, ahead=64 * 1024 * 1024, cache=128 * 1024 * 1024, log=None):
         self.pool = pool
         self.files = files
         self.kind = kind                    # 'video' or 'rar'
@@ -51,6 +53,9 @@ class Release:
         self.cached = 0
         self.pending = {}                   # (file index, article) -> Future
         self.part = {}                      # file index -> decoded bytes per article
+        self.uneven = set()                 # file indexes whose articles are not all the same size
+        self.ranges = {}                    # (file index, article) -> (first byte, last byte) in that file, from yEnc
+        self.file_size = {}                 # file index -> decoded size of the whole posted file
         self.workers = ThreadPoolExecutor(max_workers=max(2, pool.limit))
         self.pieces = []
         self.size = 0
@@ -58,6 +63,7 @@ class Release:
         self.closed = False
         self.last_read = time.time()
         self.want = None                    # for an episode: the pattern its name must have (if it has one at all)
+        self._want_key = None               # (season, episode) of that episode
         self.stats = {"in": 0, "out": 0, "waits": 0, "waited": 0.0}     # for the speed line in the log
 
     # ------------------------------------------------------------------ articles
@@ -71,15 +77,47 @@ class Release:
         stats["net"] = stats.get("net", 0.0) + fetched - started      # waiting for the provider (all connections added up)
         stats["raw"] = stats.get("raw", 0) + len(body)
         stats["decode"] = stats.get("decode", 0.0) + time.time() - fetched   # unpacking in Python
+        if info.get("begin"):
+            self.ranges[(posted.index, number)] = (info["begin"] - 1, info["end"] - 1)
+        if info.get("size"):
+            self.file_size.setdefault(posted.index, info["size"])
         part = self.part.get(posted.index)
         if part is None:
             # the poster's part size: from where this article starts (any article but the first), else its length
             part = (info["begin"] - 1) // number if number and info.get("begin") else (info["end"] - info["begin"] + 1)
             if part > 0:
                 self.part[posted.index] = part
-        if info.get("begin") and part and info["begin"] - 1 != number * part:
-            raise StreamError("articles of uneven size")      # step 2: map them one by one
+        if info.get("begin") and part and info["begin"] - 1 != number * part and posted.index not in self.uneven:
+            self.uneven.add(posted.index)       # from now on this file is read article by article (see _locate)
+            self.log("articles of uneven size in %s: mapped one by one" % (posted.name or posted.index))
         return data, info
+
+    def _locate(self, posted, at):
+        """(article, skip) for byte `at` of a file with uneven articles. A first guess from the sizes in the NZB (the
+        encoded size grows evenly with the decoded size), then a step or two up or down with what yEnc tells."""
+        segments = posted.segments
+        total = self.file_size.get(posted.index) or 0
+        encoded = posted.encoded or 1
+        if not hasattr(posted, "_starts"):
+            starts, run = [], 0
+            for _n, size, _m in segments:
+                starts.append(run)
+                run += size
+            posted._starts = starts             # noqa: SLF001 - a cache on the posted file itself
+        guess = bisect.bisect_right(posted._starts, at * encoded / total) - 1 if total else 0
+        number = max(0, min(len(segments) - 1, guess))
+        for _ in range(12):
+            self.article(posted, number)
+            first, last = self.ranges.get((posted.index, number), (None, None))
+            if first is None:
+                break
+            if at < first and number > 0:
+                number -= 1
+            elif at > last and number < len(segments) - 1:
+                number += 1
+            else:
+                return number, at - first
+        raise StreamError("uneven articles: byte %d not found" % at)
 
     def article(self, posted, number):
         """The decoded bytes of one article, from memory, from a fetch already running, or fetched now."""
@@ -188,6 +226,10 @@ class Release:
         except archive.Unsupported as error:
             raise StreamError("RAR: %s" % error) from None
         self.name = layout.name
+        if self._want_key and len(volumes) > 1 and nzbfile.has_episode(layout.name):
+            # an episode: the set may hold the whole season, so find exactly where this episode begins and ends
+            self._open_member(volumes, first.startswith(archive.RAR5))
+            return
         if self.want and nzbfile.has_episode(layout.name) and not self.want.search(layout.name):
             raise StreamError("RAR holds another episode (%s)" % layout.name)
         if len(volumes) == 1:
@@ -260,13 +302,116 @@ class Release:
                 pieces.append(Piece(piece.posted, low - piece.start, high - low, True))
         self.pieces = pieces
 
+    # ------------------------------------------------------------------ a season in one RAR set
+    _EPISODE = re.compile(r"s(\d{1,2}) ?e(\d{1,3})|(\d{1,2})x(\d{2,3})", re.I)
+
+    def _key(self, name):
+        found = self._EPISODE.search(name or "")
+        if not found:
+            return None
+        return tuple(int(x) for x in found.groups() if x is not None)
+
+    def _posted_bytes(self, posted, offset, length):
+        """Bytes from anywhere in one posted file (for a header in the middle of a volume)."""
+        out, at = b"", offset
+        while len(out) < length:
+            part = self.part.get(posted.index)
+            if part is None:
+                self.article(posted, 0)
+                part = self.part[posted.index]
+            if posted.index in self.uneven:
+                number, skip = self._locate(posted, at)
+            else:
+                number, skip = divmod(at, part)
+            if number >= len(posted.segments):
+                break
+            chunk = self.article(posted, number)[skip:skip + length - len(out)]
+            if not chunk:
+                break
+            out += chunk
+            at += len(chunk)
+        return out
+
+    def _open_member(self, volumes, rar5):
+        """The wanted episode inside a RAR set that holds the whole season, one file after the other. Each volume starts
+        with the file that runs through it, so a binary search over the volumes' first articles finds where the
+        episode begins (a handful of articles, not the whole season); then it is read like any RAR set."""
+        heads = {}
+
+        def first_entries(number):
+            if number not in heads:
+                head, _info = self._head(volumes[number])
+                try:
+                    heads[number] = archive.entries(head)
+                except archive.Unsupported as error:
+                    raise StreamError("RAR: %s" % error) from None
+            return heads[number]
+
+        def key(number):
+            entries = first_entries(number)
+            return self._key(entries[0].name) if entries else None
+
+        mine = self._want_key
+        if not mine:
+            raise StreamError("RAR holds another episode (%s)" % self.name)
+        low, high = 0, len(volumes) - 1
+        if key(high) is None or key(high) < mine:
+            # the last volume starts with an earlier episode: the wanted one can only begin inside it
+            low = high
+        else:
+            # low: a volume that starts with an earlier episode; high: one that starts with the wanted one or later
+            while high - low > 1:
+                middle = (low + high) // 2
+                found = key(middle)
+                if found is not None and found >= mine:
+                    high = middle
+                else:
+                    low = middle
+        start = None
+        for number in (low, high):
+            for entry in first_entries(number):
+                if self.want.search(entry.name) and not entry.before:
+                    start, wanted = number, entry
+                    break
+            if start is not None:
+                break
+        if start is None:
+            # the header is further into the volume than its first article: right after the earlier episode's data
+            last = first_entries(low)[-1]
+            if not last.more:
+                at = last.data_offset + last.data_length
+                entry = archive.entry_at(self._posted_bytes(volumes[low], at, 8192), rar5)
+                if entry and self.want.search(entry.name) and not entry.before:
+                    entry.data_offset += at
+                    start, wanted = low, entry
+        if start is None:
+            raise StreamError("RAR: episode not found in this set")
+        self.name = wanted.name
+        self.log("RAR: %s starts in volume %d of %d" % (wanted.name, start + 1, len(volumes)))
+        pieces = [Piece(volumes[start], wanted.data_offset, wanted.data_length, True)]
+        done = wanted.data_length
+        number = start + 1
+        if wanted.more and number < len(volumes):
+            follow = first_entries(number)[0]
+            base = _vint_len(follow.volume_number or number)
+            while done < wanted.total and number < len(volumes):
+                grow = (_vint_len(number) - base) if rar5 else 0
+                length = min(follow.data_length - grow, wanted.total - done)
+                pieces.append(Piece(volumes[number], follow.data_offset + grow, length, number == start + 1))
+                done += length
+                number += 1
+        if done != wanted.total:
+            raise StreamError("RAR: volumes do not add up")
+        self.pieces = pieces
+
     def _verify(self, index):
         """A volume whose layout was worked out: read its own header once (its first article is needed anyway)."""
         piece = self.pieces[index]
         if piece.verified:
             return
         head = self.article(piece.posted, 0)
-        lay = archive.layout(head)
+        found = [e for e in archive.entries(head) if e.name == self.name]
+        lay = found[0] if found else archive.layout(head)
         with self.lock:
             piece.verified = True
             if lay.data_offset != piece.data_offset or (lay.data_length != piece.data_length and index != len(self.pieces) - 1):
@@ -304,10 +449,22 @@ class Release:
             if part is None:
                 self.article(posted, 0)
                 part = self.part[posted.index]
-            number, skip = divmod(at, part)
+            if posted.index in self.uneven:
+                number, skip = self._locate(posted, at)
+            else:
+                number, skip = divmod(at, part)
+                if number < len(posted.segments) and (posted.index, number) in self.ranges \
+                        and self.ranges[(posted.index, number)][0] != number * part:
+                    self.uneven.add(posted.index)          # found out on an article fetched ahead
+                    number, skip = self._locate(posted, at)
             if number >= len(posted.segments):
                 break
             data = self.article(posted, number)
+            first = self.ranges.get((posted.index, number), (None,))[0]
+            if first is not None and first != at - skip:          # this very article showed the sizes are uneven
+                self.uneven.add(posted.index)
+                number, skip = self._locate(posted, at)
+                data = self.article(posted, number)
             self._ahead(posted, number)
             if index + 1 < len(self.pieces) and number + max(1, self.ahead // part) >= len(posted.segments):
                 self._ahead(self.pieces[index + 1].posted, -1)      # the next volume's start too
@@ -390,6 +547,7 @@ def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=Non
     release = Release(pool, files, kind, chosen, log=log, **{k: v for k, v in (("ahead", ahead), ("cache", cache)) if v})
     if season and episode:
         release.want = nzbfile.episode_tag(season, episode)
+        release._want_key = (int(season), int(episode))        # noqa: SLF001 - set right after making it
     try:
         release.check()
         release.open()

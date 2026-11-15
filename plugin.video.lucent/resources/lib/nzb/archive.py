@@ -21,8 +21,9 @@ class Unsupported(Exception):
 class Layout:
     """One volume: the stored file's name, its full size, and where this volume's part of it is."""
 
-    def __init__(self, name, total, data_offset, data_length, volume_number=None, more=False):
+    def __init__(self, name, total, data_offset, data_length, volume_number=None, more=False, before=False):
         self.name = name
+        self.before = before                # this volume goes on with a file that began in an earlier volume
         self.total = total                  # unpacked size of the whole film
         self.data_offset = data_offset      # in this volume file
         self.data_length = data_length      # bytes of the film in this volume
@@ -55,10 +56,29 @@ def is_video(name):
 def layout(head):
     """head: the first bytes of a volume (one article is plenty). Returns the Layout of the biggest video in it."""
     if head.startswith(RAR5):
+        return _pick(_rar5(head))
+    if head.startswith(RAR4):
+        return _pick(_rar4(head))
+    raise Unsupported("not a RAR")
+
+
+def entries(head):
+    """Every stored file whose header is in these bytes (the start of a volume), in order. A season in one RAR set:
+    the first one is often the end of the episode before (before=True)."""
+    if head.startswith(RAR5):
         return _rar5(head)
     if head.startswith(RAR4):
         return _rar4(head)
     raise Unsupported("not a RAR")
+
+
+def entry_at(data, rar5):
+    """The file header that starts at the beginning of `data` (a header in the middle of a volume), or None."""
+    try:
+        found = _rar5(data, at=0, volume_number=None) if rar5 else _rar4(data, at=0)
+    except Unsupported:
+        return None
+    return found[0] if found else None
 
 
 def _pick(found):
@@ -68,9 +88,9 @@ def _pick(found):
     return max(videos, key=lambda f: f.total)
 
 
-def _rar5(data):
-    at = len(RAR5)
-    found, volume_number = [], None
+def _rar5(data, at=None, volume_number=None):
+    at = len(RAR5) if at is None else at
+    found = []
     try:
         while at < len(data):
             block = at
@@ -107,7 +127,7 @@ def _rar5(data):
                     if is_video(name):
                         raise Unsupported("compressed")
                 elif not file_flags & 0x01:             # a file, not a folder
-                    found.append(Layout(name, unpacked, data_offset, packed, volume_number, bool(flags & 0x10)))
+                    found.append(Layout(name, unpacked, data_offset, packed, volume_number, bool(flags & 0x10), bool(flags & 0x08)))
             elif kind == 5:                             # end of archive
                 break
             at = data_offset + (packed if flags & 0x02 else 0)
@@ -118,11 +138,11 @@ def _rar5(data):
     except (IndexError, struct.error):
         if not found:
             raise Unsupported("header cut off") from None
-    return _pick(found)
+    return found
 
 
-def _rar4(data):
-    at = len(RAR4)
+def _rar4(data, at=None):
+    at = len(RAR4) if at is None else at
     found = []
     try:
         while at + 7 <= len(data):
@@ -149,7 +169,7 @@ def _rar4(data):
                     if is_video(name):
                         raise Unsupported("compressed")
                 elif not (flags & 0x00E0) == 0x00E0:    # not a folder
-                    found.append(Layout(name, unpacked, at + size, packed, None, bool(flags & 0x0002)))
+                    found.append(Layout(name, unpacked, at + size, packed, None, bool(flags & 0x0002), bool(flags & 0x0001)))
                 at += size + packed
             elif kind == 0x7B:                          # end of archive
                 break
@@ -158,4 +178,4 @@ def _rar4(data):
     except (IndexError, struct.error):
         if not found:
             raise Unsupported("header cut off") from None
-    return _pick(found)
+    return found
