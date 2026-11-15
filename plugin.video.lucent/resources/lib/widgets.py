@@ -53,9 +53,7 @@ def put(params, titles, content, size=0):
     folder = _folder()
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, _key(params) + ".json")
-    with open(path + ".tmp", "w", encoding="utf-8") as handle:
-        json.dump({"at": time.time(), "titles": [_slim(t) for t in titles], "content": content, "size": size}, handle)
-    os.replace(path + ".tmp", path)
+    util.write_text(path, json.dumps({"at": time.time(), "titles": [_slim(t) for t in titles], "content": content, "size": size}))
 
 
 def is_old(params, entry, size=0):

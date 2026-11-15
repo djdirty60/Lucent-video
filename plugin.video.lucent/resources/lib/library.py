@@ -58,9 +58,7 @@ def write_if_changed(path, text):
                 return False
     except OSError:
         pass
-    with open(path + ".tmp", "w", encoding="utf-8") as handle:
-        handle.write(text)
-    os.replace(path + ".tmp", path)
+    util.write_text(path, text)
     return True
 
 

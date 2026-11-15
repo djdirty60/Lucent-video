@@ -13,6 +13,7 @@ import types
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 
 import xbmc
 import xbmcaddon
@@ -233,13 +234,26 @@ def cache_get(key, ttl):
         return None
 
 
+def write_text(path, text):
+    """Write a file in one go: a temporary file of its own (widgets, the service and lists can write the same file at
+    the same moment; on Android they are all threads of one process), then put in place."""
+    tmp = "%s.%s.tmp" % (path, uuid.uuid4().hex[:10])
+    try:
+        with open(tmp, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        raise
+
+
 def cache_set(key, value):
     try:
         os.makedirs(CACHE, exist_ok=True)
-        path = _cache_path(key)
-        with open(path + ".tmp", "w", encoding="utf-8") as handle:
-            json.dump(value, handle)
-        os.replace(path + ".tmp", path)
+        write_text(_cache_path(key), json.dumps(value))
     except (OSError, TypeError, ValueError):
         pass
 
@@ -279,7 +293,7 @@ def cache_clear():
 
 
 USERS = "users.json"
-PER_USER = {"kompas_profile.json", "kompas_ratings.json", "kompas_rows.json", "kompas_shown.json", "kompas_saved.json", "search_history.json", "trakt.json", "simkl.json", "wetrakr.json", "simkl_state.json", "punchplay.json", "punchplay_state.json", "punchplay.lock", "watched.json", "watchlist.json", "progress.json", "last_release.json"}
+PER_USER = {"punchplay_history.lock", "kompas_profile.json", "kompas_ratings.json", "kompas_rows.json", "kompas_shown.json", "kompas_saved.json", "search_history.json", "trakt.json", "simkl.json", "wetrakr.json", "simkl_state.json", "punchplay.json", "punchplay_state.json", "punchplay.lock", "watched.json", "watchlist.json", "progress.json", "last_release.json"}
 
 
 OVERRIDE_USER = None      # set for a moment while marking a title for someone who watched along
@@ -321,9 +335,7 @@ def load_json(name, default):
 def save_json(name, value):
     path = _path(name)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path + ".tmp", "w", encoding="utf-8") as handle:
-        json.dump(value, handle)
-    os.replace(path + ".tmp", path)
+    write_text(path, json.dumps(value))
 
 
 def video_playing():

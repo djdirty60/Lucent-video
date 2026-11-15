@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+46" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+47" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -82,20 +82,20 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 46: test mode only: a descriptive user agent for indexers, the indexer's own reason when it refuses a key, and IMDb ids with or without 'tt' (remembered per indexer).
+        <news>1.0.0 beta 1, update 47: PunchPlay lists no longer stay empty when several lists or widgets load at the same time; files are saved safely when written at the same moment.
+1.0.0 beta 1, update 46: test mode only: a descriptive user agent for indexers, the indexer's own reason when it refuses a key, and IMDb ids with or without 'tt' (remembered per indexer).
 1.0.0 beta 1, update 45: test mode only: indexers answering JSON are read too, and unreadable answers or web pages are reported clearly.
 1.0.0 beta 1, update 44: test mode only: the connection test now really checks the indexer's API key.
 1.0.0 beta 1, update 43: the test code works right after filling it in, also before a restart. The repository now keeps the two previous versions too, so an older repository list no longer ends in 'Installation failed'.
 1.0.0 beta 1, update 42: a hidden test mode (test code under Settings > General, advanced level) for functions that are still being tested; without a code nothing changes.
 1.0.0 beta 1, update 41: AI subtitles via OpenRouter ask the model not to reason first (faster and cheaper); a model that must reason gets the request again without it.
-1.0.0 beta 1, update 40: Settings > Account shows each account (Trakt, Simkl, PunchPlay) in its own block, with your choice and the shared options at the top.
-1.0.0 beta 1, update 39: PunchPlay as a third account next to Trakt and Simkl (link with a code): scrobbling, resume points, watchlist, own lists, Continue watching and Next episode; it can also be your second account. Copy your library now works between Trakt, Simkl and PunchPlay in any direction.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 46: Testmodus: indexers beter begrepen: Alleen voor testers: Lucent stelt zich bij indexers netjes voor, laat de reden zien als een indexer je sleutel weigert, en zoekt films ook met het IMDb-nummer in de vorm die de indexer wil. Voor iedereen zonder testcode verandert er niets.
+1.0.0 beta 1, update 40: Settings > Account shows each account (Trakt, Simkl, PunchPlay) in its own block, with your choice and the shared options at the top.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 47: PunchPlay-lijsten laden weer goed: Als meerdere lijsten of widgets tegelijk laadden, kon een PunchPlay-lijst leeg blijven met een foutmelding. Ze wachten nu netjes op elkaar en PunchPlay wordt maar één keer gevraagd.
+1.0.0 beta 1, update 46: Testmodus: indexers beter begrepen: Alleen voor testers: Lucent stelt zich bij indexers netjes voor, laat de reden zien als een indexer je sleutel weigert, en zoekt films ook met het IMDb-nummer in de vorm die de indexer wil. Voor iedereen zonder testcode verandert er niets.
 1.0.0 beta 1, update 45: Testmodus: meer indexers: Alleen voor testers: Lucent leest nu ook indexers die JSON terugsturen, en zegt duidelijker wat er mis is als een indexer iets onleesbaars of een webpagina terugstuurt. Voor iedereen zonder testcode verandert er niets.
 1.0.0 beta 1, update 44: Testmodus: sleutel echt gecontroleerd: Alleen voor testers: Verbinding testen controleert nu ook echt of een indexer je API-sleutel accepteert. Voor iedereen zonder testcode verandert er niets.
 1.0.0 beta 1, update 43: Testmodus ook zonder herstart: De testcode werkt nu meteen na het invullen, ook als Kodi nog niet herstart is. Voor iedereen zonder code verandert er niets.
-1.0.0 beta 1, update 42: Verborgen testmodus: Nieuwe functies kunnen nu eerst door testers worden uitgeprobeerd met een testcode. Voor iedereen zonder code verandert er niets: je ziet en merkt er niets van.
-1.0.0 beta 1, update 41: AI-ondertitels via OpenRouter sneller en goedkoper: Lucent vraagt het model bij OpenRouter nu om niet eerst te 'denken' (reasoning): voor een ondertitel is dat niet nodig en het kost tijd en geld. Een model dat altijd moet denken, krijgt de vraag vanzelf nog een keer zonder dit verzoek.</news>
+1.0.0 beta 1, update 42: Verborgen testmodus: Nieuwe functies kunnen nu eerst door testers worden uitgeprobeerd met een testcode. Voor iedereen zonder code verandert er niets: je ziet en merkt er niets van.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

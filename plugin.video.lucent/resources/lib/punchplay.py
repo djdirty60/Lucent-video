@@ -51,9 +51,10 @@ def _store(token, user=None):
     return token
 
 
-def _lock():
-    """True when this process may renew. A lock older than 30 seconds is left over and taken over."""
-    path = util._path(LOCK)            # noqa: SLF001 - same add-on
+def _lock(name=LOCK, stale=30):
+    """True when this one may go ahead (renew, or fetch the history). A lock older than `stale` seconds is left over and
+    taken over. Widgets, the service and lists run at the same moment: only one asks PunchPlay at a time."""
+    path = util._path(name)            # noqa: SLF001 - same add-on
     os.makedirs(os.path.dirname(path), exist_ok=True)
     for _ in range(2):
         try:
@@ -61,7 +62,7 @@ def _lock():
             return True
         except FileExistsError:
             try:
-                if time.time() - os.path.getmtime(path) > 30:
+                if time.time() - os.path.getmtime(path) > stale:
                     os.remove(path)
                     continue
             except OSError:
@@ -72,9 +73,9 @@ def _lock():
     return False
 
 
-def _unlock():
+def _unlock(name=LOCK):
     try:
-        os.remove(util._path(LOCK))    # noqa: SLF001
+        os.remove(util._path(name))    # noqa: SLF001
     except OSError:
         pass
 
@@ -243,12 +244,37 @@ def _fetch(known_ids=None):
     return rows
 
 
+HISTORY_LOCK = "punchplay_history.lock"
+
+
 def _history(force=False):
+    saved = util.load_json(STATE, {})
+    rows = saved.get("rows")
+    if rows is not None and not force and util.cache_get("punchplaychecked", CHECK_EVERY) is not None:
+        return rows
+    if not _lock(HISTORY_LOCK, 120):
+        # another widget or the service is fetching it right now: wait for that answer instead of asking again
+        monitor = xbmc.Monitor()
+        for _ in range(60):
+            if monitor.waitForAbort(0.5) or not os.path.exists(util._path(HISTORY_LOCK)):     # noqa: SLF001
+                break
+        rows = util.load_json(STATE, {}).get("rows")
+        if rows is not None:
+            return rows
+        if not _lock(HISTORY_LOCK, 120):
+            raise util.HttpError("PunchPlay busy")
+    try:
+        return _fetch_history(force)
+    finally:
+        _unlock(HISTORY_LOCK)
+
+
+def _fetch_history(force):
     saved = util.load_json(STATE, {})
     rows = saved.get("rows")
     now = time.time()
     if rows is not None and not force and util.cache_get("punchplaychecked", CHECK_EVERY) is not None:
-        return rows
+        return rows                       # fetched by another one while this one waited
     if rows is None or now - saved.get("full", 0) > FULL_EVERY:
         rows, full = _fetch(), now
     else:
