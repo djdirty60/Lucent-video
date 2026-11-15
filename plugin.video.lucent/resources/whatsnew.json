@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+48",
+   "label": "Beta 1 · update 48",
+   "label_en": "Beta 1 · update 48",
+   "date": "2026-11-15",
+   "at": "2026-11-15T13:55Z",
+   "items": [
+    [
+     "play",
+     "Bronnenlijst breder, met poster",
+     "De lijst met bronnen is veel breder, zodat lange namen en tot 12 kenmerken in beeld passen. Links staan de poster, jaar, score, duur en waar de film over gaat. 'Waarom bovenaan?' vind je nu met de menuknop (of lang drukken) op een bron.",
+     "Wider source list, with poster",
+     "The source list is much wider, so long names and up to 12 tags fit on screen. On the left you see the poster, year, rating, runtime and what the film is about. 'Why on top?' is now under the menu button (or a long press) on a source."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+47",
    "label": "Beta 1 · update 47",
    "label_en": "Beta 1 · update 47",

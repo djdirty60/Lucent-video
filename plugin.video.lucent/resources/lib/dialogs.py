@@ -19,6 +19,7 @@ def path():
 
 BACK = (9, 10, 92)
 LEFT_RIGHT = (1, 2)
+MENU = (117, 101)          # context menu (menu button, long press on Android) and right mouse click
 ORDER = ["4K", "1440p", "1080p", "720p", "SD"]
 
 
@@ -59,6 +60,7 @@ def pills(meta):
 def head_props(meta):
     show = meta.get("show") if meta["kind"] == "episode" else ""
     props = {"title": show or meta["title"], "logo": meta.get("logo"), "fanart": meta.get("fanart"), "plot": meta.get("plot"),
+             "poster": meta.get("poster"),
              "subtitle": meta["title"] if show else (meta.get("tagline") or "")}
     for number, text in enumerate(pills(meta)[:4], 1):
         props["pill%d" % number] = text
@@ -108,13 +110,15 @@ class Sources(Base):
                 item.setProperty("cached", "1")
             if source is self.sources[0]:
                 item.setProperty("rec", T("★ AANBEVOLEN", "★ RECOMMENDED"))
-            for number, flag in enumerate(source["flags"][:8], 1):
+            for number, flag in enumerate(source["flags"][:12], 1):
                 item.setProperty("flag%d" % number, "lucent/flags/%s.png" % flag)
             self.rows.addItem(item)
 
     def onAction(self, action):
         if action.getId() in BACK:
             return self.close()
+        if action.getId() in MENU and self.getFocusId() == 200:
+            return self.explain()           # menu button / long press on a source: why is the recommended one on top
         if action.getId() in LEFT_RIGHT and self.getFocusId() == 100:
             position = self.tabs.getSelectedPosition()
             if 0 <= position < len(self.names):
