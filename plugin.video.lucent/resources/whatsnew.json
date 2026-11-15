@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+40",
+   "label": "Beta 1 · update 40",
+   "label_en": "Beta 1 · update 40",
+   "date": "2026-11-15",
+   "at": "2026-11-15T11:33Z",
+   "items": [
+    [
+     "settings",
+     "Accounts netjes per blok",
+     "Onder Instellingen > Account heeft elk account nu een eigen blok: bovenaan je keuze, 'Ook bijwerken bij je andere account' en 'Bibliotheek kopiëren', daaronder Trakt, Simkl en PunchPlay, elk met koppelen, accountinformatie en loskoppelen.",
+     "Accounts neatly in their own block",
+     "Under Settings > Account each account now has its own block: your choice, 'Also update your other account' and 'Copy your library' at the top, then Trakt, Simkl and PunchPlay, each with link, account information and unlink."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+39",
    "label": "Beta 1 · update 39",
    "label_en": "Beta 1 · update 39",

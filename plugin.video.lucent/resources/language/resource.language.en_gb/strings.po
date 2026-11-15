@@ -461,7 +461,7 @@ msgid "Messages"
 msgstr ""
 
 msgctxt "#32167"
-msgid "Linked with Trakt as"
+msgid "Linked as"
 msgstr ""
 
 msgctxt "#32168"
@@ -469,7 +469,7 @@ msgid "Account information"
 msgstr ""
 
 msgctxt "#32169"
-msgid "Linked with Simkl as"
+msgid "Linked as"
 msgstr ""
 
 msgctxt "#32170"
@@ -1538,7 +1538,7 @@ msgid "PunchPlay"
 msgstr ""
 
 msgctxt "#32451"
-msgid "Linked with PunchPlay as"
+msgid "Linked as"
 msgstr ""
 
 msgctxt "#32452"

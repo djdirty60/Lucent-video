@@ -461,16 +461,16 @@ msgid "Messages"
 msgstr "Meldingen"
 
 msgctxt "#32167"
-msgid "Linked with Trakt as"
-msgstr "Gekoppeld met Trakt als"
+msgid "Linked as"
+msgstr "Gekoppeld als"
 
 msgctxt "#32168"
 msgid "Account information"
 msgstr "Accountinformatie"
 
 msgctxt "#32169"
-msgid "Linked with Simkl as"
-msgstr "Gekoppeld met Simkl als"
+msgid "Linked as"
+msgstr "Gekoppeld als"
 
 msgctxt "#32170"
 msgid "Look up sources beforehand (start at once)"
@@ -1538,8 +1538,8 @@ msgid "PunchPlay"
 msgstr "PunchPlay"
 
 msgctxt "#32451"
-msgid "Linked with PunchPlay as"
-msgstr "Gekoppeld met PunchPlay als"
+msgid "Linked as"
+msgstr "Gekoppeld als"
 
 msgctxt "#32452"
 msgid "Link PunchPlay account"
