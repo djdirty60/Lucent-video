@@ -1672,3 +1672,27 @@ msgstr ""
 msgctxt "#32484"
 msgid "Only for testers: a code switches on functions that are still being tested. Leave empty."
 msgstr ""
+
+msgctxt "#32485"
+msgid "Usenet"
+msgstr ""
+
+msgctxt "#32486"
+msgid "Your provider"
+msgstr ""
+
+msgctxt "#32487"
+msgid "Your indexers"
+msgstr ""
+
+msgctxt "#32488"
+msgid "Check"
+msgstr ""
+
+msgctxt "#32489"
+msgid "Usenet with your own provider and indexers (test mode)."
+msgstr ""
+
+msgctxt "#32490"
+msgid "Usenet is still being tested: fill in a test code under General first."
+msgstr ""

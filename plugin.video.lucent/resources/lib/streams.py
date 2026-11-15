@@ -119,9 +119,11 @@ def convert(raw, include_uncached=True):
         size = data.get("size") or hints.get("videoSize") or 0
         service_name = str(service.get("id") or data.get("addon") or "").upper()
         size_label = size_text(size if isinstance(size, (int, float)) else 0)
+        indexer = str(data.get("indexer") or "").strip()[:24]      # which indexer or tracker found it, when AIOStreams says
         out.append({
             "flags": flags_of(parsed, name),
-            "meta": " · ".join(p for p in (service_name, size_label) if p),
+            "meta": " · ".join(p for p in (service_name, indexer, size_label) if p),
+            "always": kind in ("usenet", "http"),        # nothing to cache: 'CACHED' would say nothing
             "url": with_headers(stream["url"], hints),
             "name": name,
             "resolution": resolution(parsed, name),

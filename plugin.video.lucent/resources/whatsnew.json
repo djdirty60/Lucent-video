@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+50",
+   "label": "Beta 1 · update 50",
+   "label_en": "Beta 1 · update 50",
+   "date": "2026-11-15",
+   "at": "2026-11-15T14:35Z",
+   "items": [
+    [
+     "play",
+     "Indexer in de bronnenlijst, geen 'CACHED' bij Usenet",
+     "De tweede regel van een bron laat ook de indexer zien als die bekend is. Bij Usenet en directe links staat geen 'CACHED' meer: die zijn altijd beschikbaar. Bij debrid en torrents blijft het staan.",
+     "Indexer in the source list, no 'CACHED' for Usenet",
+     "The second line of a source also shows the indexer when it is known. Usenet and direct links no longer say 'CACHED': they are always available. Debrid and torrents keep it."
+    ],
+    [
+     "settings",
+     "Testmodus: Usenet in een eigen tab",
+     "Alleen voor testers: de Usenet-instellingen staan in een eigen tab (instellingen op niveau Geavanceerd). Releases met verstopte namen worden toch herkend, en het log laat elke 30 seconden zien hoe snel Usenet binnenkomt. Voor iedereen zonder testcode verandert er niets.",
+     "Test mode: Usenet in its own tab",
+     "Testers only: the Usenet settings have their own tab (settings level Advanced). Releases with hidden names are recognised anyway, and the log shows every 30 seconds how fast Usenet comes in. For everyone without a test code nothing changes."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+49",
    "label": "Beta 1 · update 49",
    "label_en": "Beta 1 · update 49",

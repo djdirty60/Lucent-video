@@ -41,6 +41,17 @@ def is_pack(name, titles, meta):
     return False
 
 
+def _indexer_name(base):
+    """'NZBGEEK' for https://api.nzbgeek.info/api: the site's own name, for the source list."""
+    host = (urllib.parse.urlsplit(base).hostname or "").lower()
+    if re.fullmatch(r"[\d.:]+", host):
+        return host                        # an address of your own (a local indexer)
+    parts = [p for p in host.split(".") if p not in ("www", "api", "feed", "feeds")]
+    if len(parts) >= 2:
+        parts = parts[:-1]                 # without .info / .com / .net
+    return (parts[-1] if parts else host).upper()[:20]
+
+
 def fetch(meta):
     if not configured():
         return None
@@ -60,6 +71,7 @@ def fetch(meta):
         answers = list(pool.map(ask, ixs))
     if all(a is None for a in answers):
         raise util.HttpError("indexers")
+    names = {slot: _indexer_name(base) for slot, base, _key in ixs}
     out, seen = [], set()
     for rows in answers:
         for row in rows or []:
@@ -74,15 +86,20 @@ def fetch(meta):
             seen.add(key)
             job = {"scraper": "Usenet", "slot": row["slot"], "link": row["link"], "param": row["param"], "name": name,
                    "season": meta.get("season"), "episode": meta.get("episode")}
+            where = names.get(row["slot"]) or ""
             if not pack:
-                out.append(usenet._source(name, row["size"], SERVICE, resolve=job))       # noqa: SLF001 - same add-on
+                source = usenet._source(name, row["size"], SERVICE, resolve=job)          # noqa: SLF001 - same add-on
+                source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"])) if p)
+                source["always"] = True
+                out.append(source)
                 continue
             # a pack: rank it by the size of one episode, show the size of the whole season
             job["pack"] = True
             episodes = int(meta.get("season_count") or 0) or 10
             source = usenet._source(name, row["size"] // episodes, SERVICE, resolve=job)    # noqa: SLF001
-            source["meta"] = " · ".join((SERVICE, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"])))
+            source["meta"] = " · ".join(p for p in (SERVICE, where, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"])) if p)
             source["pack"] = True
+            source["always"] = True
             out.append(source)
     return out
 

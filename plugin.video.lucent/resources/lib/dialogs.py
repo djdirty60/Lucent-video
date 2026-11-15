@@ -106,8 +106,8 @@ class Sources(Base):
             item.setProperty("res", source["resolution"])
             item.setProperty("meta", _with_scraper(source) + (T(" · Kan dit apparaat niet", " · Not for this device") if source.get("cannot") else ""))
             item.setProperty("scraper", SCRAPER_SHORT.get(source.get("scraper"), source.get("scraper") or ""))
-            if source["cached"]:
-                item.setProperty("cached", "1")
+            if source["cached"] and not source.get("always"):
+                item.setProperty("cached", "1")   # Usenet and direct links are always there: no 'CACHED' for those
             for number, flag in enumerate(source["flags"][:12], 1):
                 item.setProperty("flag%d" % number, "lucent/flags/%s.png" % flag)
             self.rows.addItem(item)

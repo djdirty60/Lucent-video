@@ -151,7 +151,7 @@ def easynews(meta):
             continue
         name = stem + extension
         path = "%s%s%s/%s" % (key, suffix, extension, urllib.parse.quote(name))
-        out.append(_source(name, size, "EASYNEWS", url="%s/%s|%s" % (base, path, agent)))
+        out.append(dict(_source(name, size, "EASYNEWS", url="%s/%s|%s" % (base, path, agent)), always=True))
     return out
 
 

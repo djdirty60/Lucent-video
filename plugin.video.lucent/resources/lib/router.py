@@ -827,7 +827,7 @@ def title(handle, params):
 
 
 SECTIONS = {"general": -100, "account": -99, "trakt": -99, "sources": -98, "conn": -98, "play": -97, "subs": -96, "skip": -95,
-            "library": -94, "services": -93}
+            "library": -94, "services": -93, "usenet": -92}
 SUBTITLE_ACTIONS = ("subtitles", "subs_auto", "subs_background", "subs_prefetch", "subs_key", "subs_mode", "subs_audio", "subs_default",
                     "subs_settings", "skip_settings", "subs_setup", "skip_setup", "skip_install", "skip_auto")
 

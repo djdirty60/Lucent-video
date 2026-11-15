@@ -177,6 +177,28 @@ def stop():
     util.HOME.clearProperty(PORT_PROPERTY)
 
 
+SPEED_EVERY = 30
+_speed = {"at": 0.0, "cpu": 0.0, "stats": None}
+
+
+def _speed_line(release):
+    """Every 30 seconds while a release is read: how fast it comes in, how fast Kodi takes it, whether Kodi had to wait,
+    and how busy the processor is (all of Kodi, so picture decoding counts too). For testing on small boxes."""
+    now, cpu = time.time(), time.process_time()
+    stats = dict(release.stats)
+    before = _speed["stats"]
+    if before is not None and _speed.get("release") is release and now - _speed["at"] >= SPEED_EVERY:
+        seconds = now - _speed["at"]
+        cores = os.cpu_count() or 1
+        util.log("usenet: speed: in %.1f MB/s, to Kodi %.1f MB/s, Kodi waited %d time(s) (%.1f s), processor %d%% of %d core(s), cache %d MB"
+                 % ((stats["in"] - before["in"]) / seconds / 1e6, (stats["out"] - before["out"]) / seconds / 1e6,
+                    stats["waits"] - before["waits"], stats["waited"] - before["waited"],
+                    round(100 * (cpu - _speed["cpu"]) / seconds / cores), cores, release.cached // 1000000))
+    elif before is not None and _speed.get("release") is release:
+        return
+    _speed.update(at=now, cpu=cpu, stats=stats, release=release)
+
+
 def tick(playing):
     """From the service every few seconds: on or off with the setting; an unread release is closed."""
     if wanted():
@@ -186,6 +208,8 @@ def tick(playing):
         util.log("usenet: local player server off")
         return
     release = _state["release"]
+    if release and time.time() - release.last_read < SPEED_EVERY:
+        _speed_line(release)
     if release and not playing and time.time() - release.last_read > IDLE:
         with _state["lock"]:
             if _state["release"] is release:

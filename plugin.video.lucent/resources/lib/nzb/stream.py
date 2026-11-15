@@ -58,6 +58,7 @@ class Release:
         self.closed = False
         self.last_read = time.time()
         self.want = None                    # for an episode: the pattern its name must have (if it has one at all)
+        self.stats = {"in": 0, "out": 0, "waits": 0, "waited": 0.0}     # for the speed line in the log
 
     # ------------------------------------------------------------------ articles
     def _decode(self, posted, number):
@@ -84,7 +85,13 @@ class Release:
             if future is None:
                 future = self.workers.submit(self._fetch, posted, number)
                 self.pending[key] = future
-        return future.result(timeout=60)
+        started = time.time()
+        data = future.result(timeout=60)
+        waited = time.time() - started
+        if waited > 0.05:                   # Kodi had to wait for this article: read-ahead was not far enough
+            self.stats["waits"] += 1
+            self.stats["waited"] += waited
+        return data
 
     def _fetch(self, posted, number):
         key = (posted.index, number)
@@ -94,6 +101,7 @@ class Release:
             with self.lock:
                 self.pending.pop(key, None)
         with self.lock:
+            self.stats["in"] += len(data)
             if key not in self.cache:
                 self.cache[key] = data
                 self.cached += len(data)
@@ -272,6 +280,7 @@ class Release:
             out.append(chunk)
             offset += len(chunk)
             length -= len(chunk)
+        self.stats["out"] += sum(len(c) for c in out)
         return b"".join(out)
 
     def _read_piece(self, offset, length):
@@ -313,10 +322,64 @@ class Release:
         self.workers.shutdown(wait=False)
 
 
+SNIFF_FILES = 12                            # at most this many first articles to look inside a release with hidden names
+
+
+def _sniff(pool, files, log):
+    """Hidden (obfuscated) names: look at the first article of the biggest unknown files. The yEnc header often still
+    has the real name; otherwise the first bytes tell what it is (RAR, 7z, Matroska, MP4). True when something was found."""
+    unknown = [p for p in files if nzbfile.kind_of(p) == "other" and p.encoded > 1000000]
+    if not unknown:
+        return False
+    look = sorted(unknown, key=lambda p: -p.encoded)[:SNIFF_FILES]
+
+    def first(posted):
+        try:
+            return posted, yenc.decode(pool.body(posted.segments[0][2]))
+        except (nntp.NntpError, OSError, yenc.YencError):
+            return posted, (b"", {})
+
+    with ThreadPoolExecutor(max_workers=min(6, len(look))) as workers:
+        answers = list(workers.map(first, look))
+    found, kinds = 0, {}
+    for posted, (data, info) in answers:
+        real = (info.get("name") or "").strip()
+        if real and real != posted.name and nzbfile.kind_of(nzbfile.Posted('"%s"' % real, [], 0)) != "other":
+            posted.name = real
+            found += 1
+            continue
+        if data.startswith((archive.RAR4, archive.RAR5)):
+            kinds[posted.index] = "rar"
+        elif data.startswith(sevenzip.SIGNATURE):
+            kinds[posted.index] = "7z"
+        elif data[:4] == b"\x1a\x45\xdf\xa3":
+            kinds[posted.index] = "mkv"
+        elif data[4:8] == b"ftyp":
+            kinds[posted.index] = "mp4"
+    if "rar" in kinds.values() or "7z" in kinds.values():
+        # an archive set with hidden names: the unknown files in NZB order are its volumes
+        kind = "rar" if "rar" in kinds.values() else "7z"
+        volumes = sorted((p for p in unknown if kinds.get(p.index, kind) == kind), key=lambda p: p.index)
+        for number, posted in enumerate(volumes, 1):
+            posted.name = ("hidden.part%03d.rar" if kind == "rar" else "hidden.7z.%03d") % number
+            found += 1
+    for posted in unknown:
+        if kinds.get(posted.index) in ("mkv", "mp4"):
+            posted.name = "hidden%d.%s" % (posted.index, kinds[posted.index])
+            found += 1
+    log("hidden names: %d of %d files recognised" % (found, len(unknown)))
+    return bool(found)
+
+
 def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=None, cache=None, pack=False):
     """NZB -> an opened Release, or StreamError / nzbfile.NzbError with the reason."""
     files = nzbfile.parse(nzb_bytes)
-    kind, chosen = nzbfile.pick(files, season, episode, pack)
+    try:
+        kind, chosen = nzbfile.pick(files, season, episode, pack)
+    except nzbfile.NzbError:
+        if not _sniff(pool, files, log or (lambda text: None)):
+            raise
+        kind, chosen = nzbfile.pick(files, season, episode, pack)
     release = Release(pool, files, kind, chosen, log=log, **{k: v for k, v in (("ahead", ahead), ("cache", cache)) if v})
     if season and episode:
         release.want = nzbfile.episode_tag(season, episode)

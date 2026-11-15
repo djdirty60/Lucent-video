@@ -1672,3 +1672,27 @@ msgstr "Testcode"
 msgctxt "#32484"
 msgid "Only for testers: a code switches on functions that are still being tested. Leave empty."
 msgstr "Alleen voor testers: een code zet functies aan die nog getest worden. Laat leeg."
+
+msgctxt "#32485"
+msgid "Usenet"
+msgstr "Usenet"
+
+msgctxt "#32486"
+msgid "Your provider"
+msgstr "Je provider"
+
+msgctxt "#32487"
+msgid "Your indexers"
+msgstr "Je indexers"
+
+msgctxt "#32488"
+msgid "Check"
+msgstr "Controleren"
+
+msgctxt "#32489"
+msgid "Usenet with your own provider and indexers (test mode)."
+msgstr "Usenet met je eigen provider en indexers (testmodus)."
+
+msgctxt "#32490"
+msgid "Usenet is still being tested: fill in a test code under General first."
+msgstr "Usenet wordt nog getest: vul eerst een testcode in bij Algemeen."

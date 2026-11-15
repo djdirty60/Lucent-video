@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+49" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+50" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -83,17 +83,16 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 49: no 'Recommended' badge any more; Lucent's own resume screen for library items (with Lucent 2.1.21+); test mode only: Usenet season packs, 7z and indexer daily limits.
+        <news>1.0.0 beta 1, update 50: the indexer shows in the source list and Usenet sources no longer say 'CACHED'; test mode only: Usenet in its own settings tab, hidden release names recognised, speed in the log.
+1.0.0 beta 1, update 49: no 'Recommended' badge any more; Lucent's own resume screen for library items (with Lucent 2.1.21+); test mode only: Usenet season packs, 7z and indexer daily limits.
 1.0.0 beta 1, update 48: wider source list with the poster, year, rating and plot on the left; long names and up to 12 tags fit. 'Why on top?' moved to the menu button (or long press) on a source.
 1.0.0 beta 1, update 47: PunchPlay lists no longer stay empty when several lists or widgets load at the same time; files are saved safely when written at the same moment.
 1.0.0 beta 1, update 46: test mode only: a descriptive user agent for indexers, the indexer's own reason when it refuses a key, and IMDb ids with or without 'tt' (remembered per indexer).
 1.0.0 beta 1, update 45: test mode only: indexers answering JSON are read too, and unreadable answers or web pages are reported clearly.
 1.0.0 beta 1, update 44: test mode only: the connection test now really checks the indexer's API key.
-1.0.0 beta 1, update 43: the test code works right after filling it in, also before a restart. The repository now keeps the two previous versions too, so an older repository list no longer ends in 'Installation failed'.
-1.0.0 beta 1, update 42: a hidden test mode (test code under Settings > General, advanced level) for functions that are still being tested; without a code nothing changes.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 49: Geen 'Aanbevolen'-label meer: De beste bron staat gewoon bovenaan de bronnenlijst. Het label is weg, dus de naam van de bron krijgt de volle breedte. Hervat-scherm ook vanuit de bibliotheek: Speel je een half gekeken titel af uit de Kodi-bibliotheek op Home, dan zie je het hervat-scherm van Lucent Video in plaats van het kleine menu van Kodi (met Lucent 2.1.21 of nieuwer). Testmodus: Usenet stap 2: Alleen voor testers: seizoenspakketten, 7z-releases, en de daglimieten van je indexers worden bijgehouden (stoppen op 90%, vooraf klaarzetten gebruikt hoogstens de helft). Je eigen Usenet-gegevens komen nooit in het foutrapport. Voor iedereen zonder testcode verandert er niets.
-1.0.0 beta 1, update 48: Bronnenlijst breder, met poster: De lijst met bronnen is veel breder, zodat lange namen en tot 12 kenmerken in beeld passen. Links staan de poster, jaar, score, duur en waar de film over gaat. 'Waarom bovenaan?' vind je nu met de menuknop (of lang drukken) op een bron.
-1.0.0 beta 1, update 47: PunchPlay-lijsten laden weer goed: Als meerdere lijsten of widgets tegelijk laadden, kon een PunchPlay-lijst leeg blijven met een foutmelding. Ze wachten nu netjes op elkaar en PunchPlay wordt maar één keer gevraagd.</news>
+1.0.0 beta 1, update 43: the test code works right after filling it in, also before a restart. The repository now keeps the two previous versions too, so an older repository list no longer ends in 'Installation failed'.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 50: Indexer in de bronnenlijst, geen 'CACHED' bij Usenet: De tweede regel van een bron laat ook de indexer zien als die bekend is. Bij Usenet en directe links staat geen 'CACHED' meer: die zijn altijd beschikbaar. Bij debrid en torrents blijft het staan. Testmodus: Usenet in een eigen tab: Alleen voor testers: de Usenet-instellingen staan in een eigen tab (instellingen op niveau Geavanceerd). Releases met verstopte namen worden toch herkend, en het log laat elke 30 seconden zien hoe snel Usenet binnenkomt. Voor iedereen zonder testcode verandert er niets.
+1.0.0 beta 1, update 49: Geen 'Aanbevolen'-label meer: De beste bron staat gewoon bovenaan de bronnenlijst. Het label is weg, dus de naam van de bron krijgt de volle breedte. Hervat-scherm ook vanuit de bibliotheek: Speel je een half gekeken titel af uit de Kodi-bibliotheek op Home, dan zie je het hervat-scherm van Lucent Video in plaats van het kleine menu van Kodi (met Lucent 2.1.21 of nieuwer). Testmodus: Usenet stap 2: Alleen voor testers: seizoenspakketten, 7z-releases, en de daglimieten van je indexers worden bijgehouden (stoppen op 90%, vooraf klaarzetten gebruikt hoogstens de helft). Je eigen Usenet-gegevens komen nooit in het foutrapport. Voor iedereen zonder testcode verandert er niets.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>
