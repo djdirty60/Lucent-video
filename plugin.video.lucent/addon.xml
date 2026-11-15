@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+35" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+36" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -82,19 +82,19 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 35: titles taken from Trakt use Trakt's translation in your language when there is one (as Seren does), else the English title.
+        <news>1.0.0 beta 1, update 36: Continue watching shows each film and episode only once; Trakt sometimes kept two progress points for the same film (started twice or on two devices), now only the newest counts.
+1.0.0 beta 1, update 35: titles taken from Trakt use Trakt's translation in your language when there is one (as Seren does), else the English title.
 1.0.0 beta 1, update 34: when TMDB only has 'Episode 7' (in English too), the title and description come from Trakt, like Seren; also without a Trakt account, in lists and in the library.
 1.0.0 beta 1, update 33: library episodes with only a placeholder title ('Episode 7') or no description get the English ones, and a changed episode is now refreshed in Kodi's library instead of keeping the old text.
 1.0.0 beta 1, update 32: new poster label lucent.season.towatch counts the episode itself too (episode 1 of 4 aired: '4 to watch'); lucent.season.left keeps its meaning for skins.
 1.0.0 beta 1, update 31: Kodi now shows Wilfried van der Voort as the maker of Lucent Video.
 1.0.0 beta 1, update 30: after you stop watching, Continue watching and the other account rows on Home are fetched again (after 15 and 75 seconds) with fresh account data; a new resume point counts as a change.
-1.0.0 beta 1, update 29: the Finale label only appears when TMDB itself marks the episode as a finale; the newest episode of a running season is no longer called a finale. Mid-season and series finales come from TMDB too.
-1.0.0 beta 1, update 28: Continue watching for series starts with new episodes (out in the last 30 days, after you last watched that series), newest first; then what you watched or stopped most recently.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 35: Nederlandse titels van Trakt als die er zijn: Haalt Lucent een titel bij Trakt omdat TMDB alleen 'Aflevering 7' kent, dan neemt hij de Nederlandse vertaling van Trakt als die bestaat, anders de Engelse. Zo doet Seren het ook.
+1.0.0 beta 1, update 29: the Finale label only appears when TMDB itself marks the episode as a finale; the newest episode of a running season is no longer called a finale. Mid-season and series finales come from TMDB too.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 36: Elke film maar één keer in Verder kijken: Verder kijken toont elke film en aflevering maar één keer. Trakt bewaarde soms twee voortgangen van dezelfde film (twee keer gestart, of op twee apparaten); nu telt alleen de nieuwste.
+1.0.0 beta 1, update 35: Nederlandse titels van Trakt als die er zijn: Haalt Lucent een titel bij Trakt omdat TMDB alleen 'Aflevering 7' kent, dan neemt hij de Nederlandse vertaling van Trakt als die bestaat, anders de Engelse. Zo doet Seren het ook.
 1.0.0 beta 1, update 34: Echte titels voor 'Aflevering 7': Kent TMDB een aflevering alleen als 'Aflevering 7' (ook in het Engels), dan haalt Lucent de titel en beschrijving nu bij Trakt, net als Seren. Dat werkt ook zonder Trakt-account, in de lijsten en in de bibliotheek.
 1.0.0 beta 1, update 33: Afleveringen in de bibliotheek krijgen hun echte titel: Heeft een aflevering geen Nederlandse titel ('Aflevering 7') of beschrijving, dan gebruikt Lucent de Engelse. Komt die titel of beschrijving later pas op TMDB, dan werkt Lucent de aflevering in de Kodi-bibliotheek nu ook echt bij. Eerder bleef 'Aflevering 7' staan.
-1.0.0 beta 1, update 32: 'Nog' telt deze aflevering mee: Voor het label op de poster telt Lucent Video nu ook de aflevering zelf mee: bij aflevering 1 van 4 uitgezonden staat er 'nog 4'. Bij de laatst uitgezonden aflevering staat er niets. (De Lucent-skin toont dit vanaf 2.1.15.)
-1.0.0 beta 1, update 31: Maker: Wilfried van der Voort: In Kodi staat bij Lucent Video nu Wilfried van der Voort als maker.</news>
+1.0.0 beta 1, update 32: 'Nog' telt deze aflevering mee: Voor het label op de poster telt Lucent Video nu ook de aflevering zelf mee: bij aflevering 1 van 4 uitgezonden staat er 'nog 4'. Bij de laatst uitgezonden aflevering staat er niets. (De Lucent-skin toont dit vanaf 2.1.15.)</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

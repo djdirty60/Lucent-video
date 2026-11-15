@@ -161,9 +161,41 @@ def watched_episodes():
     return {show: {tuple(int(x) for x in key.split(":")): when for key, when in eps.items()} for show, eps in _local()["episodes"].items()}
 
 
+def _title_key(row):
+    try:
+        if row.get("type") == "movie":
+            return ("movie", str(row["movie"]["ids"].get("tmdb")))
+        return ("episode", str(row["show"]["ids"].get("tmdb")), int(row["episode"]["season"]), int(row["episode"]["number"]))
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return None
+
+
+def _newest_first(row):
+    if row.get("paused_at"):
+        return str(row["paused_at"])
+    try:
+        return "%019.6f" % float(row.get("at") or 0)
+    except (TypeError, ValueError):
+        return ""
+
+
+def unique(rows):
+    """One row per film or episode, the newest. Trakt keeps a row per playback session, so a film started twice (or
+    on two devices) came back twice: in Continue watching it stood there twice, side by side."""
+    out, seen = [], set()
+    for row in sorted(rows or [], key=_newest_first, reverse=True):
+        key = _title_key(row)
+        if key is None or key in seen:
+            continue
+        seen.add(key)
+        out.append(row)
+    return out
+
+
 def paused():
+    """Where you stopped, one row per film or episode (the newest), newest first."""
     account = active()
-    return account.paused() if account else _local_paused()
+    return unique(account.paused() if account else _local_paused())
 
 
 def forget_resume(meta):
