@@ -36,7 +36,9 @@ ACCOUNT_LISTS = ("watchlist_movie", "watchlist_tv", "collection_movie", "collect
 
 def send(handle, rows, content="", more=None):
     if more:
-        rows.append(items.folder(T("Volgende pagina", "Next page"), more, "DefaultFolder.png"))
+        url, item, folder = items.folder(T("Volgende pagina", "Next page"), more, "DefaultFolder.png")
+        item.setProperty("SpecialSort", "bottom")          # always last, however the skin sorts the row
+        rows.append((url, item, folder))
     xbmcplugin.addDirectoryItems(handle, rows, len(rows))
     if content:
         xbmcplugin.setContent(handle, content)
@@ -667,12 +669,15 @@ def gather(params):
     elif name in ("collection_movie", "collection_tv"):          # the whole collection, A to Z
         everything = sorted(tmdb.many(tracker.pairs(name)), key=_alphabetical)
         titles, more = _slice(everything, page)
+        _date_added(titles, tracker.dates(name))
     elif name in ACCOUNT_LISTS:
         slice_of, more = _slice(tracker.pairs(name), page)
         titles = tmdb.many(slice_of)
+        _date_added(titles, tracker.dates(name))
     elif name == "traktlist":
         found = tracker.list_pairs(params["user"], params["id"], page, PAGE)
         titles, more = tmdb.many(found), len(found) >= PAGE
+        _date_added(titles, tracker.list_dates(params["user"], params["id"], page, PAGE))
     elif name == "floppylist":
         found, more = floppy.items(params["id"], page, PAGE)
         titles = tmdb.many(found)
@@ -686,6 +691,17 @@ def gather(params):
     elif titles and all(t["kind"] == "episode" for t in titles):
         content = "episodes"
     return titles, content, more
+
+
+def _date_added(titles, dates):
+    """When each title was added to the list (watchlist, collection, a list), so 'Date added' sorting in the skin works."""
+    if not dates:
+        return
+    by_id = {(kind, str(tmdb_id)): when for (kind, tmdb_id), when in dates.items()}
+    for meta in titles:
+        when = by_id.get((meta.get("kind"), str(meta.get("tmdb"))))
+        if when:
+            meta["dateadded"] = str(when).replace("T", " ")[:19]
 
 
 def search(handle, params):

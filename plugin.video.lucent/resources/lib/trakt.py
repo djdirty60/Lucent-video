@@ -159,6 +159,26 @@ def pairs(name):
     return pairs_from(cached(COLLECTIONS[name][0]))
 
 
+def dates_from(data):
+    """{(kind, tmdb id): when it was added} from Trakt rows (listed_at, collected_at or last_collected_at)."""
+    out = {}
+    for row in data or []:
+        kind = row.get("type") or ("movie" if "movie" in row else "show")
+        tmdb_id = (row.get(kind) or {}).get("ids", {}).get("tmdb")
+        when = row.get("listed_at") or row.get("collected_at") or row.get("last_collected_at")
+        if tmdb_id and when and kind in ("movie", "show"):
+            out[("movie" if kind == "movie" else "tvshow", tmdb_id)] = when
+    return out
+
+
+def dates(name):
+    return dates_from(cached(COLLECTIONS[name][0]))
+
+
+def list_dates(owner, list_id, page, size):
+    return dates_from(cached("users/%s/lists/%s/items/movie,show?limit=%d&page=%d" % (owner, list_id, size, page), 900))
+
+
 def custom_lists(kind, query=None):
     """[(owner, id, name)]. kind: mine, liked, trending, popular or search."""
     if kind == "mine":

@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+65",
+   "label": "Beta 1 · update 65",
+   "label_en": "Beta 1 · update 65",
+   "date": "2026-11-16",
+   "at": "2026-11-16T14:38Z",
+   "items": [
+    [
+     "library",
+     "Kijklijst sorteren op Datum toegevoegd",
+     "In de kijklijst, de collectie en je eigen lijsten krijgt elke titel nu de datum waarop je hem toevoegde. Sorteer je een rij op Datum toegevoegd, dan staan de nieuwste bovenaan, en Volgende pagina staat altijd achteraan. Het poster-patroon werkt nu ook met Pictorium-adressen zoals {tmdb_id|imdb_id}.",
+     "Sort the watchlist by Date added",
+     "In the watchlist, the collection and your own lists every title now carries the date you added it. Sorting a row by Date added puts the newest first, and Next page always stays at the end. The poster pattern now also works with Pictorium addresses like {tmdb_id|imdb_id}."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+64",
    "label": "Beta 1 · update 64",
    "label_en": "Beta 1 · update 64",

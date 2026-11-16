@@ -11,6 +11,8 @@ import util
 DOWN = "lucent.video.posters.down"          # set for a while when the poster maker does not answer
 CHECK_EVERY = 3600
 SAMPLE = {"kind": "movie", "imdb": "tt0133093", "tmdb": "603", "title": "The Matrix"}
+NAMES = "imdb_id|tmdb_id|tvdb_id|type|item_type"
+PLACEHOLDER = r"\{((?:%s)(?:\s*\|\s*(?:%s))*)\}" % (NAMES, NAMES)       # {tmdb_id} or {tmdb_id|imdb_id}
 _cache = {"pattern": None, "shows": True, "at": 0.0}
 
 
@@ -33,13 +35,15 @@ def url_for(meta, pattern=None):
     missing = []
 
     def fill(match):
-        value = values.get(match.group(1))
-        if not value:
-            missing.append(match.group(1))
-            return ""
-        return str(value)
+        # {tmdb_id|imdb_id}: the first one this title has (the AIOMetadata way of writing a fallback)
+        for name in match.group(1).split("|"):
+            value = values.get(name.strip())
+            if value:
+                return str(value)
+        missing.append(match.group(1))
+        return ""
 
-    url = re.sub(r"\{(imdb_id|tmdb_id|tvdb_id|type|item_type)\}", fill, pattern)
+    url = re.sub(PLACEHOLDER, fill, pattern)
     return "" if missing else url
 
 
@@ -80,13 +84,16 @@ SKIN_ON = "lucent.video.posters"
 def skin_parts(pattern):
     """{'id': 'imdb'|'tmdb', 'movie': (prefix, suffix), 'tv': (prefix, suffix)} or None when the skin cannot use it
     (no id placeholder, or more than one id in it)."""
-    ids = re.findall(r"\{(imdb_id|tmdb_id|tvdb_id)\}", pattern or "")
-    if len(ids) != 1 or ids[0] == "tvdb_id" or "://" not in pattern:
+    groups = [g for g in re.findall(PLACEHOLDER, pattern or "") if g not in ("type", "item_type")]
+    if len(groups) != 1 or "://" not in pattern:
         return None
-    out = {"id": ids[0].split("_")[0]}
+    usable = [n.strip() for n in groups[0].split("|") if n.strip() in ("imdb_id", "tmdb_id")]
+    if not usable:
+        return None                             # only {tvdb_id}: the skin has no simple way to that number
+    out = {"id": usable[0].split("_")[0]}       # {tmdb_id|imdb_id}: the skin uses the first
     for kind, words in (("movie", ("movie", "movie")), ("tv", ("tv", "series"))):
         filled = pattern.replace("{type}", words[0]).replace("{item_type}", words[1])
-        prefix, _sep, suffix = filled.partition("{%s}" % ids[0])
+        prefix, _sep, suffix = filled.partition("{%s}" % groups[0])
         out[kind] = (prefix, suffix)
     return out
 

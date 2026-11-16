@@ -1878,11 +1878,11 @@ msgid "Posters"
 msgstr ""
 
 msgctxt "#32536"
-msgid "Poster pattern (btttr.cc, SpatialPosters, …)"
+msgid "Poster pattern (btttr.cc, Pictorium, SpatialPosters, …)"
 msgstr ""
 
 msgctxt "#32537"
-msgid "Paste the poster URL of a poster maker such as btttr.cc. Lucent fills in {imdb_id}, {tmdb_id}, {tvdb_id}, {type} and {item_type}. Empty: the usual TMDB posters."
+msgid "Paste the poster URL of a poster maker such as btttr.cc or Pictorium (pictorium.elfhosted.com). Lucent fills in {imdb_id}, {tmdb_id}, {tvdb_id}, {type} and {item_type}, also as {tmdb_id|imdb_id}. Empty: the usual TMDB posters."
 msgstr ""
 
 msgctxt "#32538"

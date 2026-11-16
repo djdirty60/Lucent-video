@@ -246,6 +246,24 @@ def pairs(name_of_list):
     return []
 
 
+def dates(name_of_list):
+    """{(kind, tmdb id): when it was added} for watchlist_* or collection_*, for 'Date added' sorting. {} when unknown."""
+    account = active()
+    try:
+        return account.dates(name_of_list) if account and hasattr(account, "dates") else {}
+    except Exception as error:                  # noqa: BLE001 - only for sorting
+        util.log("list dates: %s" % type(error).__name__)
+        return {}
+
+
+def list_dates(owner, list_id, page, size):
+    account = active()
+    try:
+        return account.list_dates(owner, list_id, page, size) if account and hasattr(account, "list_dates") else {}
+    except Exception:                           # noqa: BLE001
+        return {}
+
+
 def custom_lists(kind, query=None):
     account = active()
     return account.custom_lists(kind, query) if account and account.HAS_LISTS else []

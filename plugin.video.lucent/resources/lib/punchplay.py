@@ -443,6 +443,17 @@ def pairs(name):
         return []
 
 
+def dates(name):
+    """{(kind, tmdb id): when it was added to your PunchPlay watchlist}."""
+    if not name.startswith("watchlist_"):
+        return {}
+    wanted = "movie" if name.endswith("movie") else "tvshow"
+    try:
+        return {(wanted, row["tmdb"]): row.get("added") for row in _watchlist() if _kind(row["type"]) == wanted and row.get("added")}
+    except util.HttpError:
+        return {}
+
+
 def custom_lists(kind, query=None):
     """[(owner, id, name)] of your own lists (not the watchlist). PunchPlay has no list search here."""
     if kind != "mine":

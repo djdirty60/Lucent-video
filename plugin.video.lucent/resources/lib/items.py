@@ -40,6 +40,8 @@ def fill_tag(item, meta, playcount=None, resume=None, last_played="", default_id
         tag.setYear(int(meta["year"]))
     if meta.get("premiered"):
         tag.setPremiered(meta["premiered"])
+    if meta.get("dateadded"):
+        tag.setDateAdded(meta["dateadded"])            # when it was added to the list: 'Date added' sorting
     ratings = {}
     if meta.get("rating"):
         ratings["tmdb"] = (float(meta["rating"]), int(meta.get("votes") or 0))

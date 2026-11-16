@@ -260,6 +260,14 @@ def pairs(name):
     return [(kind, _id(e)) for r, e in _rows(_safe(), bucket) if _id(e) and keep(r.get("status"))]
 
 
+def dates(name):
+    """{(kind, tmdb id): when it was added to your Simkl list}."""
+    bucket, kind = ("movies", "movie") if name.endswith("movie") else ("shows", "tvshow")
+    keep = (lambda s: s == "plantowatch") if name.startswith("watchlist_") else (lambda s: s in ("completed", "watching"))
+    return {(kind, _id(e)): r.get("added_to_watchlist_at") for r, e in _rows(_safe(), bucket)
+            if _id(e) and keep(r.get("status")) and r.get("added_to_watchlist_at")}
+
+
 def library_rows(kind):
     """Simkl has no 'collection': everything you follow goes in, except what you dropped."""
     key = "movie" if kind == "movies" else "show"
