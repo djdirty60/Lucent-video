@@ -12,7 +12,7 @@ import collections
 import re
 import threading
 import time
-from concurrent.futures import CancelledError, Future, ThreadPoolExecutor
+from concurrent.futures import CancelledError, Future, ThreadPoolExecutor, TimeoutError as FutureTimeout
 
 from . import archive, nntp, nzbfile, sevenzip, yenc
 
@@ -26,6 +26,8 @@ SAMPLE_PART = 10           # sample articles per connection
 AHEAD_SECONDS = 15         # a heavy film: read at least this many seconds of it ahead
 AHEAD_MOST = 192 * 1024 * 1024    # but never more than this (memory on small boxes)
 PIPELINE = True            # read-ahead asks two neighbouring articles at once over one connection
+PRIORITY = True            # what Kodi waits for goes before read-ahead, stale read-ahead is dropped on a jump
+SLOW_ARTICLE = 15          # an article this many seconds late is told in the log
 URGENT = 3                 # articles Kodi waits for, fetched before any read-ahead
 COUNT_WORKERS = 8          # connections used for counting
 PIN_START = 4 * 1024 * 1024
@@ -77,7 +79,7 @@ class Release:
         self.ranges = {}                    # (file index, article) -> (first byte, last byte) in that file, from yEnc
         self.file_size = {}                 # file index -> decoded size of the whole posted file
         # read-ahead leaves a couple of connections free, so what Kodi waits for (a jump) never queues behind it
-        keep_free = 2 if pool.limit >= 16 else 1 if pool.limit >= 8 else 0
+        keep_free = (2 if pool.limit >= 16 else 1 if pool.limit >= 8 else 0) if PRIORITY else 0
         self.workers = ThreadPoolExecutor(max_workers=max(2, pool.limit - keep_free))
         self.urgent = ThreadPoolExecutor(max_workers=URGENT)    # only for what Kodi is waiting for right now
         self.pieces = []
@@ -166,15 +168,22 @@ class Release:
                 self.cache.move_to_end(key)
                 return self.cache[key]
             future = self.pending.get(key)
-            if future is not None and future.cancel():
+            if PRIORITY and future is not None and future.cancel():
                 future = None                       # it was still waiting in the read-ahead queue: fetch it first
             if future is None:
-                self._drop_stale(posted, number)    # a jump: read-ahead for the old place is no use any more
-                future = self.urgent.submit(self._fetch, posted, number, True)
+                if PRIORITY:
+                    self._drop_stale(posted, number)    # a jump: read-ahead for the old place is no use any more
+                    future = self.urgent.submit(self._fetch, posted, number, True)
+                else:
+                    future = self.workers.submit(self._fetch, posted, number)
                 self.pending[key] = future
         started = time.time()
         try:
-            data = future.result(timeout=60)
+            try:
+                data = future.result(timeout=SLOW_ARTICLE)
+            except FutureTimeout:
+                self._tell_slow(posted, number, future)     # so a hang shows up in the log: what it is waiting for
+                data = future.result(timeout=60 - SLOW_ARTICLE)
         except CancelledError:
             return self.article(posted, number)     # another read jumped elsewhere and cancelled it: ask again
         except nntp.Missing:
@@ -185,6 +194,13 @@ class Release:
             self.stats["waited"] += waited
             self.stats["longest"] = max(self.stats.get("longest", 0.0), waited)
         return data
+
+    def _tell_slow(self, posted, number, future):
+        pool = self.pool
+        state = "running" if future.running() else "done" if future.done() else "waiting in the queue"
+        self.log("article %d of %s: no answer after %d s (%s; connections %d of %d in use, %d idle, %d asked first)"
+                 % (number, posted.name or posted.index, SLOW_ARTICLE, state, pool.count - len(pool.idle), pool.limit,
+                    len(pool.idle), pool.urgent))
 
     def _filler(self, posted, number):
         """Zeros for an article that is gone everywhere, when that is allowed: at most FILL_SHARE of all articles and

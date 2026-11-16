@@ -78,6 +78,37 @@ def _read(path):
         return [], "%s; through Kodi: %s%s" % (way, type(error).__name__, (" (file: %s)" % missing) if missing else "")
 
 
+RUN = "run_state.json"
+CRASH_LINES = 600                   # the end of the previous log when Kodi did not stop cleanly
+CRASH_PROPERTY = "lucent.video.lastcrash"
+
+
+def mark_start():
+    """At service start: a 'running' mark still standing means the previous Kodi run ended without stopping cleanly
+    (a crash, a freeze, the power). Remembered for this run, so the report adds the end of that log by itself."""
+    state = util.load_json(RUN, {})
+    if state.get("running"):
+        util.HOME.setProperty(CRASH_PROPERTY, time.strftime("%Y-%m-%d %H:%M", time.localtime(state.get("since") or time.time())))
+        util.log("the previous Kodi run did not stop cleanly: its log end goes into an error report")
+    util.save_json(RUN, {"running": True, "since": time.time()})
+
+
+def mark_stop():
+    util.save_json(RUN, {"running": False, "since": time.time()})
+
+
+def _crash_files(folder):
+    """Kodi's own crash logs (kodi_crashlog*.log / kodi_crash.log), newest first, only from the last two days."""
+    found = []
+    for place in (folder, os.path.expanduser("~")):        # CoreELEC: the log folder; desktop Linux: the home folder
+        try:
+            names = [n for n in os.listdir(place) if n.startswith("kodi_crash") and n.endswith(".log")]
+        except OSError:
+            continue
+        found += [(os.path.getmtime(os.path.join(place, n)), os.path.join(place, n)) for n in names]
+    return [path for when, path in sorted(set(found), reverse=True) if time.time() - when < 2 * 86400]
+
+
 def build():
     folder = xbmcvfs.translatePath("special://logpath")
     path = os.path.join(folder, "kodi.log")
@@ -86,13 +117,24 @@ def build():
             "System %s %s" % (platform.system(), platform.machine()), "Made %s" % time.strftime("%Y-%m-%d %H:%M"),
             "Log kodi.log: %s" % note]
     older = []
-    if len(lines) < 200:                        # just after a restart: the end of the previous log is the interesting part
+    crashed = util.HOME.getProperty(CRASH_PROPERTY)
+    if crashed:
+        head.append("The previous Kodi run (started %s) did not stop cleanly: a crash, a freeze or the power" % crashed)
+    if len(lines) < 200 or crashed:             # after a restart or a crash: the end of the previous log is the interesting part
         older, old_note = _read(os.path.join(folder, "kodi.old.log"))
-        older = older[-(MAX_LINES - len(lines)):]
+        older = older[-(max(CRASH_LINES, MAX_LINES - len(lines))):]
         head.append("Log kodi.old.log: %s" % old_note)
+    crash_text = []
+    if crashed:
+        for crash in _crash_files(folder)[:1]:
+            crash_lines, crash_note = _read(crash)
+            crash_text = crash_lines[-300:]
+            head.append("Crash log %s: %s" % (os.path.basename(crash), crash_note))
     head.append("")
     private = _private()
     body = ""
+    if crash_text:
+        body += "----- Kodi crash log -----\n" + "".join(clean(line, private) for line in crash_text) + "\n"
     if older:
         body += "----- kodi.old.log (the previous run) -----\n" + "".join(clean(line, private) for line in older)
         body += "\n----- kodi.log (this run) -----\n"
@@ -100,7 +142,49 @@ def build():
     return "\n".join(head) + "\n" + body
 
 
+PASTE = "https://paste.kodi.tv"
+
+
 def save():
+    choice = xbmcgui.Dialog().select(T("Foutrapport", "Error report"), [
+        T("Delen via een link (paste.kodi.tv)", "Share with a link (paste.kodi.tv)"),
+        T("Bewaren als bestand", "Save as a file")])
+    if choice == 0:
+        return share()
+    if choice == 1:
+        return save_file()
+    return None
+
+
+def share():
+    """Put the cleaned report on Kodi's own paste site, after asking, and show the link with a QR code."""
+    if not xbmcgui.Dialog().yesno(T("Foutrapport delen", "Share the error report"), T(
+            "Het rapport komt op paste.kodi.tv, de plakplek van Kodi zelf. Iedereen met de link kan het lezen. Adressen, sleutels en "
+            "wachtwoorden zijn er al uitgehaald.\n\nDoorgaan?",
+            "The report goes to paste.kodi.tv, Kodi's own paste site. Anyone with the link can read it. Addresses, keys and passwords "
+            "were already removed.\n\nContinue?")):
+        return None
+    text = build().lstrip("\ufeff")
+    try:
+        answer, _headers = util.http(PASTE + "/documents", raw=(text.encode("utf-8"), "text/plain; charset=utf-8"), method="POST",
+                                     timeout=30)
+        link = "%s/%s" % (PASTE, (answer or {})["key"])
+    except Exception as error:                  # noqa: BLE001 - offline, site down, an odd answer: fall back to a file
+        util.log("report: sharing failed (%s)" % type(error).__name__)
+        if xbmcgui.Dialog().yesno("Lucent", T("Delen lukt nu niet. Het rapport als bestand bewaren?",
+                                              "Sharing does not work right now. Save the report as a file instead?")):
+            return save_file()
+        return None
+    import dialogs
+    dialog, _picture = dialogs.link_dialog("paste", link, link.rsplit("/", 1)[-1])
+    dialog.args["props"].update(heading=T("Foutrapport gedeeld", "Error report shared"), button=T("Klaar", "Done"),
+                                line=T("Scan de code, of stuur deze link door: %s", "Scan the code, or send this link: %s") % link)
+    dialog.doModal()
+    del dialog
+    return link
+
+
+def save_file():
     folder = xbmcgui.Dialog().browse(3, T("Waar wil je het foutrapport bewaren?", "Where do you want to save the report?"), "files")
     if not folder:
         return

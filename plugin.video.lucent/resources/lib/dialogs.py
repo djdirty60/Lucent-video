@@ -382,7 +382,7 @@ def link_dialog(service, url, code, qr_url=None):
     segno.make(qr_url or url, error="m").save(picture, kind="png", scale=12, border=2, dark="#0B1119", light="#FFFFFF")
     host = url.split("//")[-1]
     props = {"qr": picture, "code": code, "heading": T("%s koppelen", "Link %s") % service,
-             "line": T("Scan de code of ga naar %s", "Scan the code or go to %s") % host}
+             "line": T("Scan de code of ga naar %s", "Scan the code or go to %s") % host, "button": T("Annuleren", "Cancel")}
     return _open(TraktLink, "lucent_trakt.xml", props=props), picture
 
 

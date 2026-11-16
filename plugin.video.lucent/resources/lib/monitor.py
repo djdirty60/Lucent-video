@@ -538,6 +538,8 @@ LIBRESUME = "lucent.video.libresume"      # tells the skin: library items may be
 
 
 def run():
+    import report
+    report.mark_start()                     # did Kodi stop cleanly last time? (a crash leaves the mark standing)
     util.HOME.setProperty(LIBRESUME, "1")
     monitor = Events()
     monitor.onSettingsChanged()
@@ -583,3 +585,4 @@ def run():
                 threading.Thread(target=skipper.migrate_once, daemon=True).start()
         except Exception as error:  # noqa: BLE001  a failing tick must never stop the service
             util.log("tick: %s" % type(error).__name__, xbmc.LOGERROR)
+    report.mark_stop()

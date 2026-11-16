@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -410,4 +411,82 @@ def test():
         used = newznab.usage(base)
         lines.append(util.T("Indexer %d (%s): %s", "Indexer %d (%s): %s") % (slot, host, (util.T("werkt", "works") if good else text)
                                                                              + " · " + util.T("vandaag %s", "today %s") % used))
+    if ok:
+        lines.append(speed_test())
     return ok, lines
+
+
+SPEED_SECONDS = 10                  # the speed test never takes longer than this
+SPEED_ARTICLES = 200                # at most this many articles (about 140 MB)
+NEEDS = ((12.0, "4K REMUX"), (5.0, "4K WEB"), (1.5, "1080p"))     # MB/s a film of that kind needs, about
+
+
+def speed_test():
+    """One line for the test button: how fast the provider delivers, measured on a recent film the indexer has, over
+    the connections set in the settings. Costs one search and one NZB at one indexer."""
+    from concurrent.futures import ThreadPoolExecutor, wait
+    from . import nntp, nzbfile
+    T = util.T
+    try:
+        rows, room = [], False
+        for slot, base, key in newznab.indexers():
+            if newznab.grab_room(base):
+                room = True
+                try:
+                    rows = [r for r in newznab.latest(slot, base, key) if r["size"] > 2e9]
+                except newznab.IndexerError:
+                    continue
+                if rows:
+                    break
+        if not rows:
+            return (T("Snelheid: niet gemeten (geen geschikte testfilm gevonden).", "Speed: not measured (no suitable test film found).") if room else
+                    T("Snelheid: niet gemeten (geen indexer met ruimte voor een NZB).", "Speed: not measured (no indexer with room for an NZB)."))
+        row = rows[0]
+        files = nzbfile.parse(newznab.nzb(dict(row, scraper="Usenet")))
+        biggest = max(files, key=lambda f: f.encoded)
+        ids = [seg[2] for seg in biggest.segments[len(biggest.segments) // 3:][:SPEED_ARTICLES]]
+    except Exception as error:              # noqa: BLE001 - a test line, never a crash
+        util.log("usenet: speed test: %s: %s" % (type(error).__name__, str(error)[:100]))
+        return T("Snelheid: niet gemeten (%s).", "Speed: not measured (%s).") % type(error).__name__
+    pool = nntp.Pool(server.provider())
+    got = {"bytes": 0, "missing": 0, "failed": 0}
+    counting = threading.Lock()
+    stop = time.time() + SPEED_SECONDS
+    answers_before = (nntp.ANSWERS["count"], nntp.ANSWERS["seconds"])
+
+    def one(message_id):
+        if time.time() > stop:
+            return
+        try:
+            size = len(pool.body(message_id))           # first fetch, then add: '+=' would read the total before waiting
+            with counting:
+                got["bytes"] += size
+        except nntp.Missing:
+            got["missing"] += 1
+        except (nntp.NntpError, OSError) as error:
+            got["failed"] += 1
+            got["why"] = "%s: %s" % (type(error).__name__, str(error)[:60])
+
+    started = time.time()
+    run = ThreadPoolExecutor(max_workers=pool.limit)
+    jobs = [run.submit(one, i) for i in ids]
+    wait(jobs, timeout=SPEED_SECONDS + 25)
+    for job in jobs:
+        job.cancel()
+    run.shutdown(wait=True)                 # every thread done before the test button's script ends
+    seconds = max(0.1, time.time() - started)
+    pool.close()
+    per_second = got["bytes"] / seconds / 1e6
+    count = nntp.ANSWERS["count"] - answers_before[0]
+    answer = (nntp.ANSWERS["seconds"] - answers_before[1]) / count * 1000 if count else 0
+    util.log("usenet: speed test: %.1f MB/s over %d connection(s), %d MB in %.1f s, provider answers in %d ms, %d gone, %d failed%s"
+             % (per_second, pool.limit, got["bytes"] >> 20, seconds, answer, got["missing"], got["failed"],
+                (" (%s)" % got["why"]) if got.get("why") else ""))
+    if not got["bytes"]:
+        return T("Snelheid: niet gemeten (de testfilm is niet bij je provider).", "Speed: not measured (the test film is not at your provider).")
+    enough = next((label for need, label in NEEDS if per_second >= need * 1.3), None)
+    if enough:
+        return T("Snelheid: %.0f MB/s met %d verbindingen, genoeg voor %s.", "Speed: %.0f MB/s with %d connections, enough for %s.") % (
+            per_second, pool.limit, enough)
+    return T("Snelheid: %.1f MB/s met %d verbindingen, krap voor 1080p. Meer verbindingen kunnen helpen.",
+             "Speed: %.1f MB/s with %d connections, tight for 1080p. More connections may help.") % (per_second, pool.limit)

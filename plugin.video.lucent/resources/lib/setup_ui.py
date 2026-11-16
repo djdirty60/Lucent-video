@@ -68,8 +68,10 @@ ACCOUNTS = [(0, "Trakt", trakt), (1, "Simkl", simkl), (3, "PunchPlay", punchplay
 
 
 class Setup(dialogs.Base):
+    start = 0                               # the step to open on (open_setup)
+
     def onInit(self):
-        self.at = 0
+        self.at = Setup.start
         self.steps, self.options = self.getControl(100), self.getControl(110)
         self.show()
 
@@ -79,7 +81,8 @@ class Setup(dialogs.Base):
         if key == "keys":
             return bool(tmdb.key())
         if key == "scrapers":
-            return bool(setting("manifest_url") or setting("torbox_key") or (setting("easynews_user") and setting("easynews_pass")) or debrid.active())
+            import scrapers
+            return bool(scrapers.configured())     # a debrid key alone finds nothing: something has to look up the sources
         return True
 
     def rows(self):
@@ -210,6 +213,12 @@ class Setup(dialogs.Base):
             if on:
                 ok, text = check()
                 lines.append("%s %s: %s" % ("✓" if ok else "✗", name, text))
+        import scrapers
+        missing = scrapers.finder_missing()
+        if missing:
+            lines.append(T("✗ Zoeker: %s levert de film, maar er is nog niets dat de bronnen vindt. Vul een AIOStreams-adres of Easynews in, "
+                           "of installeer CocoScrapers.", "✗ Finder: %s delivers the film, but nothing looks up the sources yet. Fill in an "
+                           "AIOStreams address or Easynews, or install CocoScrapers.") % " / ".join(missing))
         xbmcgui.Dialog().ok("Lucent", "\n".join(lines) or T("Vul eerst een scraper in.", "Fill in a scraper first."))
 
 
@@ -217,7 +226,8 @@ def needed():
     return not util.load_json(FLAG_DONE, {}).get("done") and not tmdb.key()
 
 
-def open_setup():
+def open_setup(step=None):
+    Setup.start = next((n for n, (key, _label) in enumerate(STEPS) if key == step), 0)
     ranking_ui.open_screen(Setup, "lucent_setup.xml")
 
 

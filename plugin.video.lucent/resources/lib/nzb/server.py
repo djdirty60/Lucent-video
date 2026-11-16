@@ -205,8 +205,10 @@ class _Handler(BaseHTTPRequestHandler):
                 if first is None:
                     first = time.time() - asked
                     _tell_request(release, start, end, first)
+                written = time.time()
                 self.wfile.write(chunk)
                 at += len(chunk)
+                _tell_progress(release, at - start, time.time() - asked, time.time() - written)
         except (BrokenPipeError, ConnectionResetError):
             pass                            # Kodi closed this request (a seek): normal
         except Exception as error:          # noqa: BLE001 - whatever it is, it must reach the log
@@ -225,6 +227,17 @@ def _tell_request(release, start, end, first):
     release.stats["told"] = told + 1
     util.log("usenet: Kodi reads from %.1f%%%s: first data after %.1f s"
              % (100.0 * start / max(1, release.size), "" if end >= release.size - 1 else " (%d MB)" % ((end - start + 1) >> 20), first))
+
+
+def _tell_progress(release, sent, seconds, write_wait):
+    """The first 40 seconds of a film, every 5 seconds: how much Kodi took. A stall right after the start shows here."""
+    stats = release.stats
+    age = time.time() - release.opened
+    if age > 40 or time.time() - stats.get("progress_at", 0) < 5:
+        return
+    stats["progress_at"] = time.time()
+    util.log("usenet: %.0f s after opening: this request sent %d MB in %.1f s; in %d MB, to Kodi %d MB, Kodi waited %d time(s), longest %.1f s"
+             % (age, sent >> 20, seconds, stats.get("in", 0) >> 20, stats.get("out", 0) >> 20, stats.get("waits", 0), stats.get("longest", 0.0)))
 
 
 def native_setup():

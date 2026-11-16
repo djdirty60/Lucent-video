@@ -2,6 +2,36 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+63",
+   "label": "Beta 1 · update 63",
+   "label_en": "Beta 1 · update 63",
+   "date": "2026-11-16",
+   "at": "2026-11-16T12:32Z",
+   "items": [
+    [
+     "info",
+     "Duidelijke hulp als er nog een zoeker ontbreekt",
+     "Heb je alleen een debrid-account ingevuld (zoals Premiumize of Real-Debrid), dan legt Lucent nu uit dat er ook een zoeker nodig is die de bronnen vindt: AIOStreams, Easynews of CocoScrapers. Met één klik open je de installatie-assistent bij de stap Bronnen.",
+     "Clear help when a finder is still missing",
+     "If you only filled in a debrid account (like Premiumize or Real-Debrid), Lucent now explains that a finder is needed too: AIOStreams, Easynews or CocoScrapers. One click opens the setup assistant at the Sources step."
+    ],
+    [
+     "info",
+     "Foutrapport delen met een link",
+     "Bij Foutrapport maken kun je het rapport nu met een link delen: het komt op paste.kodi.tv (de plakplek van Kodi zelf) en je krijgt een link en QR-code. Geen bestand meer zoeken. Is Kodi de vorige keer vastgelopen of gecrasht, dan zet Lucent het einde van die oude log en Kodi's crashlog er vanzelf bij.",
+     "Share the error report with a link",
+     "Make an error report can now share it with a link: it goes to paste.kodi.tv (Kodi's own paste site) and you get a link and a QR code. No more looking for a file. If Kodi froze or crashed last time, Lucent adds the end of that old log and Kodi's crash log by itself."
+    ],
+    [
+     "settings",
+     "Testmodus: snelheidstest voor Usenet",
+     "Alleen voor testers: Verbinding testen meet nu ook hoe snel je provider levert, op een recente film met al je verbindingen, en zegt of dat genoeg is voor 1080p, 4K of 4K REMUX. Daarnaast houdt de log de eerste 40 seconden van elke Usenet-film bij. De log zegt ook welk stuk lang op zich laat wachten en hoe een geweigerde NZB-link eruitziet (zonder sleutel).",
+     "Test mode: Usenet speed test",
+     "Testers only: Test connection now also measures how fast your provider delivers, on a recent film with all your connections, and says whether that is enough for 1080p, 4K or 4K REMUX. The log also follows the first 40 seconds of every Usenet film. The log also says which piece is slow to arrive and what a refused NZB link looks like (without the key)."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+62",
    "label": "Beta 1 · update 62",
    "label_en": "Beta 1 · update 62",

@@ -211,6 +211,13 @@ def configured():
     return bool(indexers())
 
 
+def latest(slot, base, key, count=10):
+    """A few of the newest films at this indexer (one search), for the speed test."""
+    if not allowed(base, "api"):
+        raise IndexerError("daily limit")
+    return _rows(_ask(base, key, {"t": "movie", "cat": "2000", "limit": str(count), "extended": "1"}), slot)
+
+
 def _get(base, key, params, timeout=20):
     _count(base, "api")
     try:
@@ -461,14 +468,27 @@ def nzb(row):
         body = fetch(url, 30)
     except IndexerError as error:
         _limit_hit(base, error)
+        util.log("usenet: NZB link that was refused: %s" % _link_shape(row["link"], row.get("param")))
         raise IndexerError("NZB: %s" % error) from None
     if b"<nzb" not in body[:4096] and b"<nzb" not in body:
+        util.log("usenet: NZB link that gave no NZB: %s" % _link_shape(row["link"], row.get("param")))
         try:
             _root(body)
         except IndexerError as error:
             raise IndexerError("NZB: %s" % error) from None
         raise IndexerError("NZB: not an NZB")
     return body
+
+
+def _link_shape(link, param):
+    """What an NZB link looks like, for the log, without anything that identifies the release or the user:
+    host and path with long parts replaced, and only the names of the parameters."""
+    parts = urllib.parse.urlsplit(link)
+    path = re.sub(r"[A-Za-z0-9_\-]{12,}", "[id]", parts.path)
+    path = re.sub(r"(?<=/)\d{3,}(?=/|\.|$)", "[n]", path)
+    path = re.sub(r"=[^&/?;]+", "=[..]", path)             # parameters written into the path (a link without '?')
+    names = [k for k, _v in urllib.parse.parse_qsl(parts.query, keep_blank_values=True)] + ["%s=[key]" % (param or "apikey")]
+    return "%s://%s%s?%s" % (parts.scheme, parts.hostname or "?", path, "&".join(names))
 
 
 def test(slot, base, key):

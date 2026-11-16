@@ -55,6 +55,18 @@ def _fail(handle, text=None):
         xbmcplugin.setResolvedUrl(handle, False, xbmcgui.ListItem(offscreen=True))
 
 
+def _no_finder(services):
+    """A debrid account is filled in, but nothing finds sources for it: say so plainly and offer the setup step."""
+    name = " / ".join(services)
+    text = util.T("Je %s-account is ingevuld. Dat levert de film, maar Lucent heeft ook een zoeker nodig die de bronnen vindt: "
+                  "een AIOStreams-adres (aan te raden), Easynews, of de add-on CocoScrapers.\n\nNu instellen?",
+                  "Your %s account is filled in. It delivers the film, but Lucent also needs a finder that looks up the sources: "
+                  "an AIOStreams address (recommended), Easynews, or the CocoScrapers add-on.\n\nSet it up now?") % name
+    if xbmcgui.Dialog().yesno(util.T("Nog een zoeker nodig", "A finder is still needed"), text):
+        import setup_ui
+        setup_ui.open_setup("scrapers")
+
+
 def link_works(source):
     if not scrapers.ready(source):
         return False
@@ -397,6 +409,10 @@ def play(params, handle):
         if sources == "cancelled":
             return _fail(handle)
         if sources == "address":
+            missing = scrapers.finder_missing()
+            if missing:
+                _fail(handle)
+                return _no_finder(missing)
             return _fail(handle, util.T("Stel eerst een scraper in, zoals AIOStreams, Easynews of TorBox", "Set up a scraper first, such as AIOStreams, Easynews or TorBox"))
         return _fail(handle, sources)
     if not sources:

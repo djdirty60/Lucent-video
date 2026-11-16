@@ -104,6 +104,16 @@ def ready(source):
     return bool(source["url"])
 
 
+def finder_missing():
+    """The debrid services that are filled in while nothing is there to find sources (no AIOStreams, Easynews, TorBox,
+    Usenet or scraper pack): then the 'set up a scraper' message has to say exactly that. [] otherwise."""
+    import debrid
+    if configured():
+        return []
+    names = dict((s, n) for s, n, _k in debrid.SERVICES)
+    return [names[s] for s in debrid.active()]
+
+
 def configured():
     """Scraper names that are filled in in the settings, read again here (not in the search threads)."""
     import debrid
