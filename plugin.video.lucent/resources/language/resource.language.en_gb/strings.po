@@ -1872,3 +1872,31 @@ msgstr ""
 msgctxt "#32534"
 msgid "Indexer 10 – API key"
 msgstr ""
+
+msgctxt "#32535"
+msgid "Posters"
+msgstr ""
+
+msgctxt "#32536"
+msgid "Poster pattern (btttr.cc, SpatialPosters, …)"
+msgstr ""
+
+msgctxt "#32537"
+msgid "Paste the poster URL of a poster maker such as btttr.cc. Lucent fills in {imdb_id}, {tmdb_id}, {tvdb_id}, {type} and {item_type}. Empty: the usual TMDB posters."
+msgstr ""
+
+msgctxt "#32538"
+msgid "Also for series"
+msgstr ""
+
+msgctxt "#32539"
+msgid "Off: only films get the posters of your poster maker."
+msgstr ""
+
+msgctxt "#32540"
+msgid "Test pattern"
+msgstr ""
+
+msgctxt "#32541"
+msgid "Shows a sample poster made with your pattern, so you can see if it works."
+msgstr ""

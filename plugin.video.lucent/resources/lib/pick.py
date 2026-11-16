@@ -148,7 +148,7 @@ class Pick(dialogs.Base):
                 bits.append("%d min" % int(meta["runtime"]))
             bits += (meta.get("genres") or [])[:1]
             item.setLabel2(" · ".join(bits))
-            item.setArt({"fanart": meta.get("fanart") or meta.get("poster"), "poster": meta.get("poster")})
+            item.setArt({"fanart": meta.get("fanart") or meta.get("poster"), "poster": __import__("posters").poster(meta, meta.get("poster"))})
             row.addItem(item)
         self.fill({"empty": "" if self.found else T("Niets gevonden. Probeer andere keuzes.", "Nothing found. Try other choices."),
                    "bg": self.found[0].get("fanart") if self.found else ""})

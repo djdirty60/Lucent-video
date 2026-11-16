@@ -14,11 +14,13 @@ def _plain(text):
 
 
 def art_of(meta):
-    art = {"poster": meta.get("poster", ""), "fanart": meta.get("fanart", ""), "landscape": meta.get("fanart", ""),
-           "clearlogo": meta.get("logo", ""), "thumb": meta.get("thumb") or meta.get("poster", "")}
+    import posters
+    poster = posters.poster(meta, meta.get("poster", ""))       # a poster maker's picture, when one is set up
+    art = {"poster": poster, "fanart": meta.get("fanart", ""), "landscape": meta.get("fanart", ""),
+           "clearlogo": meta.get("logo", ""), "thumb": meta.get("thumb") or poster}
     if meta["kind"] in ("season", "episode"):
         show_fanart = meta.get("tvshow_fanart") or meta.get("fanart", "")
-        art.update({"tvshow.poster": meta.get("poster", ""), "tvshow.fanart": show_fanart, "tvshow.landscape": show_fanart,
+        art.update({"tvshow.poster": poster, "tvshow.fanart": show_fanart, "tvshow.landscape": show_fanart,
                     "tvshow.clearlogo": meta.get("logo", "")})
     return {k: v for k, v in art.items() if v}
 

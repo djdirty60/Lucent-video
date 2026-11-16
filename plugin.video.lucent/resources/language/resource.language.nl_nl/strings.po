@@ -1872,3 +1872,31 @@ msgstr "Indexer 10 – adres"
 msgctxt "#32534"
 msgid "Indexer 10 – API key"
 msgstr "Indexer 10 – API-sleutel"
+
+msgctxt "#32535"
+msgid "Posters"
+msgstr "Posters"
+
+msgctxt "#32536"
+msgid "Poster pattern (btttr.cc, SpatialPosters, …)"
+msgstr "Poster-patroon (btttr.cc, SpatialPosters, …)"
+
+msgctxt "#32537"
+msgid "Paste the poster URL of a poster maker such as btttr.cc. Lucent fills in {imdb_id}, {tmdb_id}, {tvdb_id}, {type} and {item_type}. Empty: the usual TMDB posters."
+msgstr "Plak de poster-URL van een postermaker zoals btttr.cc. Lucent vult {imdb_id}, {tmdb_id}, {tvdb_id}, {type} en {item_type} zelf in. Leeg: de gewone TMDB-posters."
+
+msgctxt "#32538"
+msgid "Also for series"
+msgstr "Ook voor series"
+
+msgctxt "#32539"
+msgid "Off: only films get the posters of your poster maker."
+msgstr "Uit: alleen films krijgen de posters van je postermaker."
+
+msgctxt "#32540"
+msgid "Test pattern"
+msgstr "Patroon testen"
+
+msgctxt "#32541"
+msgid "Shows a sample poster made with your pattern, so you can see if it works."
+msgstr "Toont een voorbeeldposter met je patroon, zodat je ziet of het werkt."

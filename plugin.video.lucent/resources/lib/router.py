@@ -960,6 +960,9 @@ def _run(argv):
             return check_service(mdblist, "MDBList")
         if action == "report":
             return report.save()
+        if action == "poster_test":
+            import posters
+            return posters.test()
         if action == "nzb_test":
             from nzb import source as usenet_source
             ok, lines = usenet_source.test()

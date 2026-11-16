@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+64",
+   "label": "Beta 1 · update 64",
+   "label_en": "Beta 1 · update 64",
+   "date": "2026-11-16",
+   "at": "2026-11-16T13:16Z",
+   "items": [
+    [
+     "library",
+     "Posters met badges van een postermaker",
+     "Plak bij Instellingen, Algemeen, Posters de poster-URL van een postermaker zoals btttr.cc of SpatialPosters. Dan krijgen films en series in alle lijsten posters met badges als Trending, 4K, Dolby Vision en een cijfer, die je op de site van de postermaker kiest. Met Patroon testen zie je meteen een voorbeeld. Antwoordt de dienst niet, dan blijven de gewone posters staan.",
+     "Posters with badges from a poster maker",
+     "Paste the poster URL of a poster maker like btttr.cc or SpatialPosters under Settings, General, Posters. Films and series in all lists then get posters with badges like Trending, 4K, Dolby Vision and a rating, chosen on the poster maker's site. Test pattern shows a sample right away. If the service does not answer, the usual posters stay."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+63",
    "label": "Beta 1 · update 63",
    "label_en": "Beta 1 · update 63",

@@ -444,6 +444,11 @@ class Events(xbmc.Monitor):
     def onSettingsChanged(self):
         util.publish_lab()
         try:
+            import posters
+            posters.check_soon()                # a new poster pattern: is it reachable?
+        except Exception:                       # noqa: BLE001
+            pass
+        try:
             import replay
             replay.apply_key()
         except Exception as error:      # noqa: BLE001 - a key is never a reason for the service to stop
@@ -561,6 +566,9 @@ def run():
             remote.tidy()
             if seconds % 5 == 0:
                 _usenet_tick(watcher.isPlayingVideo())
+            if (seconds == 20 or seconds % 3600 == 30) and not watcher.isPlaying():    # is the poster maker (if any) reachable?
+                import posters
+                posters.check_soon()
             subtitle_jobs.tick(seconds, watcher.isPlayingVideo())
             # first check two minutes after starting, then every minute; never during a video
             if seconds >= 120 and seconds % 60 == 0 and not watcher.isPlaying() and library.due():

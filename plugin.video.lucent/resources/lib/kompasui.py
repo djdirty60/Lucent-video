@@ -118,7 +118,7 @@ class Page(dialogs.Base):
             item = xbmcgui.ListItem(meta["title"], offscreen=True)
             item.setLabel2(_info(meta))
             item.setProperty("reason", meta.get("reason") or "")
-            item.setArt({"fanart": meta.get("fanart") or meta.get("poster"), "poster": meta.get("poster")})
+            item.setArt({"fanart": meta.get("fanart") or meta.get("poster"), "poster": __import__("posters").poster(meta, meta.get("poster"))})
             row.addItem(item)
         self.fill({"empty": "" if self.found else T("Niets gevonden. Probeer andere keuzes.", "Nothing found. Try other choices."),
                    "bg": self.found[0].get("fanart") if self.found else ""})
