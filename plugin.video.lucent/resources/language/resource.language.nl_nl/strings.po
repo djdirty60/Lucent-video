@@ -1924,3 +1924,11 @@ msgstr "Posters vernieuwen"
 msgctxt "#32547"
 msgid "Changed something at the poster maker? Kodi keeps pictures it has seen before. This makes Lucent ask for all posters and episode pictures again (they load a little slower once)."
 msgstr "Iets veranderd bij de postermaker? Kodi bewaart beelden die het al eens heeft gezien. Hiermee vraagt Lucent alle posters en afleveringsbeelden opnieuw op (ze laden één keer iets langzamer)."
+
+msgctxt "#32548"
+msgid "Pause the film until the subtitle is found"
+msgstr "Film stilzetten tot de ondertitel er is"
+
+msgctxt "#32549"
+msgid "With 'Choose by itself, in the background': the film waits (at most 20 seconds) while Lucent looks for a subtitle in your language, and starts again from the beginning once it is on, so you miss nothing."
+msgstr "Bij 'Zelf kiezen, op de achtergrond': de film wacht (hooguit 20 seconden) terwijl Lucent een ondertitel in jouw taal zoekt, en begint daarna opnieuw vanaf het begin, zodat je niets mist."

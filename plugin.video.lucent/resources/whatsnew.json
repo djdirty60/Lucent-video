@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+70",
+   "label": "Beta 1 · update 70",
+   "label_en": "Beta 1 · update 70",
+   "date": "2026-11-16",
+   "at": "2026-11-16T19:58Z",
+   "items": [
+    [
+     "subtitles",
+     "Film wacht op de ondertitel",
+     "Nieuw bij Ondertitels en geluid: Film stilzetten tot de ondertitel er is. Samen met Zelf kiezen, op de achtergrond zet Lucent de film even stil, zoekt in al je ondertitelbronnen en -add-ons, zet de beste aan en begint de film opnieuw vanaf het begin, zodat je niets mist. Hooguit 20 seconden.",
+     "Film waits for the subtitle",
+     "New under Subtitles and sound: Pause the film until the subtitle is found. Together with Choose by itself, in the background, Lucent pauses the film, searches all your subtitle sources and add-ons, switches on the best one and starts the film again from the beginning, so you miss nothing. At most 20 seconds."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+69",
    "label": "Beta 1 · update 69",
    "label_en": "Beta 1 · update 69",

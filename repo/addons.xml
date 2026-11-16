@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+69" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+70" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -83,17 +83,17 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 69: release groups by TRaSH Guides in the ranking; service stops cleanly; test mode only: fewer Usenet stalls with heavy films, faster source list for 90+ GB releases.
+        <news>1.0.0 beta 1, update 70: optional pause until the subtitle is found (with automatic background search), then the film starts again from the beginning.
+1.0.0 beta 1, update 69: release groups by TRaSH Guides in the ranking; service stops cleanly; test mode only: fewer Usenet stalls with heavy films, faster source list for 90+ GB releases.
 1.0.0 beta 1, update 68: test mode only: NZBs from altHUB-style links (key in the link) work, indexer name ALTHUB instead of CO, HDR10P / HDR10Px265 recognised.
 1.0.0 beta 1, update 67: Refresh posters button (fetch changed poster maker pictures again); episode picture pattern passed on to the skin.
 1.0.0 beta 1, update 66: episode pictures with badges from a poster maker (Pictorium), optional blur for unwatched episodes.
 1.0.0 beta 1, update 65: watchlist, collection and lists carry the date you added a title, so Date added sorting works; Next page always last.
 1.0.0 beta 1, update 64: posters with badges from a poster maker (btttr.cc, SpatialPosters, ...), also ready for the skin.
 1.0.0 beta 1, update 63: share the error report with a link and QR code (paste.kodi.tv), crash logs added by themselves; clear help when only a debrid account is filled in; test mode only: Usenet speed test in Test connection.
-1.0.0 beta 1, update 62: release name in the player info; test mode only: removed Usenet releases left out while searching, faster opening and seeking, read-ahead fitted to the film, Dutch subtitles from the indexer.
-1.0.0 beta 1, update 61: test mode only: what an indexer says about language, subtitles, sound and codec now gives labels and ranking; DDPA5.1 recognised.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 69: Release-groepen volgens TRaSH: Bij het rangschikken telt nu ook de release-groep, met de lijsten van de TRaSH Guides: slechte groepen gaan altijd onderaan, goede groepen komen boven onbekende groepen met hetzelfde soort bestand. Je eigen voorkeursgroepen tellen als de beste. Aan of uit bij Rangschikking, Filters. Usenet: minder haperen bij zware films: Alleen in testmodus. Bij grote remuxen gooide Lucent soms vooruitgelezen beeld weg dat Kodi nog nodig had, en haalde het daarna opnieuw op terwijl Kodi wachtte. Dat is opgelost. Ook verschijnt de lijst met bronnen bij releases van 90 GB of meer veel sneller, omdat de controle vooraf niet meer de hele NZB inleest. Netjes stoppen: De achtergronddienst stopt nu meteen bij een update, het uitzetten van de add-on of het afsluiten van Kodi, in plaats van na vijf seconden door Kodi gestopt te worden.
-1.0.0 beta 1, update 68: Usenet: altHUB en betere herkenning: Alleen in testmodus. NZB's van indexers zoals altHUB, die de sleutel in de downloadlink zelf zetten, worden nu goed opgehaald (eerst gaf dat een weigering, 403). De naam van zo'n indexer staat goed in de lijst (ALTHUB in plaats van CO), en releases met HDR10P of HDR10Px265 in de naam krijgen nu de juiste badges.</news>
+1.0.0 beta 1, update 62: release name in the player info; test mode only: removed Usenet releases left out while searching, faster opening and seeking, read-ahead fitted to the film, Dutch subtitles from the indexer.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 70: Film wacht op de ondertitel: Nieuw bij Ondertitels en geluid: Film stilzetten tot de ondertitel er is. Samen met Zelf kiezen, op de achtergrond zet Lucent de film even stil, zoekt in al je ondertitelbronnen en -add-ons, zet de beste aan en begint de film opnieuw vanaf het begin, zodat je niets mist. Hooguit 20 seconden.
+1.0.0 beta 1, update 69: Release-groepen volgens TRaSH: Bij het rangschikken telt nu ook de release-groep, met de lijsten van de TRaSH Guides: slechte groepen gaan altijd onderaan, goede groepen komen boven onbekende groepen met hetzelfde soort bestand. Je eigen voorkeursgroepen tellen als de beste. Aan of uit bij Rangschikking, Filters. Usenet: minder haperen bij zware films: Alleen in testmodus. Bij grote remuxen gooide Lucent soms vooruitgelezen beeld weg dat Kodi nog nodig had, en haalde het daarna opnieuw op terwijl Kodi wachtte. Dat is opgelost. Ook verschijnt de lijst met bronnen bij releases van 90 GB of meer veel sneller, omdat de controle vooraf niet meer de hele NZB inleest. Netjes stoppen: De achtergronddienst stopt nu meteen bij een update, het uitzetten van de add-on of het afsluiten van Kodi, in plaats van na vijf seconden door Kodi gestopt te worden.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

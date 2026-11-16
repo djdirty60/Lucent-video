@@ -25,6 +25,8 @@ import xbmcgui
 
 NL = xbmc.getLanguage(xbmc.ISO_639_1) == "nl"
 LIST, BTN_CLOSE, BTN_OFF, BTN_SEARCH, BTN_SYNC, BTN_TIME = 500, 9501, 9502, 9503, 9504, 9505
+WAIT_MOST = 20                                        # 'pause until the subtitle is found': at most this long
+REWIND_UNDER = 30                                     # and back to the start when the film had only just begun
 AUTO_CLOSE = 20                                       # seconds an automatically opened list waits for you
 SOURCES = 8
 TIMEOUT = 30
@@ -854,6 +856,54 @@ def background():
     sources = subtitle_addons()
     if not sources:
         return
+    hold = Hold(player) if subconf.on("lucent.subs.wait") else None
+    try:
+        _background_search(player, monitor, started_with, mine, sources)
+    finally:
+        if hold:
+            hold.release()
+
+
+class Hold:
+    """'Pause the film until the subtitle is found': paused while searching, at most WAIT_MOST seconds, then on
+    again from the start when it was only a few seconds in (so the first lines are not missed)."""
+
+    def __init__(self, player):
+        self.player, self.lock, self.done = player, threading.Lock(), False
+        self.paused = False
+        try:
+            self.at = player.getTime()
+        except RuntimeError:
+            self.at = 0
+        if not cond("Player.Paused"):
+            player.pause()
+            self.paused = True
+            log("background: film paused while looking for a subtitle")
+        self.timer = threading.Timer(WAIT_MOST, self.release, kwargs={"late": True})
+        self.timer.daemon = True
+        self.timer.start()
+
+    def release(self, late=False):
+        with self.lock:
+            if self.done:
+                return
+            self.done = True
+        if not late:
+            self.timer.cancel()                         # found (or given up) in time: the stopwatch is not needed
+        if not self.paused:
+            return
+        try:
+            if self.player.isPlayingVideo() and cond("Player.Paused"):
+                if self.at < REWIND_UNDER:
+                    self.player.seekTime(0)                 # back to the start: the first lines with the subtitle
+                self.player.pause()
+                log("background: film on again%s" % (" (no subtitle within %d s)" % WAIT_MOST if late else ""))
+        except RuntimeError:
+            pass
+
+
+def _background_search(player, monitor, started_with, mine, sources):
+    import subs_extra
     languages, mine_name = search_languages()
     query = urllib.parse.urlencode({"action": "search", "languages": ",".join(languages), "preferredlanguage": mine_name})
     pref = subs_extra.preference()

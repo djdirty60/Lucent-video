@@ -1924,3 +1924,11 @@ msgstr ""
 msgctxt "#32547"
 msgid "Changed something at the poster maker? Kodi keeps pictures it has seen before. This makes Lucent ask for all posters and episode pictures again (they load a little slower once)."
 msgstr ""
+
+msgctxt "#32548"
+msgid "Pause the film until the subtitle is found"
+msgstr ""
+
+msgctxt "#32549"
+msgid "With 'Choose by itself, in the background': the film waits (at most 20 seconds) while Lucent looks for a subtitle in your language, and starts again from the beginning once it is on, so you miss nothing."
+msgstr ""

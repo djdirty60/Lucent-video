@@ -24,6 +24,7 @@ NAMES = {
     "lucent.subs.mode": ("subs_mode", "bg"),
     "lucent.subs.bg.ai": ("subs_mode", "ai"),
     "lucent.subs.alwayson": ("subs_always", "bool"),
+    "lucent.subs.wait": ("subs_wait", "bool"),
     "lucent.subs.langfix.off": ("subs_langfix", "not"),
     "lucent.subs.sameaudio.keep": ("subs_quiet_same", "not"),
     "lucent.subs.native.off": ("subs_swap", "not"),
