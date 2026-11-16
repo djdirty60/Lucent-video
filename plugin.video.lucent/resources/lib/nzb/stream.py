@@ -23,6 +23,7 @@ SAMPLE_GONE = 0.1          # more than this share gone in the sample: refuse at 
 COUNT_LIMIT = 20           # seconds the full gap count may take before playing starts
 COUNT_PART = 500           # articles per STAT round
 SAMPLE_PART = 10           # sample articles per connection
+KEEP_READ = 8              # articles Kodi just read that stay in memory anyway (a small step back)
 AHEAD_SECONDS = 15         # a heavy film: read at least this many seconds of it ahead
 AHEAD_MOST = 192 * 1024 * 1024    # but never more than this (memory on small boxes)
 PIPELINE = True            # read-ahead asks two neighbouring articles at once over one connection
@@ -72,6 +73,7 @@ class Release:
         self.log = log or (lambda text: None)
         self.lock = threading.RLock()
         self.cache = collections.OrderedDict()   # (file index, article) -> bytes
+        self.used = collections.OrderedDict()    # articles Kodi has read, oldest first: these go first when memory is full
         self.cached = 0
         self.pending = {}                   # (file index, article) -> Future
         self.part = {}                      # file index -> decoded bytes per article
@@ -166,6 +168,7 @@ class Release:
         with self.lock:
             if key in self.cache:
                 self.cache.move_to_end(key)
+                self._mark_used(key)
                 return self.cache[key]
             future = self.pending.get(key)
             if PRIORITY and future is not None and future.cancel():
@@ -188,6 +191,8 @@ class Release:
             return self.article(posted, number)     # another read jumped elsewhere and cancelled it: ask again
         except nntp.Missing:
             data = self._filler(posted, number)
+        with self.lock:
+            self._mark_used(key)
         waited = time.time() - started
         if waited > 0.05:                   # Kodi had to wait for this article: read-ahead was not far enough
             self.stats["waits"] += 1
@@ -258,20 +263,36 @@ class Release:
         self._store(key, data)
         return data
 
+    def _mark_used(self, key):
+        """Kodi has read this article (called under the lock)."""
+        self.used[key] = None
+        self.used.move_to_end(key)
+
     def _store(self, key, data):
         with self.lock:
             self.stats["in"] += len(data)
             if key not in self.cache:
                 self.cache[key] = data
                 self.cached += len(data)
-                rounds = len(self.cache)
-                while self.cached > self.cache_limit and len(self.cache) > 1 and rounds > 0:
-                    rounds -= 1
-                    old, dropped = self.cache.popitem(last=False)
-                    if old in self.pinned:          # the MKV index: back at the end, it stays
-                        self.cache[old] = dropped
-                        continue
-                    self.cached -= len(dropped)
+                self._make_room()
+
+    def _make_room(self):
+        """Memory full: first what Kodi has already read (oldest first, the last few stay for a small step back), only
+        then the oldest of the rest. Before, read-ahead that Kodi had not reached yet could go first: then it was
+        fetched a second time while Kodi waited (a remux on a slow box kept stopping)."""
+        while self.cached > self.cache_limit and len(self.used) > KEEP_READ:
+            old, _none = self.used.popitem(last=False)
+            if old in self.cache and old not in self.pinned:
+                self.cached -= len(self.cache.pop(old))
+        rounds = len(self.cache)
+        while self.cached > self.cache_limit and len(self.cache) > 1 and rounds > 0:
+            rounds -= 1
+            old, dropped = self.cache.popitem(last=False)
+            if old in self.pinned:          # the MKV index: back at the end, it stays
+                self.cache[old] = dropped
+                continue
+            self.used.pop(old, None)
+            self.cached -= len(dropped)
 
     def _fetch_pair(self, posted, numbers, futures):
         """Read-ahead: two neighbouring articles over one connection, both asked at once (pipelined), so the provider's
@@ -728,6 +749,7 @@ class Release:
                 future.cancel()
             self.pending.clear()
             self.cache.clear()
+            self.used.clear()
         self.workers.shutdown(wait=False)
         self.urgent.shutdown(wait=False)
 

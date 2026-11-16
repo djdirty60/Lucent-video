@@ -2,6 +2,36 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+69",
+   "label": "Beta 1 · update 69",
+   "label_en": "Beta 1 · update 69",
+   "date": "2026-11-16",
+   "at": "2026-11-16T19:30Z",
+   "items": [
+    [
+     "star",
+     "Release-groepen volgens TRaSH",
+     "Bij het rangschikken telt nu ook de release-groep, met de lijsten van de TRaSH Guides: slechte groepen gaan altijd onderaan, goede groepen komen boven onbekende groepen met hetzelfde soort bestand. Je eigen voorkeursgroepen tellen als de beste. Aan of uit bij Rangschikking, Filters.",
+     "Release groups by TRaSH",
+     "Ranking now also looks at the release group, with the TRaSH Guides lists: low-quality groups always go to the bottom, good groups come above unknown groups with the same kind of file. Your own preferred groups count as the best. On or off under Ranking, Filters."
+    ],
+    [
+     "play",
+     "Usenet: minder haperen bij zware films",
+     "Alleen in testmodus. Bij grote remuxen gooide Lucent soms vooruitgelezen beeld weg dat Kodi nog nodig had, en haalde het daarna opnieuw op terwijl Kodi wachtte. Dat is opgelost. Ook verschijnt de lijst met bronnen bij releases van 90 GB of meer veel sneller, omdat de controle vooraf niet meer de hele NZB inleest.",
+     "Usenet: fewer stalls with heavy films",
+     "Test mode only. With big remuxes Lucent sometimes threw away read-ahead that Kodi still needed and fetched it again while Kodi waited. That is fixed. The source list for releases of 90 GB or more also shows much sooner, because the check beforehand no longer reads the whole NZB."
+    ],
+    [
+     "settings",
+     "Netjes stoppen",
+     "De achtergronddienst stopt nu meteen bij een update, het uitzetten van de add-on of het afsluiten van Kodi, in plaats van na vijf seconden door Kodi gestopt te worden.",
+     "Stopping cleanly",
+     "The background service now stops right away on an update, when the add-on is switched off or when Kodi quits, instead of being stopped by Kodi after five seconds."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+68",
    "label": "Beta 1 · update 68",
    "label_en": "Beta 1 · update 68",

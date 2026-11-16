@@ -593,4 +593,22 @@ def run():
                 threading.Thread(target=skipper.migrate_once, daemon=True).start()
         except Exception as error:  # noqa: BLE001  a failing tick must never stop the service
             util.log("tick: %s" % type(error).__name__, xbmc.LOGERROR)
+    _stop_servers()
     report.mark_stop()
+
+
+def _stop_servers():
+    """Kodi waits for every thread of the service when it stops it (an update, switching the add-on off, quitting) and
+    kills it after 5 seconds: the two small web servers that run all the time stop here first."""
+    for name, stop in (("usenet", _stop_usenet), ("phone keyboard", remote.stop)):
+        try:
+            stop()
+        except Exception as error:          # noqa: BLE001 - stopping must go on
+            util.log("stopping %s: %s" % (name, type(error).__name__))
+
+
+def _stop_usenet():
+    import sys
+    server = sys.modules.get("nzb.server")              # only when it was ever loaded
+    if server is not None and server._state["http"]:    # noqa: SLF001 - same add-on
+        server.stop()

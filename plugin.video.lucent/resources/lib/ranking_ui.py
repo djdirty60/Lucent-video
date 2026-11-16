@@ -360,7 +360,8 @@ class Filters(Options):
         limits = [self.row(T("Grootte film", "Movie size"), range_text(f["size_movie"])), self.row(T("Grootte aflevering", "Episode size"), range_text(f["size_episode"])),
                   self.row(T("Minimale kwaliteit", "Minimum quality"), rule_label(f["min_res"]) if f["min_res"] else none),
                   self.row(T("Maximaal per kwaliteit", "Maximum per quality"), T("%d bronnen", "%d sources") % f["max_per_res"] if f["max_per_res"] else none)]
-        groups = [self.row(T("Voorkeur", "Preferred"), ", ".join(f["prefer_groups"]) or none), self.row(T("Verbergen", "Hide"), ", ".join(f["hide_groups"]) or none)]
+        groups = [self.row(T("Voorkeur", "Preferred"), ", ".join(f["prefer_groups"]) or none), self.row(T("Verbergen", "Hide"), ", ".join(f["hide_groups"]) or none),
+                  self.row(T("Groepen volgens TRaSH", "Groups by TRaSH"), T("Aan", "On") if f.get("trash_groups", True) else T("Uit", "Off"))]
         return left, limits, groups
 
     def onClick(self, control):
@@ -380,6 +381,8 @@ class Filters(Options):
                     f["min_res"] = ladder[choice]
             else:
                 f["max_per_res"] = self.number(T("Maximaal aantal per kwaliteit, 0 = geen", "Maximum per quality, 0 = none"), f["max_per_res"])
+        elif self.lists[120].getSelectedPosition() == 2:
+            f["trash_groups"] = not f.get("trash_groups", True)    # good groups up, low-quality groups to the bottom
         else:
             key = "prefer_groups" if self.lists[120].getSelectedPosition() == 0 else "hide_groups"
             text = xbmcgui.Dialog().input(T("Namen, gescheiden door komma's", "Names, separated by commas"), ", ".join(f[key]))

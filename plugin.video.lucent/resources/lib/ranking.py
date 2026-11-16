@@ -58,6 +58,80 @@ def tags_of(source):
     return tags
 
 
+class _Pattern:
+    """A TRaSH (.NET) pattern. Python has no lookbehind of any length, so '(?<!X.*)Y' is checked as: Y matches and X
+    is not in the text before it."""
+
+    def __init__(self, text):
+        self.before = None
+        found = re.match(r"^\(\?<!(.*?)\.\*\??\)(.*)$", text)
+        if found:
+            self.before = re.compile(found.group(1), re.I)
+            text = found.group(2)
+        self.main = re.compile(text, re.I)
+
+    def search(self, text):
+        hit = self.main.search(text)
+        if hit and self.before is not None and self.before.search(text[:hit.start()]):
+            return None
+        return hit
+
+
+def _patterns(texts):
+    out = []
+    for text in texts:
+        try:
+            out.append(_Pattern(text))
+        except re.error:
+            pass
+    return out
+
+
+_trash = {}
+
+
+def _trash_lists():
+    if not _trash:
+        import trash_groups
+        _trash["tiers"] = [(kind, tier, score, _patterns(groups)) for kind, tier, score, groups in trash_groups.TIERS]
+        _trash["lq_groups"] = _patterns(trash_groups.LQ_GROUPS)
+        _trash["lq_titles"] = _patterns(trash_groups.LQ_TITLES)
+    return _trash
+
+
+TIER_BONUS = {1: 75, 2: 50, 3: 25}     # on top of the source points (web 1650, Blu-ray 1750, remux 1900): below the
+#                                         gap between two sources, so a good group wins among its own kind, never over a better source
+TIER_KIND = {"web": "WEB", "remux": "Remux", "hdbluray": "Blu-ray", "uhdbluray": "Blu-ray 4K"}
+
+
+def trash_tier(source, tags):
+    """(tier 1-3, label) when TRaSH lists the release group as a good group for this kind of release, else (0, '')."""
+    group = release_group(source)
+    if not group:
+        return 0, ""
+    if "remux" in tags:
+        kind = "remux"
+    elif "bluray" in tags:
+        kind = "uhdbluray" if "4k" in tags else "hdbluray"
+    elif "web" in tags:
+        kind = "web"
+    else:
+        return 0, ""
+    for tier_kind, tier, _score, patterns in _trash_lists()["tiers"]:
+        if tier_kind == kind and any(p.search(group) for p in patterns):
+            return tier, "%s Tier %02d" % (TIER_KIND[kind], tier)
+    return 0, ""
+
+
+def trash_low(source):
+    """True for a release TRaSH marks as low quality (LQ): by its group, or by its name (like Ben.The.Men)."""
+    name, group = source.get("name") or "", release_group(source)
+    lists = _trash_lists()
+    if group and any(p.search(group) for p in lists["lq_groups"]):
+        return True
+    return any(p.search(name) for p in lists["lq_titles"])
+
+
 def release_group(source):
     found = GROUP_RE.search(source.get("name") or "")
     return found.group(1) if found else ""
@@ -88,7 +162,8 @@ STATE_NAMES = {"pref": T("Voorkeur", "Preferred"), "need": T("Verplicht", "Requi
 
 
 def _preset(name, about, rules, hide=None, tags=None, first=None, lead=None, **limits):
-    filters = {"hide": hide or [], "size_movie": [0, 0], "size_episode": [0, 0], "min_res": "", "max_per_res": 0, "prefer_groups": [], "hide_groups": []}
+    filters = {"hide": hide or [], "size_movie": [0, 0], "size_episode": [0, 0], "min_res": "", "max_per_res": 0, "prefer_groups": [], "hide_groups": [],
+               "trash_groups": True}
     filters.update(limits)
     groups = default_groups(rules)
     groups.sort(key=lambda g: 0 if g["id"] == first else 1)
@@ -308,10 +383,19 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
        a group your own order still counts. Picture adds up (Dolby Vision + HDR + IMAX), sound counts its best track
        (TrueHD Atmos above TrueHD above DD+). So Dolby Vision + IMAX + Atmos beat 'only Blu-ray'.
     4. Size and scraper only decide between equal points."""
-    flagged = red_flag(source, tags, kind)
+    trash = profile["filters"].get("trash_groups", True)
+    low = trash and trash_low(source)
+    flagged = red_flag(source, tags, kind) or low
     key, why, total, tie = [1 if flagged else 0], [], 0.0, []
-    if flagged:
+    if low:
+        why.append((T("Slechte release-groep (TRaSH)", "Low-quality release group (TRaSH)"), T("Onderaan", "At the bottom")))
+    elif flagged:
         why.append((T("Rode vlag", "Red flag"), T("Onderaan", "At the bottom")))
+    wanted = [g.lower() for g in profile["filters"].get("prefer_groups") or []]
+    rgroup = release_group(source)
+    tier, tier_label = trash_tier(source, tags) if trash else (0, "")
+    if rgroup and rgroup.lower() in wanted:
+        tier, tier_label = 1, rgroup                # your own preferred groups count as the best tier
     groups = profile["groups"]
     scored = [g for g in groups[1:] if g["id"] not in ("size", "scraper")]
     for number, group in enumerate(groups, 1):
@@ -333,16 +417,17 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
             continue
         weight = len(scored) - scored.index(group)
         points, best = _points(group["id"], group["order"], tags)
+        if group["id"] == "source" and tier and best:
+            points += 10.0 * TIER_BONUS[tier] / SCALE["source"]     # same scale as _points: a top group's WEB-DL
+            #                                                           beats an unknown group's WEB-DL
         total += weight * points
         if best:
             why.append((RULES[best][0], T("Regel %d", "Rule %d") % number))
+    if tier_label:
+        why.append((tier_label, T("Release-groep", "Release group")))
     key.append(-round(total, 3))
     key += tie
-    wanted = [g.lower() for g in profile["filters"].get("prefer_groups") or []]
-    group = release_group(source)
-    key.append(0 if group and group.lower() in wanted else 1)
-    if group and group.lower() in wanted:
-        why.append((group, T("Release-groep", "Release group")))
+    key.append(0 if rgroup and rgroup.lower() in wanted else 1)
     return key, why
 
 

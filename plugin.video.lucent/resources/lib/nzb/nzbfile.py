@@ -24,15 +24,29 @@ class NzbError(Exception):
 class Posted:
     """One posted file: its name and its articles, in order."""
 
-    def __init__(self, subject, segments, index):
+    def __init__(self, subject, segments, index, raw=None):
         self.subject = subject
-        self.segments = segments          # [(number, encoded bytes, message id)], sorted by number
+        self._segments = segments         # [(number, encoded bytes, message id)], sorted by number
+        self._raw = raw                   # or the file's piece of the NZB, read only when its articles are needed
+        self._encoded = None
         self.index = index                # place in the NZB: the order of an obfuscated RAR set
         self.name = name_of(subject)
 
     @property
+    def segments(self):
+        if self._segments is None:
+            self._segments = _unique(_segments_of(self._raw))
+            self._raw = None
+        return self._segments
+
+    @property
     def encoded(self):
-        return sum(size for _n, size, _m in self.segments)
+        if self._encoded is None:
+            if self._segments is None and self._raw is not None:
+                self._encoded = sum(int(n) for n in _BYTES.findall(self._raw))   # without reading every article
+            else:
+                self._encoded = sum(size for _n, size, _m in self.segments)
+        return self._encoded
 
     @property
     def low(self):
@@ -55,13 +69,71 @@ def _tag(element):
     return element.tag.rsplit("}", 1)[-1]
 
 
+_FILE = re.compile(rb"<file\b([^>]*)>(.*?)</file\s*>", re.S)
+_SEGMENT = re.compile(rb"<segment\b([^>]*)>\s*([^<]*?)\s*</segment\s*>")
+_ATTR = re.compile(rb"""([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')""")
+_QUICK = re.compile(rb'\s+(?:bytes="(\d+)"\s+number="(\d+)"|number="(\d+)"\s+bytes="(\d+)")\s*')
+_BYTES = re.compile(rb'<segment\b[^>]*?\bbytes\s*=\s*["\'](\d+)')
+_ENTITIES = {"&quot;": '"', "&apos;": "'", "&lt;": "<", "&gt;": ">", "&amp;": "&"}
+
+
+def _text(raw):
+    text = raw.decode("utf-8", "replace")
+    if "&" in text:
+        text = re.sub(r"&(?:quot|apos|lt|gt|amp);", lambda m: _ENTITIES[m.group(0)], text)
+        text = re.sub(r"&#(\d+);", lambda m: chr(int(m.group(1))), text)
+        text = re.sub(r"&#x([0-9a-fA-F]+);", lambda m: chr(int(m.group(1), 16)), text)
+    return text
+
+
+def _attrs(raw):
+    return {m.group(1).decode("ascii", "replace"): (m.group(2) if m.group(2) is not None else m.group(3)) for m in _ATTR.finditer(raw)}
+
+
+def _fast(data):
+    """The same as the XML reader, but each file's articles are only read when they are needed: a 100 GB release has
+    an NZB of 10+ MB with 120,000 articles, and reading all of them keeps a slow box busy for seconds (the check
+    before the list needs a few articles, playing reads one file after the other)."""
+    if b"<!--" in data or b"CDATA" in data or b"<segment" not in data:
+        return None                             # unusual NZB: the full XML reader
+    files = []
+    for found in _FILE.finditer(data):
+        if b"<segment" in found.group(2):
+            files.append((_text(_attrs(found.group(1)).get("subject") or b""), None, found.group(2)))
+    return files
+
+
+def _segments_of(block):
+    segments = []
+    for segment in _SEGMENT.finditer(block):
+        raw = segment.group(2)
+        if not raw:
+            continue
+        head = segment.group(1)
+        quick = _QUICK.fullmatch(head)
+        if quick:                               # the usual bytes="" number="" (either order): no dict per article
+            size, number = (quick.group(1), quick.group(2)) if quick.group(1) else (quick.group(4), quick.group(3))
+        else:
+            attrs = _attrs(head)
+            size, number = attrs.get("bytes"), attrs.get("number")
+        text = raw.decode("utf-8", "replace") if b"&" not in raw else _text(raw)
+        try:
+            segments.append((int(number or 0), int(size or 0), text))
+        except ValueError:
+            continue
+    return segments
+
+
 def parse(data):
     """NZB bytes -> [Posted] in NZB order."""
+    fast = _fast(data) if isinstance(data, bytes) else None
+    if fast:
+        return _collect(fast)
     try:
         root = ET.fromstring(data)
     except ET.ParseError as error:
         raise NzbError("not an NZB (%s)" % error) from None
-    files = []
+    found = []
     for element in root.iter():
         if _tag(element) != "file":
             continue
@@ -73,13 +145,28 @@ def parse(data):
                 except ValueError:
                     continue
         if segments:
-            segments.sort()
-            seen, unique = set(), []
-            for segment in segments:             # a number posted twice: keep the first
-                if segment[0] not in seen:
-                    seen.add(segment[0])
-                    unique.append(segment)
-            files.append(Posted(element.get("subject") or "", unique, len(files)))
+            found.append((element.get("subject") or "", segments, None))
+    return _collect(found)
+
+
+def _unique(segments):
+    """Articles in order, a number posted twice only once (the first)."""
+    segments.sort()
+    seen, unique = set(), []
+    for segment in segments:
+        if segment[0] not in seen:
+            seen.add(segment[0])
+            unique.append(segment)
+    return unique
+
+
+def _collect(found):
+    """[(subject, [(number, bytes, id)] or None, raw piece)] -> [Posted]."""
+    files = []
+    for subject, segments, raw in found:
+        if segments is not None:
+            segments = _unique(segments)
+        files.append(Posted(subject, segments, len(files), raw))
     if not files:
         raise NzbError("empty NZB")
     return files

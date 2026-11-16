@@ -257,6 +257,32 @@ def _dead_now():
     return util.load_json(DEAD, {})
 
 
+def _sample_ids(chosen):
+    """A few article ids spread over the release: the first, the last and some in between. Only the files they come
+    from are read (a 100 GB release has 120,000 articles; reading them all takes a slow box seconds)."""
+    if not chosen:
+        return []
+    if len(chosen) == 1:
+        flat = [seg[2] for seg in chosen[0].segments]
+        if not flat:
+            return []
+        step = max(1, len(flat) // CHECK_SAMPLE)
+        return list(dict.fromkeys([flat[0], flat[-1]] + flat[::step]))[:CHECK_SAMPLE + 2]
+    step = max(1, len(chosen) // CHECK_SAMPLE)
+    picked = list(dict.fromkeys(chosen[::step] + [chosen[-1]]))
+    ids = []
+    for number, posted in enumerate(picked):
+        segments = posted.segments
+        if not segments:
+            continue
+        if number == 0:
+            ids.append(segments[0][2])
+        ids.append(segments[len(segments) // 2][2])
+        if posted is chosen[-1]:
+            ids.append(segments[-1][2])
+    return list(dict.fromkeys(ids))[:CHECK_SAMPLE + 2]
+
+
 def _alive(job, pool, spare):
     """True / False (taken down) / None (could not tell) for one release, from a few articles spread over it."""
     from . import nzbfile, stream
@@ -272,11 +298,9 @@ def _alive(job, pool, spare):
         _kind, chosen = nzbfile.pick(files, job.get("season"), job.get("episode"), job.get("pack"))
     except Exception:                           # noqa: BLE001 - hidden names, no room, an odd NZB: simply not checked
         return None
-    flat = [seg[2] for posted in chosen for seg in posted.segments]
-    if not flat:
+    ids = _sample_ids(chosen)
+    if not ids:
         return None
-    step = max(1, len(flat) // CHECK_SAMPLE)
-    ids = list(dict.fromkeys([flat[0], flat[-1]] + flat[::step]))[:CHECK_SAMPLE + 2]
     try:
         answer = stream.Release._stat_spread(pool, ids)                    # noqa: SLF001 - same package
         missing = [i for i, ok in answer.items() if not ok]
