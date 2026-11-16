@@ -147,7 +147,13 @@ def title_item(meta, watched=False, resume=None, last_played="", counts=None):
     """Returns (url, ListItem, is_folder). The label is the plain title: the skin does the rest."""
     kind = meta["kind"]
     item = xbmcgui.ListItem(meta["title"], offscreen=True)
-    item.setArt(art_of(meta))
+    art = art_of(meta)
+    if kind == "episode":
+        import posters
+        picture = posters.episode_url(meta, watched)       # the poster maker's episode picture, when one is set up
+        if picture:
+            art["thumb"] = picture
+    item.setArt(art)
     fill_tag(item, meta, 1 if watched else 0, resume, last_played)
     item.setProperty("tmdb_id", str(meta["tmdb"]))
     item.setProperty("lucent_video", "1")

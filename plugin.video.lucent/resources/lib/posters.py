@@ -47,6 +47,46 @@ def url_for(meta, pattern=None):
     return "" if missing else url
 
 
+EPISODE_NAMES = ("tmdb_id", "imdb_id", "tvdb_id", "season", "episode", "thumbnail", "blur")
+OPTIONAL = ("thumbnail", "blur")            # may stay empty: the poster maker then uses its own picture / no blur
+
+
+def episode_url(meta, watched=False):
+    """The poster maker's episode picture (thumbnail pattern), or '' when not set up or a number is missing."""
+    import urllib.parse
+    pattern = _episode_pattern()
+    if not pattern or "://" not in pattern or meta.get("kind") != "episode" or util.HOME.getProperty(DOWN):
+        return ""
+    still = meta.get("thumb") or ""
+    if still == meta.get("tvshow_fanart") or "image.tmdb.org" not in still:
+        still = ""                              # only a real episode still (not the series backdrop as a stand-in)
+    values = {"tmdb_id": meta.get("tmdb"), "imdb_id": meta.get("imdb"), "tvdb_id": meta.get("tvdb"),
+              "season": meta.get("season"), "episode": meta.get("episode"),
+              "thumbnail": urllib.parse.quote(still, safe="") if still else "",
+              "blur": "true" if (util.flag("episode_blur") and not watched) else "false"}
+    missing = []
+
+    def fill(match):
+        for name in match.group(1).split("|"):
+            name = name.strip()
+            value = values.get(name)
+            if value not in (None, ""):
+                return str(value)
+            if name in OPTIONAL:
+                return ""
+        missing.append(match.group(1))
+        return ""
+
+    url = re.sub(r"\{((?:%s)(?:\s*\|\s*(?:%s))*)\}" % ("|".join(EPISODE_NAMES), "|".join(EPISODE_NAMES)), fill, pattern)
+    return "" if missing else url
+
+
+def _episode_pattern():
+    if time.time() - _cache.get("eat", 0) > 5:
+        _cache.update(episode=util.setting("episode_pattern").strip(), eat=time.time())
+    return _cache.get("episode") or ""
+
+
 def poster(meta, fallback):
     """What goes in the poster slot: the poster maker's picture when set up and reachable, else the usual one."""
     pattern, shows = _settings()

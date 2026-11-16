@@ -1900,3 +1900,19 @@ msgstr ""
 msgctxt "#32541"
 msgid "Shows a sample poster made with your pattern, so you can see if it works."
 msgstr ""
+
+msgctxt "#32542"
+msgid "Episode picture pattern (Pictorium, …)"
+msgstr ""
+
+msgctxt "#32543"
+msgid "Paste the episode thumbnail URL of your poster maker. Lucent fills in {tmdb_id}, {imdb_id}, {season}, {episode}, {thumbnail} (the episode's own picture) and {blur}. Empty: the usual episode pictures."
+msgstr ""
+
+msgctxt "#32544"
+msgid "Blur episodes you have not seen yet"
+msgstr ""
+
+msgctxt "#32545"
+msgid "No spoilers: the poster maker blurs the picture of episodes you have not watched yet (when it supports {blur})."
+msgstr ""

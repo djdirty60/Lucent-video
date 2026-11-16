@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+65" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+66" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -83,15 +83,16 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 65: watchlist, collection and lists carry the date you added a title, so Date added sorting works; Next page always last.
+        <news>1.0.0 beta 1, update 66: episode pictures with badges from a poster maker (Pictorium), optional blur for unwatched episodes.
+1.0.0 beta 1, update 65: watchlist, collection and lists carry the date you added a title, so Date added sorting works; Next page always last.
 1.0.0 beta 1, update 64: posters with badges from a poster maker (btttr.cc, SpatialPosters, ...), also ready for the skin.
 1.0.0 beta 1, update 63: share the error report with a link and QR code (paste.kodi.tv), crash logs added by themselves; clear help when only a debrid account is filled in; test mode only: Usenet speed test in Test connection.
 1.0.0 beta 1, update 62: release name in the player info; test mode only: removed Usenet releases left out while searching, faster opening and seeking, read-ahead fitted to the film, Dutch subtitles from the indexer.
 1.0.0 beta 1, update 61: test mode only: what an indexer says about language, subtitles, sound and codec now gives labels and ranking; DDPA5.1 recognised.
 1.0.0 beta 1, update 60: test mode only: removed Usenet releases are skipped within seconds instead of almost a minute.
-1.0.0 beta 1, update 59: test mode only: Usenet no longer gets stuck on large or removed releases with gap filling on; neater indexer usage in the connection test; sound like DDP5.1 is recognised, so Usenet and Easynews sources get the right labels and ranking.
-1.0.0 beta 1, update 58: test mode only: a personal code per tester, room for 10 indexers, and a clear warning when only the slow unpacker works.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 65: Kijklijst sorteren op Datum toegevoegd: In de kijklijst, de collectie en je eigen lijsten krijgt elke titel nu de datum waarop je hem toevoegde. Sorteer je een rij op Datum toegevoegd, dan staan de nieuwste bovenaan, en Volgende pagina staat altijd achteraan. Het poster-patroon werkt nu ook met Pictorium-adressen zoals {tmdb_id|imdb_id}.
+1.0.0 beta 1, update 59: test mode only: Usenet no longer gets stuck on large or removed releases with gap filling on; neater indexer usage in the connection test; sound like DDP5.1 is recognised, so Usenet and Easynews sources get the right labels and ranking.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 66: Afleveringsbeelden met badges: Bij Instellingen, Algemeen, Posters kun je nu ook een patroon voor afleveringsbeelden plakken, bijvoorbeeld van Pictorium. Dan krijgen afleveringen in de lijsten van Lucent een beeld met badges. Zet Nog niet geziene afleveringen vervagen aan als je geen spoilers wilt zien.
+1.0.0 beta 1, update 65: Kijklijst sorteren op Datum toegevoegd: In de kijklijst, de collectie en je eigen lijsten krijgt elke titel nu de datum waarop je hem toevoegde. Sorteer je een rij op Datum toegevoegd, dan staan de nieuwste bovenaan, en Volgende pagina staat altijd achteraan. Het poster-patroon werkt nu ook met Pictorium-adressen zoals {tmdb_id|imdb_id}.
 1.0.0 beta 1, update 64: Posters met badges van een postermaker: Plak bij Instellingen, Algemeen, Posters de poster-URL van een postermaker zoals btttr.cc of SpatialPosters. Dan krijgen films en series in alle lijsten posters met badges als Trending, 4K, Dolby Vision en een cijfer, die je op de site van de postermaker kiest. Met Patroon testen zie je meteen een voorbeeld. Antwoordt de dienst niet, dan blijven de gewone posters staan.</news>
         <assets>
             <icon>icon.png</icon>
