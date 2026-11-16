@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+68",
+   "label": "Beta 1 · update 68",
+   "label_en": "Beta 1 · update 68",
+   "date": "2026-11-16",
+   "at": "2026-11-16T16:55Z",
+   "items": [
+    [
+     "play",
+     "Usenet: altHUB en betere herkenning",
+     "Alleen in testmodus. NZB's van indexers zoals altHUB, die de sleutel in de downloadlink zelf zetten, worden nu goed opgehaald (eerst gaf dat een weigering, 403). De naam van zo'n indexer staat goed in de lijst (ALTHUB in plaats van CO), en releases met HDR10P of HDR10Px265 in de naam krijgen nu de juiste badges.",
+     "Usenet: altHUB and better recognition",
+     "Test mode only. NZBs from indexers like altHUB, which put the key inside the download link itself, are now fetched correctly (this gave a refusal, 403). The name of such an indexer shows correctly in the list (ALTHUB instead of CO), and releases with HDR10P or HDR10Px265 in their name now get the right badges."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+67",
    "label": "Beta 1 · update 67",
    "label_en": "Beta 1 · update 67",

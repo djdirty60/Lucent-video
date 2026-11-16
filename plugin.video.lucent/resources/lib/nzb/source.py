@@ -68,6 +68,8 @@ def _indexer_name(base):
     parts = [p for p in host.split(".") if p not in ("www", "api", "feed", "feeds")]
     if len(parts) >= 2:
         parts = parts[:-1]                 # without .info / .com / .net
+    if len(parts) >= 2 and parts[-1] in ("co", "com", "net", "org", "ac", "gov", "or", "ne"):
+        parts = parts[:-1]                 # without the .co of .co.za / .co.uk (althub.co.za is ALTHUB, not CO)
     return (parts[-1] if parts else host).upper()[:20]
 
 

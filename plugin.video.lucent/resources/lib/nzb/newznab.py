@@ -461,9 +461,14 @@ def nzb(row):
     if not allowed(base, "grab"):
         raise IndexerError("NZB: daily limit")
     _count(base, "grab")
-    parts = urllib.parse.urlsplit(row["link"])
-    query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True) + [(row.get("param") or "apikey", key)]
-    url = urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, urllib.parse.urlencode(query), ""))
+    if "[key]" in row["link"]:
+        # the key sat somewhere _strip_key could not take it out (nZEDb-style links like .../getnzb/x.nzb&i=1&r=KEY
+        # have no '?'), so the search answer has [key] there: put the real key back in that same place
+        url = row["link"].replace("[key]", urllib.parse.quote(key, safe=""))
+    else:
+        parts = urllib.parse.urlsplit(row["link"])
+        query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True) + [(row.get("param") or "apikey", key)]
+        url = urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, urllib.parse.urlencode(query), ""))
     try:
         body = fetch(url, 30)
     except IndexerError as error:
@@ -487,7 +492,9 @@ def _link_shape(link, param):
     path = re.sub(r"[A-Za-z0-9_\-]{12,}", "[id]", parts.path)
     path = re.sub(r"(?<=/)\d{3,}(?=/|\.|$)", "[n]", path)
     path = re.sub(r"=[^&/?;]+", "=[..]", path)             # parameters written into the path (a link without '?')
-    names = [k for k, _v in urllib.parse.parse_qsl(parts.query, keep_blank_values=True)] + ["%s=[key]" % (param or "apikey")]
+    names = [k for k, _v in urllib.parse.parse_qsl(parts.query, keep_blank_values=True)]
+    if "[key]" not in link:
+        names.append("%s=[key]" % (param or "apikey"))
     return "%s://%s%s?%s" % (parts.scheme, parts.hostname or "?", path, "&".join(names))
 
 

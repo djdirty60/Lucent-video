@@ -25,6 +25,9 @@ COMPILED = {tag: re.compile(MARKS % pattern, re.I) for tag, pattern in BY_NAME.i
 # channels glued to the sound format, as in DDP5.1, DD+5.1, AAC2.0 or TrueHD7.1
 GLUED = r"(?:^|[ ._\-\[(]|(?<=DDP)|(?<=DDPA)|(?<=DD\+)|(?<=DD)|(?<=AC3)|(?<=EAC3)|(?<=AAC)|(?<=OPUS)|(?<=TRUEHD)|(?<=ATMOS))%s(?=$|[ ._\-\])])"
 COMPILED.update({tag: re.compile(GLUED % BY_NAME[tag], re.I) for tag in ("71", "51", "20")})
+# HDR10+ written as HDR10P / HDR10P+ and a codec glued to it (HDR10Px265), as some web groups do
+HDR10P_RE = re.compile(r"(?:^|[ ._\-\[(])HDR10(?:\+|PLUS|P\+?)(?=$|[ ._\-\])]|X26[45]|H\.?26[45]|HEVC)", re.I)
+GLUED_CODEC_RE = re.compile(r"HDR10(?:\+|PLUS|P\+?)?(X26[45]|H\.?26[45]|HEVC)(?=$|[ ._\-\])])", re.I)
 GROUP_RE = re.compile(r"-([A-Za-z0-9]{2,20})(?:\.[a-z0-9]{2,4})?$")
 
 
@@ -37,6 +40,11 @@ def tags_of(source):
     for tag, pattern in COMPILED.items():
         if tag not in tags and pattern.search(name):
             tags.add(tag)
+    if "hdr10plus" not in tags and HDR10P_RE.search(name):
+        tags.add("hdr10plus")
+    glued = GLUED_CODEC_RE.search(name)
+    if glued:
+        tags.add("avc" if glued.group(1)[-1] == "4" else "hevc")
     if tags & {"fel", "p7", "dv2"}:
         tags.add("dv")
     if tags & {"fel", "p7"}:

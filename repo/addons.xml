@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+67" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+68" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -83,7 +83,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 67: Refresh posters button (fetch changed poster maker pictures again); episode picture pattern passed on to the skin.
+        <news>1.0.0 beta 1, update 68: test mode only: NZBs from altHUB-style links (key in the link) work, indexer name ALTHUB instead of CO, HDR10P / HDR10Px265 recognised.
+1.0.0 beta 1, update 67: Refresh posters button (fetch changed poster maker pictures again); episode picture pattern passed on to the skin.
 1.0.0 beta 1, update 66: episode pictures with badges from a poster maker (Pictorium), optional blur for unwatched episodes.
 1.0.0 beta 1, update 65: watchlist, collection and lists carry the date you added a title, so Date added sorting works; Next page always last.
 1.0.0 beta 1, update 64: posters with badges from a poster maker (btttr.cc, SpatialPosters, ...), also ready for the skin.
@@ -91,10 +92,10 @@
 1.0.0 beta 1, update 62: release name in the player info; test mode only: removed Usenet releases left out while searching, faster opening and seeking, read-ahead fitted to the film, Dutch subtitles from the indexer.
 1.0.0 beta 1, update 61: test mode only: what an indexer says about language, subtitles, sound and codec now gives labels and ranking; DDPA5.1 recognised.
 1.0.0 beta 1, update 60: test mode only: removed Usenet releases are skipped within seconds instead of almost a minute.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 67: Posters vernieuwen: Iets veranderd bij je postermaker, zoals Pictorium? Druk bij Instellingen, Algemeen, Posters op Posters vernieuwen. Kodi haalt dan alle posters en afleveringsbeelden opnieuw op, zodat je de wijzigingen meteen ziet. Ook geeft Lucent het afleveringsbeeld-patroon nu door aan de skin.
+        <news lang="nl_NL">1.0.0 beta 1, update 68: Usenet: altHUB en betere herkenning: Alleen in testmodus. NZB's van indexers zoals altHUB, die de sleutel in de downloadlink zelf zetten, worden nu goed opgehaald (eerst gaf dat een weigering, 403). De naam van zo'n indexer staat goed in de lijst (ALTHUB in plaats van CO), en releases met HDR10P of HDR10Px265 in de naam krijgen nu de juiste badges.
+1.0.0 beta 1, update 67: Posters vernieuwen: Iets veranderd bij je postermaker, zoals Pictorium? Druk bij Instellingen, Algemeen, Posters op Posters vernieuwen. Kodi haalt dan alle posters en afleveringsbeelden opnieuw op, zodat je de wijzigingen meteen ziet. Ook geeft Lucent het afleveringsbeeld-patroon nu door aan de skin.
 1.0.0 beta 1, update 66: Afleveringsbeelden met badges: Bij Instellingen, Algemeen, Posters kun je nu ook een patroon voor afleveringsbeelden plakken, bijvoorbeeld van Pictorium. Dan krijgen afleveringen in de lijsten van Lucent een beeld met badges. Zet Nog niet geziene afleveringen vervagen aan als je geen spoilers wilt zien.
-1.0.0 beta 1, update 65: Kijklijst sorteren op Datum toegevoegd: In de kijklijst, de collectie en je eigen lijsten krijgt elke titel nu de datum waarop je hem toevoegde. Sorteer je een rij op Datum toegevoegd, dan staan de nieuwste bovenaan, en Volgende pagina staat altijd achteraan. Het poster-patroon werkt nu ook met Pictorium-adressen zoals {tmdb_id|imdb_id}.
-1.0.0 beta 1, update 64: Posters met badges van een postermaker: Plak bij Instellingen, Algemeen, Posters de poster-URL van een postermaker zoals btttr.cc of SpatialPosters. Dan krijgen films en series in alle lijsten posters met badges als Trending, 4K, Dolby Vision en een cijfer, die je op de site van de postermaker kiest. Met Patroon testen zie je meteen een voorbeeld. Antwoordt de dienst niet, dan blijven de gewone posters staan.</news>
+1.0.0 beta 1, update 65: Kijklijst sorteren op Datum toegevoegd: In de kijklijst, de collectie en je eigen lijsten krijgt elke titel nu de datum waarop je hem toevoegde. Sorteer je een rij op Datum toegevoegd, dan staan de nieuwste bovenaan, en Volgende pagina staat altijd achteraan. Het poster-patroon werkt nu ook met Pictorium-adressen zoals {tmdb_id|imdb_id}.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>
