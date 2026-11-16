@@ -979,6 +979,9 @@ def _run(argv):
         if action == "poster_test":
             import posters
             return posters.test()
+        if action == "poster_refresh":
+            import posters
+            return posters.refresh()
         if action == "nzb_test":
             from nzb import source as usenet_source
             ok, lines = usenet_source.test()

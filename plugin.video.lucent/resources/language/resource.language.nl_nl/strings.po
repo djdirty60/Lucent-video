@@ -1916,3 +1916,11 @@ msgstr "Nog niet geziene afleveringen vervagen"
 msgctxt "#32545"
 msgid "No spoilers: the poster maker blurs the picture of episodes you have not watched yet (when it supports {blur})."
 msgstr "Geen spoilers: de postermaker vervaagt het beeld van afleveringen die je nog niet gezien hebt (als hij {blur} ondersteunt)."
+
+msgctxt "#32546"
+msgid "Refresh posters"
+msgstr "Posters vernieuwen"
+
+msgctxt "#32547"
+msgid "Changed something at the poster maker? Kodi keeps pictures it has seen before. This makes Lucent ask for all posters and episode pictures again (they load a little slower once)."
+msgstr "Iets veranderd bij de postermaker? Kodi bewaart beelden die het al eens heeft gezien. Hiermee vraagt Lucent alle posters en afleveringsbeelden opnieuw op (ze laden één keer iets langzamer)."

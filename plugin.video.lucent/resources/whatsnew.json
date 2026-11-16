@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+67",
+   "label": "Beta 1 · update 67",
+   "label_en": "Beta 1 · update 67",
+   "date": "2026-11-16",
+   "at": "2026-11-16T16:13Z",
+   "items": [
+    [
+     "library",
+     "Posters vernieuwen",
+     "Iets veranderd bij je postermaker, zoals Pictorium? Druk bij Instellingen, Algemeen, Posters op Posters vernieuwen. Kodi haalt dan alle posters en afleveringsbeelden opnieuw op, zodat je de wijzigingen meteen ziet. Ook geeft Lucent het afleveringsbeeld-patroon nu door aan de skin.",
+     "Refresh posters",
+     "Changed something at your poster maker, like Pictorium? Press Refresh posters under Settings, General, Posters. Kodi then fetches all posters and episode pictures again, so you see the changes right away. Lucent now also passes the episode picture pattern on to the skin."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+66",
    "label": "Beta 1 · update 66",
    "label_en": "Beta 1 · update 66",
