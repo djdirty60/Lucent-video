@@ -76,6 +76,9 @@ def link_works(source):
 def _answers(source, offset=0):
     """A tiny request (one byte) to see whether the link answers. Works with redirects to the debrid service."""
     url, _, extra = source["url"].partition("|")
+    if url.startswith("lucentv://"):              # read by vfs.lucent: it works while its plan is there
+        from nzb import vfs
+        return vfs.exists(url)
     head = dict(urllib.parse.parse_qsl(extra))
     parts = urllib.parse.urlsplit(url)
     if parts.username:           # urllib does not read a login from the address
@@ -94,6 +97,8 @@ def _answers(source, offset=0):
 def final_server(source):
     """Where the picture really comes from: the server name after all redirects (one byte is asked). Never the address."""
     url, _, extra = (source.get("url") or "").partition("|")
+    if url.startswith("lucentv://"):
+        return "Usenet (vfs.lucent)"
     head = dict(urllib.parse.parse_qsl(extra))
     head.setdefault("User-Agent", "Lucent-Video/0.1")
     head["Range"] = "bytes=0-0"
@@ -208,7 +213,8 @@ def lighter_than(source, order):
 def describe(source):
     """What a source is, for the log: service, quality, size and the server's name. Never the address itself."""
     import urllib.parse
-    host = urllib.parse.urlsplit(source.get("url") or "").hostname or "?"
+    url = source.get("url") or ""
+    host = "vfs.lucent" if url.startswith("lucentv://") else urllib.parse.urlsplit(url).hostname or "?"
     scraper = (source.get("resolve") or {}).get("scraper") or ""
     parts = [scraper, source.get("service") or "", source.get("resolution") or "", streams_size(source.get("size")), "server " + host]
     return " / ".join(p for p in parts if p)

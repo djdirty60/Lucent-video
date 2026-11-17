@@ -2,6 +2,139 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+78",
+   "label": "Beta 1 · update 78",
+   "label_en": "Beta 1 · update 78",
+   "date": "2026-11-17",
+   "at": "2026-11-17T21:40Z",
+   "items": [
+    [
+     "star",
+     "Hervatpunt wissen ook in Kodi zelf",
+     "Hervatpunt wissen haalt nu ook het punt weg dat Kodi zelf bewaart voor de afspeellink van Lucent. Kodi vraagt daarna niet meer 'Hervatten vanaf' en het balkje op de poster verdwijnt.",
+     "Clear resume point in Kodi itself too",
+     "Clear resume point now also removes the point Kodi keeps for Lucent's play link. Kodi no longer asks 'Resume from' afterwards and the bar on the poster goes away."
+    ],
+    [
+     "star",
+     "Snelle lezer: minder haperen",
+     "Alleen in testmodus, met de snelle lezer: wacht de film op een traag stukje, dan vraagt vfs.lucent het nu na 1 à 2 seconden ook bij je andere provider, in plaats van na 4 seconden. Plaatjes voor de hoofdstukken gaan niet meer voor de film. In het logboek staan de cijfers nu meteen bij het stoppen, en hoe lang het klaarzetten van het plan duurde.",
+     "Fast reader: fewer stalls",
+     "Test mode only, with the fast reader: when the film waits for a slow article, vfs.lucent now also asks your other provider after 1 to 2 seconds instead of 4. Chapter pictures no longer go before the film. The log now has the totals right when you stop, and how long preparing the plan took."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+77",
+   "label": "Beta 1 · update 77",
+   "label_en": "Beta 1 · update 77",
+   "date": "2026-11-17",
+   "at": "2026-11-17T21:00Z",
+   "items": [
+    [
+     "star",
+     "Echte release-groep bij crossposts",
+     "Eindigt een releasenaam op een plakkertje van de uploader, zoals -xpost, dan laat Lucent nu de echte release-groep zien (bijvoorbeeld CiNEPHiLES in plaats van xpost). Die groep telt dan ook mee bij het sorteren.",
+     "Real release group on cross-posts",
+     "When a release name ends with an uploader tag such as -xpost, Lucent now shows the real release group (for example CiNEPHiLES instead of xpost). That group now also counts in the ranking."
+    ],
+    [
+     "star",
+     "Hervatpunt wissen bij Simkl",
+     "Hervatpunt wissen haalt het punt nu ook bij Simkl weg. Eerder bleef het daar staan, waardoor de film toch weer halverwege begon.",
+     "Clear resume point on Simkl",
+     "Clear resume point now also removes the point from Simkl. Before, it stayed there, so the film still started halfway."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+76",
+   "label": "Beta 1 · update 76",
+   "label_en": "Beta 1 · update 76",
+   "date": "2026-11-17",
+   "at": "2026-11-17T20:45Z",
+   "items": [
+    [
+     "star",
+     "Nette labels bij de bronnen",
+     "De labels in de bronnenlijst staan nu bij elke bron in dezelfde volgorde: beeld, bron, codec, geluid, kanalen, taal. Dubbele labels zijn weg (DTS-HD MA niet ook nog als DTS-HD, REMUX niet ook nog als BLU-RAY, 7.1 niet ook nog als 5.1). Bij Usenet vult de indexer geluid en codec alleen nog aan als de releasenaam er niets over zegt.",
+     "Tidy labels on the sources",
+     "The labels in the source list are now in the same order for every source: picture, source, codec, sound, channels, language. Duplicates are gone (DTS-HD MA not also as DTS-HD, REMUX not also as BLU-RAY, 7.1 not also as 5.1). For Usenet, the indexer only adds sound and codec when the release name says nothing about them."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+75",
+   "label": "Beta 1 · update 75",
+   "label_en": "Beta 1 · update 75",
+   "date": "2026-11-17",
+   "at": "2026-11-17T20:35Z",
+   "items": [
+    [
+     "settings",
+     "Snelle lezer in de test",
+     "Alleen in testmodus: de knop Testen bij Usenet laat nu ook de snelle lezer zien: aan (met versie en verzoeken per verbinding), uitgezet in de instellingen, uitgeschakeld bij Kodi's add-ons, of niet geïnstalleerd.",
+     "Fast reader in the test",
+     "Test mode only: the Test button under Usenet now also shows the fast reader: on (with its version and requests per connection), switched off in the settings, disabled in Kodi's add-ons, or not installed."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+74",
+   "label": "Beta 1 · update 74",
+   "label_en": "Beta 1 · update 74",
+   "date": "2026-11-17",
+   "at": "2026-11-17T20:00Z",
+   "items": [
+    [
+     "settings",
+     "Verzoeken tegelijk per verbinding",
+     "Alleen in testmodus, bij de snelle lezer: nieuwe instelling voor hoeveel stukjes per verbinding tegelijk worden gevraagd (pipelining, 1 tot 8, gewoon is 2). Hoger kan helpen bij een provider die per stukje traag antwoordt.",
+     "Requests at once per connection",
+     "Test mode only, with the fast reader: a new setting for how many pieces are asked for at once per connection (pipelining, 1 to 8, normal is 2). Higher can help with a provider that answers slowly per piece."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+73",
+   "label": "Beta 1 · update 73",
+   "label_en": "Beta 1 · update 73",
+   "date": "2026-11-17",
+   "at": "2026-11-17T20:30Z",
+   "items": [
+    [
+     "settings",
+     "Minder NZB-downloads",
+     "Alleen in testmodus: Lucent bewaart opgehaalde NZB's nu een week (tot 200 MB) in plaats van maar 10 stuks, en controleert een release die compleet bleek 24 uur niet opnieuw. Zo haalt Lucent dezelfde NZB niet steeds opnieuw op bij je indexer.",
+     "Fewer NZB downloads",
+     "Test mode only: Lucent now keeps fetched NZBs for a week (up to 200 MB) instead of only 10, and does not check a release that was complete again for 24 hours. So Lucent no longer fetches the same NZB from your indexer over and over."
+    ],
+    [
+     "play",
+     "Sneller openen",
+     "Alleen in testmodus: het NZB-bestand van een grote release wordt ongeveer drie keer zo snel ingelezen, vooral te merken op langzamere kastjes.",
+     "Faster opening",
+     "Test mode only: the NZB of a big release is read about three times as fast, noticeable mostly on slower boxes."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~beta1+72",
+   "label": "Beta 1 · update 72",
+   "label_en": "Beta 1 · update 72",
+   "date": "2026-11-17",
+   "at": "2026-11-17T09:30Z",
+   "items": [
+    [
+     "play",
+     "Snelle Usenet-lezer (test)",
+     "Alleen in testmodus: is de losse add-on vfs.lucent geïnstalleerd, dan leest Kodi Usenet-films via die snelle C++-lezer in plaats van via Lucent's eigen webserver. Bedoeld voor sneller spoelen in grote films. Uit te zetten in de Usenet-instellingen (Snelle lezer).",
+     "Fast Usenet reader (test)",
+     "Test mode only: when the separate add-on vfs.lucent is installed, Kodi reads Usenet films through that fast C++ reader instead of through Lucent's own web server. Meant for faster seeking in big films. Can be turned off in the Usenet settings (Fast reader)."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+71",
    "label": "Beta 1 · update 71",
    "label_en": "Beta 1 · update 71",

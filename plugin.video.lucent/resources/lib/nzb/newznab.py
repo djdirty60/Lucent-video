@@ -452,6 +452,23 @@ def _packs(slot, base, key, meta, background):
     return found
 
 
+GRABBED = "nzb_grabbed.json"
+
+
+def _note_grab(link):
+    """Remember when each NZB was fetched (by a hash of its link, never the link itself). The same NZB twice within a
+    day goes in the log: indexers warn about repeated downloads and can close the account."""
+    import hashlib
+    key = hashlib.sha1(link.encode("utf-8")).hexdigest()[:16]
+    now = time.time()
+    seen = {k: v for k, v in util.load_json(GRABBED, {}).items() if now - v < 86400}
+    if key in seen:
+        util.log("usenet: the same NZB is fetched again within a day (%s, first %d min ago)" % (key[:8], (now - seen[key]) // 60))
+    else:
+        seen[key] = now
+    util.save_json(GRABBED, seen)
+
+
 def nzb(row):
     """The NZB bytes of a row (the key is put back only for this request)."""
     match = next(((base, key) for slot, base, key in indexers() if slot == row["slot"]), None)
@@ -469,6 +486,7 @@ def nzb(row):
         parts = urllib.parse.urlsplit(row["link"])
         query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True) + [(row.get("param") or "apikey", key)]
         url = urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, urllib.parse.urlencode(query), ""))
+    _note_grab(row["link"])
     try:
         body = fetch(url, 30)
     except IndexerError as error:

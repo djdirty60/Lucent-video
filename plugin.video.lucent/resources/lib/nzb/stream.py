@@ -806,6 +806,7 @@ def _sniff(pool, files, log):
 def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=None, cache=None, pack=False, backup=None,
                  fill=False, minutes=0):
     """NZB -> an opened Release, or StreamError / nzbfile.NzbError with the reason."""
+    started = time.time()
     files = nzbfile.parse(nzb_bytes)
     try:
         kind, chosen = nzbfile.pick(files, season, episode, pack)
@@ -813,6 +814,9 @@ def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=Non
         if not _sniff(pool, files, log or (lambda text: None)):
             raise
         kind, chosen = nzbfile.pick(files, season, episode, pack)
+    articles = sum(len(p.segments) for p in chosen)
+    if log:
+        log("NZB read in %.1f s: %d file(s), %d to play, %d articles" % (time.time() - started, len(files), len(chosen), articles))
     release = Release(pool, files, kind, chosen, log=log, backup=backup, fill=fill,
                       **{k: v for k, v in (("ahead", ahead), ("cache", cache)) if v})
     if season and episode:

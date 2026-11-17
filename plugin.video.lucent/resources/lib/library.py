@@ -454,6 +454,22 @@ def clear_resume(meta):
     return len(calls)
 
 
+def clear_kodi_resume(meta):
+    """Kodi keeps its own resume point for the play link it opened (plugin://plugin.video.lucent/?action=play...):
+    that one makes Kodi ask 'Resume from' and gives the skin its progress bar. Position 0 removes it. Only the
+    links Lucent makes itself (now, for the next episode, and the order older versions used)."""
+    if meta["kind"] == "movie":
+        base = {"action": "play", "type": "movie", "tmdb": meta["tmdb"]}
+        legacy = "%s?action=play&type=movie&tmdb=%s" % (util.BASE, meta["tmdb"])
+    else:
+        base = {"action": "play", "type": "episode", "tmdb": meta["tmdb"], "season": meta["season"], "episode": meta["episode"]}
+        legacy = "%s?action=play&type=episode&tmdb=%s&season=%s&episode=%s" % (util.BASE, meta["tmdb"], meta["season"], meta["episode"])
+    links = [util.url_for(**base), util.url_for(autoplay=1, **base), legacy, legacy + "&autoplay=1"]
+    rpc_batch([("Files.SetFileDetails", {"file": link, "media": "video", "resume": {"position": 0, "total": 0}})
+               for link in dict.fromkeys(links)])
+    return len(links)
+
+
 def _resume_call(method, id_name, item, percent):
     total = item.get("runtime") or 0
     if not percent or not total:

@@ -821,6 +821,10 @@ def forget_resume(params):
         library.clear_resume(meta)
     except Exception as error:      # noqa: BLE001 - the library is a bonus here
         util.log("resume forget, library: %s" % type(error).__name__)
+    try:
+        library.clear_kodi_resume(meta)
+    except Exception as error:      # noqa: BLE001
+        util.log("resume forget, Kodi's own point: %s" % type(error).__name__)
     util.log("resume point of %s removed" % player.progress_key(meta))
     util.notify(T("Hervatpunt gewist: hij begint weer vooraan", "Resume point cleared: it starts from the beginning"))
     import widgets

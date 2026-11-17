@@ -7,6 +7,7 @@ import threading
 import xbmcgui
 import xbmcvfs
 
+import streams
 import util
 
 T = util.T
@@ -108,7 +109,7 @@ class Sources(Base):
             item.setProperty("scraper", SCRAPER_SHORT.get(source.get("scraper"), source.get("scraper") or ""))
             if source["cached"] and not source.get("always"):
                 item.setProperty("cached", "1")   # Usenet and direct links are always there: no 'CACHED' for those
-            for number, flag in enumerate(source["flags"][:12], 1):
+            for number, flag in enumerate(streams.tidy_flags(source["flags"])[:12], 1):
                 item.setProperty("flag%d" % number, "lucent/flags/%s.png" % flag)
             self.rows.addItem(item)
 

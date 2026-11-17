@@ -209,13 +209,25 @@ def _info_flags(info):
     return out
 
 
+AUDIO_FLAGS = {"ATMOS", "TRUEHD", "DTS-X", "DTS-HDMA", "DTS-HD", "DTS", "DD+", "DD", "AAC", "OPUS"}
+CHANNEL_FLAGS = {"7.1", "5.1", "2.0"}
+VIDEO_FLAGS = {"HEVC", "AVC", "AV1"}
+
+
 def _add_info(source, row):
     info = row.get("info") or {}
     if not info:
         return
+    have = set(source["flags"])
     for flag in _info_flags(info):
-        if flag not in source["flags"]:
-            source["flags"].append(flag)
+        # sound, channels and codec from the indexer only when the release name says nothing about them: otherwise a
+        # second audio track (an extra AC-3, a stereo commentary) gives badges that do not match the name
+        for group in (AUDIO_FLAGS, CHANNEL_FLAGS, VIDEO_FLAGS):
+            if flag in group and have & group:
+                break
+        else:
+            if flag not in source["flags"]:
+                source["flags"].append(flag)
     if source.get("resolution") == "SD":
         found = streams.resolution({}, info.get("resolution") or "")
         if found != "SD":
@@ -229,7 +241,10 @@ CHECK_TOP = 8               # look among this many best sources
 CHECK_MOST = 4              # check at most this many Usenet releases there
 CHECK_SAMPLE = 8            # articles per release
 CHECK_SECONDS = 8           # the whole check never takes longer than this
-NZB_FRESH = 6 * 3600
+NZB_FRESH = 7 * 86400       # an NZB never changes: one that was fetched is used again for a week (indexers warn
+                            # and can close an account when the same NZB is fetched over and over)
+ALIVE = "nzb_alive.json"
+ALIVE_HOURS = 24            # a release found complete is not checked (nor its NZB fetched) again for this long
 
 
 def _nzb_name(job):
@@ -261,6 +276,19 @@ def _mark_dead(job):
     dead = {k: v for k, v in dead.items() if now - v < DEAD_DAYS * 86400}
     dead[_dead_key(job["link"])] = now
     util.save_json(DEAD, dead)
+
+
+def _alive_recent():
+    now = time.time()
+    return {k for k, v in util.load_json(ALIVE, {}).items() if now - v < ALIVE_HOURS * 3600}
+
+
+def _mark_alive(job):
+    alive = util.load_json(ALIVE, {})
+    now = time.time()
+    alive = {k: v for k, v in alive.items() if now - v < ALIVE_HOURS * 3600}
+    alive[_dead_key(job["link"])] = now
+    util.save_json(ALIVE, alive)
 
 
 def _dead_now():
@@ -330,6 +358,8 @@ def prune(ranked, meta):
     if not configured() or meta.get("background") or not ranked:
         return ranked
     jobs = [s for s in ranked[:CHECK_TOP] if (s.get("resolve") or {}).get("scraper") == "Usenet"][:CHECK_MOST]
+    alive_before = _alive_recent()
+    jobs = [s for s in jobs if _dead_key(s["resolve"]["link"]) not in alive_before]
     if not jobs:
         return ranked
     started = time.time()
@@ -351,6 +381,8 @@ def prune(ranked, meta):
         if alive is False:
             gone.append(futures[future])
             _mark_dead(futures[future]["resolve"])
+        elif alive:
+            _mark_alive(futures[future]["resolve"])
     pool.close()
     if spare:
         spare.close()
@@ -396,7 +428,34 @@ def link(job):
         if answer.get("error") == "login":
             util.notify(util.T("Usenet: inloggen bij je provider lukt niet", "Usenet: signing in to your provider fails"))
         return None
+    if answer.get("native"):
+        return answer["native"]                 # vfs.lucent reads it (lucentv://)
     return "http://127.0.0.1:%s/stream/%s/%s" % (port, answer["key"], urllib.parse.quote(answer.get("name") or "film.mkv"))
+
+
+def _reader_line():
+    """Which way films are read: the fast reader (vfs.lucent, with its version) or Lucent's own web server."""
+    from . import vfs
+    try:
+        import xbmc
+        answer = json.loads(xbmc.executeJSONRPC(json.dumps({
+            "jsonrpc": "2.0", "id": 1, "method": "Addons.GetAddonDetails",
+            "params": {"addonid": vfs.ADDON_ID, "properties": ["version"]}})))     # also finds it when switched off
+        addon = (answer.get("result") or {}).get("addon") or {}
+        installed, version = bool(addon), addon.get("version") or ""
+    except Exception:                           # noqa: BLE001 - outside Kodi
+        installed, version = False, ""
+    if not installed:
+        return util.T("Snelle lezer: niet geïnstalleerd (films lopen via Lucent's eigen webserver).",
+                      "Fast reader: not installed (films go through Lucent's own web server).")
+    if not vfs.available():
+        return util.T("Snelle lezer: vfs.lucent %s is uitgeschakeld bij Kodi's add-ons (zet hem daar weer aan).",
+                      "Fast reader: vfs.lucent %s is disabled in Kodi's add-ons (enable it there again).") % version
+    if not util.flag("nzb_native"):
+        return util.T("Snelle lezer: vfs.lucent %s geïnstalleerd, maar uitgezet in deze instellingen.",
+                      "Fast reader: vfs.lucent %s installed, but switched off in these settings.") % version
+    return util.T("Snelle lezer: aan (vfs.lucent %s, %d verzoeken tegelijk per verbinding).",
+                  "Fast reader: on (vfs.lucent %s, %d requests at once per connection).") % (version, vfs.pipeline())
 
 
 def test():
@@ -426,6 +485,7 @@ def test():
     lines.append(util.T("Uitpakken: snel (C).", "Unpacking: fast (C).") if yenc.fast() else
                  util.T("Uitpakken: langzaam (Python), afspelen kan haperen. Stuur graag een foutrapport.",
                         "Unpacking: slow (Python), playback may stutter. Please send an error report."))
+    lines.append(_reader_line())
     ixs = newznab.indexers()
     if not ixs:
         ok = False

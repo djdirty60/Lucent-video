@@ -20,7 +20,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import util
 
-from . import nntp, nzbfile, stream, yenc
+from . import nntp, nzbfile, stream, vfs, yenc
 
 PORT_PROPERTY = "lucent.video.nzb.port"
 FOLDER = "nzb"
@@ -110,8 +110,17 @@ def prepare(name, season=None, episode=None, pack=False, minutes=0):
                 spare.close()
             util.log("usenet: opening failed (%s: %s)" % (type(error).__name__, str(error)[:120]))
             return {"ok": False, "error": type(error).__name__}
-        _state["release"], _state["pool"], _state["key"], _state["backup"] = release, pool, uuid.uuid4().hex[:12], spare
         util.log("usenet: release ready in %.1f s" % (time.time() - started))
+        vfs.clear()                                 # an older plan (with the sign-in) never stays behind
+        if vfs.wanted():
+            native = vfs.hand_over(release, provider(), spare_settings, fill=util.flag("nzb_fill"))
+            if native:
+                release.close()                     # vfs.lucent makes its own connections: free these now
+                pool.close()
+                if spare:
+                    spare.close()
+                return {"ok": True, "key": "", "native": native, "name": release.name, "size": release.size}
+        _state["release"], _state["pool"], _state["key"], _state["backup"] = release, pool, uuid.uuid4().hex[:12], spare
         _warn_slow()
         return {"ok": True, "key": _state["key"], "name": release.name, "size": release.size}
     finally:
@@ -264,6 +273,7 @@ def start():
 
 
 def stop():
+    vfs.clear()
     with _state["lock"]:
         _close_release()
     if _state["http"]:
@@ -329,6 +339,7 @@ def tick(playing):
         stop()
         util.log("usenet: local player server off")
         return
+    vfs.tick(playing)
     release = _state["release"]
     if release and time.time() - release.last_read < SPEED_EVERY:
         _speed_line(release)
@@ -340,14 +351,28 @@ def tick(playing):
     _tidy()
 
 
+NZB_KEEP_DAYS = 7
+NZB_KEEP_BYTES = 200 * 1024 * 1024      # the saved NZBs together at most this much (the oldest go first)
+
+
 def _tidy():
-    """Keep only the last few NZB files."""
+    """Saved NZBs are kept for a week (up to NZB_KEEP_BYTES), so the same NZB is not fetched from the indexer again
+    and again: indexers warn about that and can close the account."""
     try:
-        names = sorted((os.path.getmtime(os.path.join(folder(), n)), n) for n in os.listdir(folder()) if n.endswith(".nzb"))
+        base = folder()
+        names = []
+        for name in os.listdir(base):
+            if name.endswith(".nzb"):
+                path = os.path.join(base, name)
+                names.append((os.path.getmtime(path), os.path.getsize(path), path))
     except OSError:
         return
-    for _when, name in names[:-10]:
-        try:
-            os.remove(os.path.join(folder(), name))
-        except OSError:
-            pass
+    names.sort(reverse=True)                     # newest first
+    total, now = 0, time.time()
+    for when, size, path in names:
+        total += size
+        if now - when > NZB_KEEP_DAYS * 86400 or total > NZB_KEEP_BYTES:
+            try:
+                os.remove(path)
+            except OSError:
+                pass

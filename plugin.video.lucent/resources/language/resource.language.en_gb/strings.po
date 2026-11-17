@@ -1932,3 +1932,19 @@ msgstr ""
 msgctxt "#32549"
 msgid "With 'Choose by itself, in the background': the film waits (at most 20 seconds) while Lucent looks for a subtitle in your language, and starts again from the beginning once it is on, so you miss nothing."
 msgstr ""
+
+msgctxt "#32550"
+msgid "Fast reader (vfs.lucent, test)"
+msgstr ""
+
+msgctxt "#32551"
+msgid "Only shown when the add-on vfs.lucent is installed. Kodi then reads Usenet films through that add-on (written in C++) instead of through Lucent's own small web server. Seeking in big films goes faster. Turn it off to go back to the normal way."
+msgstr ""
+
+msgctxt "#32552"
+msgid "Requests at once per connection (fast reader, test)"
+msgstr ""
+
+msgctxt "#32553"
+msgid "How many articles the fast reader asks for on one connection before the first answer is in (pipelining). 2 is the normal value. A higher value can help when your provider answers slowly per article; it can also make a jump take a bit longer, because what you jump to waits behind the requests already on that connection. Try it and compare."
+msgstr ""

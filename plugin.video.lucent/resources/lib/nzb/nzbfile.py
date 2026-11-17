@@ -43,7 +43,7 @@ class Posted:
     def encoded(self):
         if self._encoded is None:
             if self._segments is None and self._raw is not None:
-                self._encoded = sum(int(n) for n in _BYTES.findall(self._raw))   # without reading every article
+                self._encoded = _encoded_size(self._raw)        # without reading every article
             else:
                 self._encoded = sum(size for _n, size, _m in self.segments)
         return self._encoded
@@ -74,6 +74,17 @@ _SEGMENT = re.compile(rb"<segment\b([^>]*)>\s*([^<]*?)\s*</segment\s*>")
 _ATTR = re.compile(rb"""([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')""")
 _QUICK = re.compile(rb'\s+(?:bytes="(\d+)"\s+number="(\d+)"|number="(\d+)"\s+bytes="(\d+)")\s*')
 _BYTES = re.compile(rb'<segment\b[^>]*?\bbytes\s*=\s*["\'](\d+)')
+_PLAIN_BYTES = re.compile(rb'<segment bytes="(\d+)"')
+
+
+def _encoded_size(raw):
+    """The sum of the articles' sizes in a file's piece of the NZB (a plain search first, the careful one otherwise)."""
+    plain = _PLAIN_BYTES.findall(raw)
+    if len(plain) == raw.count(b"<segment") - raw.count(b"<segments"):
+        return sum(map(int, plain))
+    return sum(int(n) for n in _BYTES.findall(raw))
+
+
 _ENTITIES = {"&quot;": '"', "&apos;": "'", "&lt;": "<", "&gt;": ">", "&amp;": "&"}
 
 
@@ -97,13 +108,62 @@ def _fast(data):
     if b"<!--" in data or b"CDATA" in data or b"<segment" not in data:
         return None                             # unusual NZB: the full XML reader
     files = []
-    for found in _FILE.finditer(data):
-        if b"<segment" in found.group(2):
-            files.append((_text(_attrs(found.group(1)).get("subject") or b""), None, found.group(2)))
+    for head, body in _file_blocks(data):
+        if b"<segment" in body:
+            files.append((_text(_attrs(head).get("subject") or b""), None, body))
     return files
 
 
+_FILE_END = re.compile(rb"</file\s*>")
+
+
+def _file_blocks(data):
+    """(attributes, body) of each <file>, the same as _FILE.finditer but with plain searches: the lazy regex walks a
+    10+ MB NZB byte by byte, which is slow on a weak box."""
+    at = 0
+    while True:
+        start = data.find(b"<file", at)
+        if start < 0:
+            return
+        after = start + 5
+        if after < len(data) and (data[after:after + 1].isalnum() or data[after:after + 1] == b"_"):
+            at = after                          # <files ...> or similar: not a file
+            continue
+        close = data.find(b">", after)
+        if close < 0:
+            return
+        head = data[after:close]
+        end = _FILE_END.search(data, close + 1)
+        if not end:
+            return
+        yield head, data[close + 1:end.start()]
+        at = end.end()
+
+
+_PLAIN_BN = re.compile(rb'<segment bytes="(\d+)" number="(\d+)">([^<]+)</segment>')
+_PLAIN_NB = re.compile(rb'<segment number="(\d+)" bytes="(\d+)">([^<]+)</segment>')
+
+
 def _segments_of(block):
+    """[(number, bytes, id)] of one file. Almost every NZB writes each article the same plain way: then one regex pass
+    reads them all (several times faster on a slow box); anything else goes through the careful reader below."""
+    if b"&" not in block:
+        total = block.count(b"<segment") - block.count(b"<segments")
+        for pattern, bytes_first in ((_PLAIN_BN, True), (_PLAIN_NB, False)):
+            plain = pattern.findall(block)
+            if len(plain) != total:
+                continue
+            if bytes_first:
+                found = [(int(b), int(a), c.strip().decode("utf-8", "replace")) for a, b, c in plain]
+            else:
+                found = [(int(a), int(b), c.strip().decode("utf-8", "replace")) for a, b, c in plain]
+            if all(item[2] for item in found):
+                return found
+            break
+    return _segments_careful(block)
+
+
+def _segments_careful(block):
     segments = []
     for segment in _SEGMENT.finditer(block):
         raw = segment.group(2)
@@ -151,6 +211,9 @@ def parse(data):
 
 def _unique(segments):
     """Articles in order, a number posted twice only once (the first)."""
+    numbers = [segment[0] for segment in segments]
+    if all(a < b for a, b in zip(numbers, numbers[1:])):
+        return segments                         # already in order without doubles (nearly always)
     segments.sort()
     seen, unique = set(), []
     for segment in segments:

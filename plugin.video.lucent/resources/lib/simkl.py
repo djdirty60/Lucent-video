@@ -61,15 +61,15 @@ def _access():
     return saved.get("access_token")
 
 
-def call(path, data=None, retry=True):
+def call(path, data=None, retry=True, method=None):
     join = "&" if "?" in path else "?"
     url = API + path + join + urllib.parse.urlencode({"client_id": client(), "app-name": "lucent-video", "app-version": "0.4"})
     head = {"User-Agent": AGENT, "Authorization": "Bearer %s" % _access()}
     try:
-        return util.http(url, data=data, headers=head)[0]
+        return util.http(url, data=data, headers=head, method=method)[0]
     except util.HttpError as error:
         if error.status == 401 and retry and _refresh():
-            return call(path, data, False)
+            return call(path, data, False, method)
         raise
 
 
@@ -243,6 +243,24 @@ def paused():
             ids["tmdb"] = found
         out.append(row)
     return out
+
+
+def forget_playback(meta):
+    """'Clear resume point': the stopped-here point leaves Simkl too (DELETE sync/playback/<id>)."""
+    removed = False
+    for row in paused():
+        title = row.get("movie") if row.get("type") == "movie" else row.get("show")
+        same_title = str(((title or {}).get("ids") or {}).get("tmdb")) == str(meta["tmdb"])
+        if meta["kind"] == "movie":
+            same = row.get("type") == "movie" and same_title
+        else:
+            episode = row.get("episode") or {}
+            same = row.get("type") != "movie" and same_title and int(episode.get("season") or -1) == int(meta["season"]) \
+                and int(episode.get("number") or episode.get("episode") or -1) == int(meta["episode"])
+        if same and row.get("id"):
+            call("sync/playback/%s" % row["id"], method="DELETE")
+            removed = True
+    return removed
 
 
 def next_up():

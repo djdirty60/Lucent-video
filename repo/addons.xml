@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+71" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+78" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -83,17 +83,19 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 71: Like Tamtaro ranking profile; filters per quality and source, lower only when needed, always in your language, hide WEBRip/HDTV/DVD; test mode only: release group on the Usenet source line.
+        <news>1.0.0 beta 1, update 78: Clear resume point also clears Kodi's own point; test mode only: fast reader asks the other provider sooner, chapter pictures after the film.
+1.0.0 beta 1, update 77: the real release group on cross-posts (not -xpost); Clear resume point also works on Simkl.
+1.0.0 beta 1, update 76: source labels in one fixed order without duplicates.
+1.0.0 beta 1, update 75: test mode only: the Usenet test button also shows the fast reader (on/off, version).
+1.0.0 beta 1, update 74: test mode only: setting for requests at once per connection (pipelining) for the fast reader.
+1.0.0 beta 1, update 73: test mode only: the same NZB is no longer fetched from the indexer again and again (kept for a week); big NZBs are read about three times as fast.
+1.0.0 beta 1, update 72: test mode only: optional fast Usenet reader through the separate add-on vfs.lucent (C++), for faster seeking.
+1.0.0 beta 1, update 71: Like Tamtaro ranking profile; filters per quality and source, lower only when needed, always in your language, hide WEBRip/HDTV/DVD; test mode only: release group on the Usenet source line.
 1.0.0 beta 1, update 70: optional pause until the subtitle is found (with automatic background search), then the film starts again from the beginning.
-1.0.0 beta 1, update 69: release groups by TRaSH Guides in the ranking; service stops cleanly; test mode only: fewer Usenet stalls with heavy films, faster source list for 90+ GB releases.
-1.0.0 beta 1, update 68: test mode only: NZBs from altHUB-style links (key in the link) work, indexer name ALTHUB instead of CO, HDR10P / HDR10Px265 recognised.
-1.0.0 beta 1, update 67: Refresh posters button (fetch changed poster maker pictures again); episode picture pattern passed on to the skin.
-1.0.0 beta 1, update 66: episode pictures with badges from a poster maker (Pictorium), optional blur for unwatched episodes.
-1.0.0 beta 1, update 65: watchlist, collection and lists carry the date you added a title, so Date added sorting works; Next page always last.
-1.0.0 beta 1, update 64: posters with badges from a poster maker (btttr.cc, SpatialPosters, ...), also ready for the skin.
-1.0.0 beta 1, update 63: share the error report with a link and QR code (paste.kodi.tv), crash logs added by themselves; clear help when only a debrid account is filled in; test mode only: Usenet speed test in Test connection.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 71: Profiel Zoals Tamtaro: Nieuw bij Rangschikking: het profiel Zoals Tamtaro. Eerst direct speelbaar, dan resolutie, dan soort bron (Remux, Blu-ray, WEB-DL, WEBRip), dan de release-groep volgens TRaSH en dan taal; beeld en geluid beslissen alleen nog bij gelijkspel. Minder en betere resultaten. Nieuwe filters: Bij Rangschikking, Filters: per kwaliteit en bron (bijv. 3 x 4K Remux, 3 x 4K WEB-DL), lager alleen als nodig (720p pas als er te weinig 1080p/4K is), altijd een paar bronnen in jouw taal (Nederlands), en WEBRip, HDTV en DVD/SD-rip zijn nu ook te verbergen. Usenet: release-groep zichtbaar: Alleen in testmodus. Onder elke Usenet-bron staat nu ook de release-groep, en korte indexernamen zoals nzb.life staan er voluit.
-1.0.0 beta 1, update 70: Film wacht op de ondertitel: Nieuw bij Ondertitels en geluid: Film stilzetten tot de ondertitel er is. Samen met Zelf kiezen, op de achtergrond zet Lucent de film even stil, zoekt in al je ondertitelbronnen en -add-ons, zet de beste aan en begint de film opnieuw vanaf het begin, zodat je niets mist. Hooguit 20 seconden.</news>
+1.0.0 beta 1, update 69: release groups by TRaSH Guides in the ranking; service stops cleanly; test mode only: fewer Usenet stalls with heavy films, faster source list for 90+ GB releases.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 78: Hervatpunt wissen ook in Kodi zelf: Hervatpunt wissen haalt nu ook het punt weg dat Kodi zelf bewaart voor de afspeellink van Lucent. Kodi vraagt daarna niet meer 'Hervatten vanaf' en het balkje op de poster verdwijnt. Snelle lezer: minder haperen: Alleen in testmodus, met de snelle lezer: wacht de film op een traag stukje, dan vraagt vfs.lucent het nu na 1 à 2 seconden ook bij je andere provider, in plaats van na 4 seconden. Plaatjes voor de hoofdstukken gaan niet meer voor de film. In het logboek staan de cijfers nu meteen bij het stoppen, en hoe lang het klaarzetten van het plan duurde.
+1.0.0 beta 1, update 77: Echte release-groep bij crossposts: Eindigt een releasenaam op een plakkertje van de uploader, zoals -xpost, dan laat Lucent nu de echte release-groep zien (bijvoorbeeld CiNEPHiLES in plaats van xpost). Die groep telt dan ook mee bij het sorteren. Hervatpunt wissen bij Simkl: Hervatpunt wissen haalt het punt nu ook bij Simkl weg. Eerder bleef het daar staan, waardoor de film toch weer halverwege begon.
+1.0.0 beta 1, update 76: Nette labels bij de bronnen: De labels in de bronnenlijst staan nu bij elke bron in dezelfde volgorde: beeld, bron, codec, geluid, kanalen, taal. Dubbele labels zijn weg (DTS-HD MA niet ook nog als DTS-HD, REMUX niet ook nog als BLU-RAY, 7.1 niet ook nog als 5.1). Bij Usenet vult de indexer geluid en codec alleen nog aan als de releasenaam er niets over zegt.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

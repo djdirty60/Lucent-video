@@ -152,8 +152,12 @@ def trash_low(source):
     return any(p.search(name) for p in lists["lq_titles"])
 
 
+# tags an uploader puts behind the release name ('...-CiNEPHiLES-xpost'): not the release group
+POSTER_TAGS = re.compile(r"(?:[-.](?:xpost|repost|postbot|obfuscated))+(?=(?:\.[a-z0-9]{2,4})?$)", re.I)
+
+
 def release_group(source):
-    found = GROUP_RE.search(source.get("name") or "")
+    found = GROUP_RE.search(POSTER_TAGS.sub("", source.get("name") or ""))
     return found.group(1) if found else ""
 
 

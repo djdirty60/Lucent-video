@@ -88,6 +88,36 @@ def flags_of(parsed, name):
     return [f for f in out if not (f in seen or seen.append(f))]
 
 
+# The order badges are shown in, the same for every source (AIOStreams, Usenet, Easynews, TorBox, scraper packs):
+# picture, then source, then codec, then sound, then channels, then language. Like TMDb Movies does, one family each:
+# a release name and the indexer's own details often say the same thing twice ("DTS-HD.MA" and "DTS-HD").
+BADGE_ORDER = ["DV", "DV2", "aio_FEL", "aio_P7", "HDR", "SDR", "3D", "aio_IMAX", "aio_10BIT",
+               "REMUX", "BLURAY", "WEB", "HDTV", "HD-RIP", "DVDRIP", "SCR", "CAM",
+               "HEVC", "AVC", "AV1", "XVID", "DIVX",
+               "ATMOS", "TRUEHD", "DTS-X", "DTS-HDMA", "DTS-HD", "DTS", "DD+", "DD", "AAC", "OPUS",
+               "7.1", "5.1", "2.0",
+               "aio_NL", "aio_MULTI", "aio_NL-SUBS"]
+_RANK = {flag: n for n, flag in enumerate(BADGE_ORDER)}
+_FAMILIES = (("DTS-X", "DTS-HDMA", "DTS-HD", "DTS"), ("DD+", "DD"), ("7.1", "5.1", "2.0"), ("DV", "DV2"), ("REMUX", "BLURAY"))
+
+
+def tidy_flags(flags):
+    """Badges for the list: each once, in BADGE_ORDER, only the best of a family (DTS-HD MA, not also DTS-HD and DTS;
+    7.1, not also 5.1; REMUX, not also BLURAY), SDR not next to HDR or DV. Badges this list does not know keep their place at the end."""
+    seen = []
+    for flag in flags or []:
+        if flag not in seen:
+            seen.append(flag)
+    for family in _FAMILIES:
+        present = [f for f in family if f in seen]
+        for extra in present[1:]:
+            seen.remove(extra)
+    if "SDR" in seen and ({"HDR", "DV", "DV2"} & set(seen)):
+        seen.remove("SDR")
+    known = sorted((f for f in seen if f in _RANK), key=_RANK.get)
+    return known + [f for f in seen if f not in _RANK]
+
+
 def convert(raw, include_uncached=True):
     """AIOStreams' answer, in AIOStreams' own order, as simple source dicts."""
     out = []

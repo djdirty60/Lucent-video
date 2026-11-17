@@ -8,6 +8,7 @@ import xbmcvfs
 
 import dialogs
 import ranking
+import streams
 import scrapers
 import util
 
@@ -24,7 +25,7 @@ def preview_items(profile, count=6):
     for number, source in enumerate(ranking.apply(ranking.SAMPLES, profile)[:count], 1):
         item = xbmcgui.ListItem(source["name"].replace("Demo.", "").split("-GROUP")[0].replace(".", " ").replace("2160p", "4K"), offscreen=True)
         item.setProperty("nr", str(number))
-        for slot, flag in enumerate(source["flags"][:5], 1):
+        for slot, flag in enumerate(streams.tidy_flags(source["flags"])[:5], 1):
             item.setProperty("flag%d" % slot, "lucent/flags/%s.png" % flag)
         rows.append(item)
     return rows
