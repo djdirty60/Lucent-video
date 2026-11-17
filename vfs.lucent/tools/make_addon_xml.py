@@ -6,7 +6,7 @@ KODI = {  # (main, general, filesystem, vfs) as (minversion, version)
     "22": (("2.0.3", "2.0.4"), ("1.0.4", "1.0.6"), ("1.1.11", "1.1.11"), ("3.0.1", "3.0.1")),
 }
 LIB = {"android": 'library_android="libvfs.lucent.so"', "linux": 'library_linux="libvfs.lucent.so"',
-       "windows": 'library_windows="vfs.lucent.dll"'}
+       "windx64": 'library_windows="vfs.lucent.dll"'}
 
 kodi, platform, out = sys.argv[1], sys.argv[2], sys.argv[3]
 version = open(__file__.rsplit("/", 2)[0] + "/VERSION").read().strip()
@@ -19,7 +19,7 @@ for name, (low, high) in (("main", main), ("general", general), ("filesystem", f
 start = text.index('<import addon="kodi.binary.instance.vfs"')
 end = text.index("/>", start) + 2
 text = text[:start] + '<import addon="kodi.binary.instance.vfs" minversion="%s" version="%s"/>' % vfs + text[end:]
-lib = LIB[platform.split("-")[0]]
+lib = LIB[platform.split("-")[0]]          # android-armv7 -> android, windx64 -> windx64
 start = text.index('library_')
 end = text.index('/>', start)
 text = text[:start] + lib + text[end:]

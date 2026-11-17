@@ -273,10 +273,13 @@ SocketHandle OpenAddress(const Address& address, int timeout, std::string& error
     fd_set writable;
     FD_ZERO(&writable);
     FD_SET(socket, &writable);
+    fd_set failed;                      // Windows reports a refused connection here, not as writable
+    FD_ZERO(&failed);
+    FD_SET(socket, &failed);
     timeval wait{};
     wait.tv_sec = timeout;
     wait.tv_usec = 0;
-    const int ready = select(0, nullptr, &writable, nullptr, &wait);
+    const int ready = select(0, nullptr, &writable, &failed, &wait);
     if (ready <= 0)
     {
       error = ready == 0 ? "timeout" : "cannot wait for the connection";

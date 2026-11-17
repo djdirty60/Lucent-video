@@ -60,9 +60,44 @@ jobs:
           name: vfs.lucent-kodi22-linux-aarch64
           path: vfs.lucent/*.zip
 
+  windows-x64:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - kodi: "21"
+            devkit: vendor/kodi-dev-kit-omega/include
+          - kodi: "22"
+            devkit: vendor/kodi-dev-kit/include
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - name: MinGW-w64 UCRT64 (the same C runtime as Kodi for Windows; everything linked into the one dll)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: false
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-python zip
+      - name: Build (Kodi ${{ matrix.kodi }} interfaces)
+        working-directory: vfs.lucent
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DKODI_DEVKIT=$PWD/${{ matrix.devkit }}
+          cmake --build build --target vfs_lucent
+          python tools/make_addon_xml.py ${{ matrix.kodi }} windx64 build/dist/vfs.lucent/addon.xml
+          objdump -p build/dist/vfs.lucent/vfs.lucent.dll | grep "DLL Name"
+          cd build/dist && zip -qr ../../vfs.lucent-$(cat ../../VERSION)-kodi${{ matrix.kodi }}-windx64.zip vfs.lucent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vfs.lucent-kodi${{ matrix.kodi }}-windx64
+          path: vfs.lucent/*.zip
+
   # The zips also go into this branch (vfs.lucent-out/), so they can be fetched with git.
   collect:
-    needs: [android, linux-aarch64]
+    needs: [android, linux-aarch64, windows-x64]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
