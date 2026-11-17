@@ -1,0 +1,61 @@
+# Builds vfs.lucent (GPL-2.0-or-later) for the systems Kodi runs on. Only runs by hand or on the vfs-lucent-build
+# branch; it publishes nothing to the Kodi repository, the zips come out as a downloadable artifact.
+name: vfs.lucent build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [vfs-lucent-build]
+    paths: ["vfs.lucent/**", ".github/workflows/vfs-lucent.yml"]
+
+jobs:
+  android:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - abi: armeabi-v7a
+            platform: android-armv7
+          - abi: arm64-v8a
+            platform: android-aarch64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Android NDK r21e (Kodi 21 on Android ships the libc++ of r21e; newer ones crash on close)
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r21e
+          add-to-path: false
+      - name: Build (Kodi 21 Omega interfaces)
+        working-directory: vfs.lucent
+        run: |
+          sudo apt-get install -y ninja-build
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-21 -DANDROID_STL=c++_shared \
+            -DKODI_DEVKIT=$PWD/vendor/kodi-dev-kit-omega/include
+          cmake --build build --target vfs_lucent
+          python3 tools/make_addon_xml.py 21 ${{ matrix.platform }} build/dist/vfs.lucent/addon.xml
+          cd build/dist && zip -qr ../../vfs.lucent-$(cat ../../VERSION)-kodi21-${{ matrix.platform }}.zip vfs.lucent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vfs.lucent-kodi21-${{ matrix.platform }}
+          path: vfs.lucent/*.zip
+
+  linux-aarch64:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build (Kodi 22 Piers interfaces, CoreELEC / LibreELEC)
+        working-directory: vfs.lucent
+        run: |
+          sudo apt-get install -y ninja-build g++-aarch64-linux-gnu
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/aarch64-linux.cmake
+          cmake --build build --target vfs_lucent
+          python3 tools/make_addon_xml.py 22 linux-aarch64 build/dist/vfs.lucent/addon.xml
+          cd build/dist && zip -qr ../../vfs.lucent-$(cat ../../VERSION)-kodi22-linux-aarch64.zip vfs.lucent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vfs.lucent-kodi22-linux-aarch64
+          path: vfs.lucent/*.zip

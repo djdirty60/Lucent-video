@@ -1,0 +1,27 @@
+Notices for vfs.lucent
+======================
+
+vfs.lucent is licensed under the GNU General Public License version 2 or later
+(see LICENSE.txt). It is a modified version of vfs.tmdbm by Angelitto
+(https://github.com/angelitto2005/repository.angelitto, source/vfs.tmdbm),
+also GPL-2.0-or-later. Changes for Lucent Video: add-on id, protocol
+(lucentv://), plan folder and file headers, Kodi 22 (Piers) devkit headers,
+Linux build.
+
+1. Mbed TLS 3.6.2
+   Copyright (C) 2006-2024, Arm Limited and Contributors. Used under the GNU
+   GPL version 2 or later. Full texts in licenses/mbedtls.txt.
+
+2. Kodi add-on devkit interface headers (Kodi 22 "Piers")
+   Copyright (C) 2005-2026 Team Kodi / XBMC Foundation. GPL-2.0-or-later.
+   Only the unmodified interface headers are used.
+
+3. GCC runtime libraries (libstdc++, libgcc), statically linked on Linux
+   Copyright (C) Free Software Foundation, Inc. GNU GPL version 3 with the GCC
+   Runtime Library Exception 3.1.
+
+Corresponding source
+--------------------
+The complete source of this add-on (C++ sources, vendored Mbed TLS, Kodi devkit
+headers, build files) is published with the Lucent Video repository:
+https://github.com/djdirty60/Lucent-video
