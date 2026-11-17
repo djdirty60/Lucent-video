@@ -1,5 +1,7 @@
-# Builds vfs.lucent (GPL-2.0-or-later) for the systems Kodi runs on. Only runs by hand or on the vfs-lucent-build
-# branch; it publishes nothing to the Kodi repository, the zips come out as a downloadable artifact.
+# Builds vfs.lucent (GPL-2.0-or-later) for the systems Kodi runs on, for Kodi 21 (Omega) and Kodi 22 (Piers).
+# Every build gets its own version (0.1.0+android.armv7.k21, see tools/make_addon_xml.py), so the Kodi repository
+# can hold them side by side: each Kodi only takes the one for its own platform and Kodi version.
+# The zips are committed to this branch (vfs.lucent-out/); nothing goes to the Kodi repository from here.
 name: vfs.lucent build
 
 on:
@@ -13,57 +15,82 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
+        abi: [armeabi-v7a, arm64-v8a]
+        kodi: ["21", "22"]
         include:
           - abi: armeabi-v7a
             platform: android-armv7
           - abi: arm64-v8a
             platform: android-aarch64
+          - kodi: "21"
+            devkit: vendor/kodi-dev-kit-omega/include
+          - kodi: "22"
+            devkit: vendor/kodi-dev-kit/include
     steps:
       - uses: actions/checkout@v4
-      - name: Android NDK r21e (Kodi 21 on Android ships the libc++ of r21e; newer ones crash on close)
+      - name: Android NDK r21e (Kodi on Android ships the libc++ of r21e; newer ones crash on close)
         id: ndk
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r21e
           add-to-path: false
-      - name: Build (Kodi 21 Omega interfaces)
+      - name: Build
         working-directory: vfs.lucent
         run: |
           sudo apt-get install -y ninja-build
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
             -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-21 -DANDROID_STL=c++_shared \
-            -DKODI_DEVKIT=$PWD/vendor/kodi-dev-kit-omega/include
+            -DKODI_DEVKIT=$PWD/${{ matrix.devkit }}
           cmake --build build --target vfs_lucent
-          python3 tools/make_addon_xml.py 21 ${{ matrix.platform }} build/dist/vfs.lucent/addon.xml
-          cd build/dist && zip -qr ../../vfs.lucent-$(cat ../../VERSION)-kodi21-${{ matrix.platform }}.zip vfs.lucent
+          python3 tools/make_addon_xml.py ${{ matrix.kodi }} ${{ matrix.platform }} build/dist/vfs.lucent/addon.xml
+          python3 tools/zip_build.py build/dist
       - uses: actions/upload-artifact@v4
         with:
-          name: vfs.lucent-kodi21-${{ matrix.platform }}
+          name: vfs.lucent-k${{ matrix.kodi }}-${{ matrix.platform }}
           path: vfs.lucent/*.zip
 
-  linux-aarch64:
-    runs-on: ubuntu-24.04
+  linux:
+    runs-on: ubuntu-22.04      # glibc 2.35: also loads on older LibreELEC / CoreELEC / desktop systems
+    strategy:
+      matrix:
+        arch: [aarch64, armv7, x86_64]
+        kodi: ["21", "22"]
+        include:
+          - arch: aarch64
+            toolchain: -DCMAKE_TOOLCHAIN_FILE=aarch64-linux.cmake
+            packages: g++-aarch64-linux-gnu
+          - arch: armv7
+            toolchain: -DCMAKE_TOOLCHAIN_FILE=armv7-linux.cmake
+            packages: g++-arm-linux-gnueabihf
+          - arch: x86_64
+            toolchain: ""
+            packages: g++
+          - kodi: "21"
+            devkit: vendor/kodi-dev-kit-omega/include
+          - kodi: "22"
+            devkit: vendor/kodi-dev-kit/include
     steps:
       - uses: actions/checkout@v4
-      - name: Build (Kodi 22 Piers interfaces, CoreELEC / LibreELEC)
+      - name: Build
         working-directory: vfs.lucent
         run: |
-          sudo apt-get install -y ninja-build g++-aarch64-linux-gnu
+          sudo apt-get update -q && sudo apt-get install -y ninja-build ${{ matrix.packages }}
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            -DCMAKE_TOOLCHAIN_FILE=$PWD/aarch64-linux.cmake
+            ${{ matrix.toolchain }} -DKODI_DEVKIT=$PWD/${{ matrix.devkit }}
           cmake --build build --target vfs_lucent
-          python3 tools/make_addon_xml.py 22 linux-aarch64 build/dist/vfs.lucent/addon.xml
-          cd build/dist && zip -qr ../../vfs.lucent-$(cat ../../VERSION)-kodi22-linux-aarch64.zip vfs.lucent
+          python3 tools/make_addon_xml.py ${{ matrix.kodi }} linux-${{ matrix.arch }} build/dist/vfs.lucent/addon.xml
+          python3 tools/zip_build.py build/dist
       - uses: actions/upload-artifact@v4
         with:
-          name: vfs.lucent-kodi22-linux-aarch64
+          name: vfs.lucent-k${{ matrix.kodi }}-linux-${{ matrix.arch }}
           path: vfs.lucent/*.zip
 
-  windows-x64:
+  windows:
     runs-on: windows-latest
     strategy:
       matrix:
+        kodi: ["21", "22"]
         include:
           - kodi: "21"
             devkit: vendor/kodi-dev-kit-omega/include
@@ -81,23 +108,23 @@ jobs:
           update: false
           install: >-
             mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja
-            mingw-w64-ucrt-x86_64-python zip
-      - name: Build (Kodi ${{ matrix.kodi }} interfaces)
+            mingw-w64-ucrt-x86_64-python
+      - name: Build
         working-directory: vfs.lucent
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DKODI_DEVKIT=$PWD/${{ matrix.devkit }}
           cmake --build build --target vfs_lucent
-          python tools/make_addon_xml.py ${{ matrix.kodi }} windx64 build/dist/vfs.lucent/addon.xml
+          python tools/make_addon_xml.py ${{ matrix.kodi }} windows-x86_64 build/dist/vfs.lucent/addon.xml
           objdump -p build/dist/vfs.lucent/vfs.lucent.dll | grep "DLL Name"
-          cd build/dist && zip -qr ../../vfs.lucent-$(cat ../../VERSION)-kodi${{ matrix.kodi }}-windx64.zip vfs.lucent
+          python tools/zip_build.py build/dist
       - uses: actions/upload-artifact@v4
         with:
-          name: vfs.lucent-kodi${{ matrix.kodi }}-windx64
+          name: vfs.lucent-k${{ matrix.kodi }}-windows-x86_64
           path: vfs.lucent/*.zip
 
   # The zips also go into this branch (vfs.lucent-out/), so they can be fetched with git.
   collect:
-    needs: [android, linux-aarch64, windows-x64]
+    needs: [android, linux, windows]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -114,6 +141,6 @@ jobs:
           (cd vfs.lucent-out && sha256sum *.zip > SHA256SUMS)
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add vfs.lucent-out
+          git add -A vfs.lucent-out
           git commit -m "vfs.lucent: built zips [skip ci]" || echo "nothing new"
           git push

@@ -1,4 +1,7 @@
-"""Writes addon.xml for one Kodi version and one platform: make_addon_xml.py <21|22> <platform> <out>"""
+"""Writes addon.xml for one Kodi version and one platform: make_addon_xml.py <21|22> <platform> <out>
+
+Every build gets its own version (0.1.0+android.armv7.k21): the Kodi repository holds them all side by side, and
+each Kodi only sees the one for its own platform and Kodi version (Kodi skips the others)."""
 import sys
 
 KODI = {  # (main, general, filesystem, vfs) as (minversion, version)
@@ -6,10 +9,11 @@ KODI = {  # (main, general, filesystem, vfs) as (minversion, version)
     "22": (("2.0.3", "2.0.4"), ("1.0.4", "1.0.6"), ("1.1.11", "1.1.11"), ("3.0.1", "3.0.1")),
 }
 LIB = {"android": 'library_android="libvfs.lucent.so"', "linux": 'library_linux="libvfs.lucent.so"',
-       "windx64": 'library_windows="vfs.lucent.dll"'}
+       "windows": 'library_windows="vfs.lucent.dll"'}
 
 kodi, platform, out = sys.argv[1], sys.argv[2], sys.argv[3]
 version = open(__file__.rsplit("/", 2)[0] + "/VERSION").read().strip()
+version += "+%s.k%s" % (platform.replace("-", ".").replace("_", ""), kodi)      # '-' would start a Kodi revision
 (main, general, fs, vfs) = KODI[kodi]
 text = open(__file__.rsplit("/", 2)[0] + "/addon.xml").read()
 for name, (low, high) in (("main", main), ("general", general), ("filesystem", fs)):
@@ -19,7 +23,7 @@ for name, (low, high) in (("main", main), ("general", general), ("filesystem", f
 start = text.index('<import addon="kodi.binary.instance.vfs"')
 end = text.index("/>", start) + 2
 text = text[:start] + '<import addon="kodi.binary.instance.vfs" minversion="%s" version="%s"/>' % vfs + text[end:]
-lib = LIB[platform.split("-")[0]]          # android-armv7 -> android, windx64 -> windx64
+lib = LIB[platform.split("-")[0]]          # android-armv7 -> android, windows-x86_64 -> windows
 start = text.index('library_')
 end = text.index('/>', start)
 text = text[:start] + lib + text[end:]
