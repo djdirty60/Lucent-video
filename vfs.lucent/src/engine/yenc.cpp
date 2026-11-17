@@ -5,6 +5,14 @@
 #include <algorithm>
 #include <cstring>
 
+#if defined(__SSE2__) || defined(_M_X64)
+#include <emmintrin.h>
+#define LUCENT_YENC_SSE2 1
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__) || defined(__aarch64__)
+#include <arm_neon.h>
+#define LUCENT_YENC_NEON 1
+#endif
+
 namespace engine
 {
 
@@ -104,6 +112,87 @@ std::string StripName(const std::string& line)
     at = 0;
   return at == std::string::npos ? line : line.substr(0, at);
 }
+// The yEnc body: line breaks are dropped, "=x" is x - 106, every other byte is itself - 42.
+// 16 bytes at a time: the block is decoded in one go and written; when it holds a line break or an
+// '=', only the bytes before that one are kept and that one is handled on its own. `out` needs
+// 16 bytes more room than the body is long.
+size_t DecodeBody(const uint8_t* in, size_t length, uint8_t* out)
+{
+  size_t index = 0;
+  size_t written = 0;
+#if defined(LUCENT_YENC_SSE2)
+  const __m128i cr = _mm_set1_epi8('\r');
+  const __m128i lf = _mm_set1_epi8('\n');
+  const __m128i eq = _mm_set1_epi8('=');
+  const __m128i offset = _mm_set1_epi8(42);
+  while (index + 16 <= length)
+  {
+    const __m128i block = _mm_loadu_si128(reinterpret_cast<const __m128i*>(in + index));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(out + written), _mm_sub_epi8(block, offset));
+    const __m128i special = _mm_or_si128(_mm_or_si128(_mm_cmpeq_epi8(block, cr), _mm_cmpeq_epi8(block, lf)),
+                                         _mm_cmpeq_epi8(block, eq));
+    const unsigned mask = static_cast<unsigned>(_mm_movemask_epi8(special));
+    if (mask == 0)
+    {
+      index += 16;
+      written += 16;
+      continue;
+    }
+    const unsigned first = static_cast<unsigned>(__builtin_ctz(mask));
+#elif defined(LUCENT_YENC_NEON)
+  const uint8x16_t cr = vdupq_n_u8('\r');
+  const uint8x16_t lf = vdupq_n_u8('\n');
+  const uint8x16_t eq = vdupq_n_u8('=');
+  const uint8x16_t offset = vdupq_n_u8(42);
+  while (index + 16 <= length)
+  {
+    const uint8x16_t block = vld1q_u8(in + index);
+    vst1q_u8(out + written, vsubq_u8(block, offset));
+    const uint8x16_t special = vorrq_u8(vorrq_u8(vceqq_u8(block, cr), vceqq_u8(block, lf)), vceqq_u8(block, eq));
+    // 4 bits per byte: the lowest set nibble is the first special byte
+    const uint8x8_t narrowed = vshrn_n_u16(vreinterpretq_u16_u8(special), 4);
+    const uint64_t mask = vget_lane_u64(vreinterpret_u64_u8(narrowed), 0);
+    if (mask == 0)
+    {
+      index += 16;
+      written += 16;
+      continue;
+    }
+    const unsigned first = static_cast<unsigned>(__builtin_ctzll(mask)) >> 2;
+#endif
+#if defined(LUCENT_YENC_SSE2) || defined(LUCENT_YENC_NEON)
+    index += first;
+    written += first;
+    if (in[index] == '=')
+    {
+      if (index + 1 < length)
+        out[written++] = static_cast<uint8_t>(in[index + 1] - 106);
+      index += 2;
+    }
+    else
+      ++index;
+  }
+#endif
+  while (index < length)
+  {
+    const uint8_t value = in[index];
+    if (value == '\r' || value == '\n')
+    {
+      ++index;
+      continue;
+    }
+    if (value == '=')
+    {
+      if (index + 1 < length)
+        out[written++] = static_cast<uint8_t>(in[index + 1] - 106);
+      index += 2;
+      continue;
+    }
+    out[written++] = static_cast<uint8_t>(value - 42);
+    ++index;
+  }
+  return written;
+}
 }  // namespace
 
 YencResult YencDecode(const std::vector<uint8_t>& article)
@@ -168,20 +257,11 @@ YencResult YencDecode(const std::vector<uint8_t>& article)
   }
 
   const size_t body_end = end_at == std::string::npos ? article.size() : end_at;
-  result.data.reserve(body_end > position ? (body_end - position) * 3 / 4 : 0);
-  for (size_t index = position; index < body_end; ++index)
-  {
-    const uint8_t value = article[index];
-    if (value == '\r' || value == '\n')
-      continue;
-    if (value == '=')
-    {
-      if (index + 1 < body_end)
-        result.data.push_back(static_cast<uint8_t>(article[++index] - 106));
-      continue;
-    }
-    result.data.push_back(static_cast<uint8_t>(value - 42));
-  }
+  const size_t body_start = std::min(position, body_end);
+  result.data.resize(body_end - body_start + 16);
+  const size_t written = DecodeBody(article.data() + body_start, body_end - body_start,
+                                    result.data.data());
+  result.data.resize(written);
   if (result.data.empty())
   {
     result.error = "no payload";

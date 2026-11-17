@@ -185,20 +185,26 @@ std::vector<uint8_t> NntpConnection::ReadPayload()
     const size_t end = buffer_.find("\r\n.\r\n", from);
     if (end != std::string::npos)
     {
-      std::vector<uint8_t> data;
-      data.reserve(end);
-      bool line_start = true;
-      for (size_t index = 0; index < end; ++index)
+      // Undo the dot-stuffing: a line that starts with ".." loses its first dot. Whole runs
+      // between line starts are copied at once (the same result as byte by byte).
+      std::vector<uint8_t> data(end);
+      const char* source = buffer_.data();
+      uint8_t* target = data.data();
+      size_t copied = 0;
+      size_t index = 0;
+      if (end >= 2 && source[0] == '.' && source[1] == '.')
+        index = 1;
+      while (index < end)
       {
-        const char value = buffer_[index];
-        if (line_start && value == '.' && index + 1 < end && buffer_[index + 1] == '.')
-        {
-          line_start = false;
-          continue;
-        }
-        data.push_back(static_cast<uint8_t>(value));
-        line_start = value == '\n';
+        const void* newline = std::memchr(source + index, '\n', end - index);
+        const size_t stop = newline ? static_cast<size_t>(static_cast<const char*>(newline) - source) + 1 : end;
+        std::memcpy(target + copied, source + index, stop - index);
+        copied += stop - index;
+        index = stop;
+        if (index + 1 < end && source[index] == '.' && source[index + 1] == '.')
+          ++index;
       }
+      data.resize(copied);
       buffer_.erase(0, end + 5);
       return data;
     }
