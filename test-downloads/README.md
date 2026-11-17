@@ -3,7 +3,7 @@
 Test files only. Nothing here is in the Kodi repository, and nobody gets them as an update.
 
 1. `vfs.lucent-0.1.0-test4-android-armv7-kodi21.zip`: the fast reader (vfs.lucent) for Kodi 21 on Android, 32-bit.
-2. `plugin.video.lucent-1.0.0-beta1-76-test.zip`: Lucent Video update 76, which hands Usenet films to that reader.
+2. `plugin.video.lucent-1.0.0-beta1-77-test.zip`: Lucent Video update 77, which hands Usenet films to that reader.
 
 Install both with *Settings > Add-ons > Install from zip file*, vfs.lucent first.
 
