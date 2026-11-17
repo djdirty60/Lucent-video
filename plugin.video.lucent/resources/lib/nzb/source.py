@@ -14,6 +14,7 @@ import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
+import ranking
 import streams
 import usenet
 import util
@@ -60,6 +61,12 @@ def _badges(row):
     return " · ".join(out)
 
 
+def _group(name):
+    """The release group (the end of the name, often cut off on screen) for the line under it."""
+    group = ranking.release_group({"name": name})
+    return group if group and not group.isdigit() else ""
+
+
 def _indexer_name(base):
     """'NZBGEEK' for https://api.nzbgeek.info/api: the site's own name, for the source list."""
     host = (urllib.parse.urlsplit(base).hostname or "").lower()
@@ -70,7 +77,10 @@ def _indexer_name(base):
         parts = parts[:-1]                 # without .info / .com / .net
     if len(parts) >= 2 and parts[-1] in ("co", "com", "net", "org", "ac", "gov", "or", "ne"):
         parts = parts[:-1]                 # without the .co of .co.za / .co.uk (althub.co.za is ALTHUB, not CO)
-    return (parts[-1] if parts else host).upper()[:20]
+    name = parts[-1] if parts else host
+    if len(name) <= 3 and len(host.split(".")) >= 2:      # nzb.life, nzb.su: 'NZB' alone says nothing, keep the end
+        name = ".".join(p for p in host.split(".") if p not in ("www", "api", "feed", "feeds"))
+    return name.upper()[:20]
 
 
 def fetch(meta):
@@ -142,7 +152,7 @@ def fetch(meta):
             if not pack:
                 source = usenet._source(name, row["size"], SERVICE, resolve=job)          # noqa: SLF001 - same add-on
                 _add_info(source, row)
-                source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"]), badges, warn) if p)
+                source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"]), _group(row["title"]), badges, warn) if p)
                 source["always"] = True
                 out.append(source)
                 continue
@@ -155,7 +165,7 @@ def fetch(meta):
                 warn = util.T("mogelijk te zwaar", "may be too heavy")
             else:
                 warn = ""
-            source["meta"] = " · ".join(p for p in (SERVICE, where, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"]), badges, warn) if p)
+            source["meta"] = " · ".join(p for p in (SERVICE, where, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"]), _group(row["title"]), badges, warn) if p)
             source["pack"] = True
             source["always"] = True
             out.append(source)

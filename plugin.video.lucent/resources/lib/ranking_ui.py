@@ -346,7 +346,7 @@ def range_text(pair):
     return "%s – %s GB" % (low or 0, high or "∞")
 
 
-HIDE_LABELS = {"cam": "CAM / TS / Screener", "hardcoded": "Hardcoded subs"}
+HIDE_LABELS = {"cam": "CAM / TS / Screener", "hardcoded": "Hardcoded subs", "dvd": "DVD / SD-rip"}
 
 
 class Filters(Options):
@@ -359,9 +359,15 @@ class Filters(Options):
         none = T("Geen", "None")
         limits = [self.row(T("Grootte film", "Movie size"), range_text(f["size_movie"])), self.row(T("Grootte aflevering", "Episode size"), range_text(f["size_episode"])),
                   self.row(T("Minimale kwaliteit", "Minimum quality"), rule_label(f["min_res"]) if f["min_res"] else none),
-                  self.row(T("Maximaal per kwaliteit", "Maximum per quality"), T("%d bronnen", "%d sources") % f["max_per_res"] if f["max_per_res"] else none)]
+                  self.row(T("Maximaal per kwaliteit", "Maximum per quality"), T("%d bronnen", "%d sources") % f["max_per_res"] if f["max_per_res"] else none),
+                  self.row(T("Per kwaliteit en bron", "Per quality and source"),
+                           T("%d bronnen", "%d sources") % f.get("per_res_src", 0) if f.get("per_res_src") else none),
+                  self.row(T("Lager alleen als nodig", "Lower only when needed"),
+                           T("720p als < %d hoger", "720p when < %d higher") % f.get("lower_if_needed", 0) if f.get("lower_if_needed") else T("Uit", "Off"))]
         groups = [self.row(T("Voorkeur", "Preferred"), ", ".join(f["prefer_groups"]) or none), self.row(T("Verbergen", "Hide"), ", ".join(f["hide_groups"]) or none),
-                  self.row(T("Groepen volgens TRaSH", "Groups by TRaSH"), T("Aan", "On") if f.get("trash_groups", True) else T("Uit", "Off"))]
+                  self.row(T("Groepen volgens TRaSH", "Groups by TRaSH"), T("Aan", "On") if f.get("trash_groups", True) else T("Uit", "Off")),
+                  self.row(T("Altijd in jouw taal (NL)", "Always in your language (NL)"),
+                           T("%d bronnen", "%d sources") % f.get("keep_lang", 0) if f.get("keep_lang") else none)]
         return left, limits, groups
 
     def onClick(self, control):
@@ -379,10 +385,19 @@ class Filters(Options):
                 choice = xbmcgui.Dialog().select(T("Minimale kwaliteit", "Minimum quality"), [T("Geen", "None"), "720p", "1080p", "4K"])
                 if choice >= 0:
                     f["min_res"] = ladder[choice]
-            else:
+            elif at == 3:
                 f["max_per_res"] = self.number(T("Maximaal aantal per kwaliteit, 0 = geen", "Maximum per quality, 0 = none"), f["max_per_res"])
+            elif at == 4:
+                f["per_res_src"] = self.number(T("Maximaal per kwaliteit en bron (bijv. 3 x 4K Remux), 0 = geen",
+                                                 "Maximum per quality and source (e.g. 3 x 4K Remux), 0 = none"), f.get("per_res_src", 0))
+            else:
+                f["lower_if_needed"] = self.number(T("720p en lager alleen als er minder dan zoveel 1080p/4K zijn, 0 = uit",
+                                                     "720p and lower only when there are fewer 1080p/4K than this, 0 = off"), f.get("lower_if_needed", 0))
         elif self.lists[120].getSelectedPosition() == 2:
             f["trash_groups"] = not f.get("trash_groups", True)    # good groups up, low-quality groups to the bottom
+        elif self.lists[120].getSelectedPosition() == 3:
+            f["keep_lang"] = self.number(T("Zoveel bronnen in jouw taal blijven altijd zichtbaar, 0 = uit",
+                                           "This many sources in your language always stay, 0 = off"), f.get("keep_lang", 0))
         else:
             key = "prefer_groups" if self.lists[120].getSelectedPosition() == 0 else "hide_groups"
             text = xbmcgui.Dialog().input(T("Namen, gescheiden door komma's", "Names, separated by commas"), ", ".join(f[key]))

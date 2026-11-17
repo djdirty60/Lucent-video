@@ -2,6 +2,36 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+71",
+   "label": "Beta 1 · update 71",
+   "label_en": "Beta 1 · update 71",
+   "date": "2026-11-17",
+   "at": "2026-11-17T07:51Z",
+   "items": [
+    [
+     "star",
+     "Profiel Zoals Tamtaro",
+     "Nieuw bij Rangschikking: het profiel Zoals Tamtaro. Eerst direct speelbaar, dan resolutie, dan soort bron (Remux, Blu-ray, WEB-DL, WEBRip), dan de release-groep volgens TRaSH en dan taal; beeld en geluid beslissen alleen nog bij gelijkspel. Minder en betere resultaten.",
+     "Profile Like Tamtaro",
+     "New under Ranking: the profile Like Tamtaro. Ready to play first, then resolution, then kind of source (Remux, Blu-ray, WEB-DL, WEBRip), then the release group by TRaSH and then language; picture and sound only break ties. Fewer and better results."
+    ],
+    [
+     "settings",
+     "Nieuwe filters",
+     "Bij Rangschikking, Filters: per kwaliteit en bron (bijv. 3 x 4K Remux, 3 x 4K WEB-DL), lager alleen als nodig (720p pas als er te weinig 1080p/4K is), altijd een paar bronnen in jouw taal (Nederlands), en WEBRip, HDTV en DVD/SD-rip zijn nu ook te verbergen.",
+     "New filters",
+     "Under Ranking, Filters: per quality and source (e.g. 3 x 4K Remux, 3 x 4K WEB-DL), lower only when needed (720p only when there are too few 1080p/4K), always a few sources in your language (Dutch), and WEBRip, HDTV and DVD/SD-rip can now be hidden too."
+    ],
+    [
+     "play",
+     "Usenet: release-groep zichtbaar",
+     "Alleen in testmodus. Onder elke Usenet-bron staat nu ook de release-groep, en korte indexernamen zoals nzb.life staan er voluit.",
+     "Usenet: release group shown",
+     "Test mode only. Every Usenet source now also shows its release group on the second line, and short indexer names like nzb.life are shown in full."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+70",
    "label": "Beta 1 · update 70",
    "label_en": "Beta 1 · update 70",

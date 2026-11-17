@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+70" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+71" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -82,17 +82,17 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 70: optional pause until the subtitle is found (with automatic background search), then the film starts again from the beginning.
+        <news>1.0.0 beta 1, update 71: Like Tamtaro ranking profile; filters per quality and source, lower only when needed, always in your language, hide WEBRip/HDTV/DVD; test mode only: release group on the Usenet source line.
+1.0.0 beta 1, update 70: optional pause until the subtitle is found (with automatic background search), then the film starts again from the beginning.
 1.0.0 beta 1, update 69: release groups by TRaSH Guides in the ranking; service stops cleanly; test mode only: fewer Usenet stalls with heavy films, faster source list for 90+ GB releases.
 1.0.0 beta 1, update 68: test mode only: NZBs from altHUB-style links (key in the link) work, indexer name ALTHUB instead of CO, HDR10P / HDR10Px265 recognised.
 1.0.0 beta 1, update 67: Refresh posters button (fetch changed poster maker pictures again); episode picture pattern passed on to the skin.
 1.0.0 beta 1, update 66: episode pictures with badges from a poster maker (Pictorium), optional blur for unwatched episodes.
 1.0.0 beta 1, update 65: watchlist, collection and lists carry the date you added a title, so Date added sorting works; Next page always last.
 1.0.0 beta 1, update 64: posters with badges from a poster maker (btttr.cc, SpatialPosters, ...), also ready for the skin.
-1.0.0 beta 1, update 63: share the error report with a link and QR code (paste.kodi.tv), crash logs added by themselves; clear help when only a debrid account is filled in; test mode only: Usenet speed test in Test connection.
-1.0.0 beta 1, update 62: release name in the player info; test mode only: removed Usenet releases left out while searching, faster opening and seeking, read-ahead fitted to the film, Dutch subtitles from the indexer.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 70: Film wacht op de ondertitel: Nieuw bij Ondertitels en geluid: Film stilzetten tot de ondertitel er is. Samen met Zelf kiezen, op de achtergrond zet Lucent de film even stil, zoekt in al je ondertitelbronnen en -add-ons, zet de beste aan en begint de film opnieuw vanaf het begin, zodat je niets mist. Hooguit 20 seconden.
-1.0.0 beta 1, update 69: Release-groepen volgens TRaSH: Bij het rangschikken telt nu ook de release-groep, met de lijsten van de TRaSH Guides: slechte groepen gaan altijd onderaan, goede groepen komen boven onbekende groepen met hetzelfde soort bestand. Je eigen voorkeursgroepen tellen als de beste. Aan of uit bij Rangschikking, Filters. Usenet: minder haperen bij zware films: Alleen in testmodus. Bij grote remuxen gooide Lucent soms vooruitgelezen beeld weg dat Kodi nog nodig had, en haalde het daarna opnieuw op terwijl Kodi wachtte. Dat is opgelost. Ook verschijnt de lijst met bronnen bij releases van 90 GB of meer veel sneller, omdat de controle vooraf niet meer de hele NZB inleest. Netjes stoppen: De achtergronddienst stopt nu meteen bij een update, het uitzetten van de add-on of het afsluiten van Kodi, in plaats van na vijf seconden door Kodi gestopt te worden.</news>
+1.0.0 beta 1, update 63: share the error report with a link and QR code (paste.kodi.tv), crash logs added by themselves; clear help when only a debrid account is filled in; test mode only: Usenet speed test in Test connection.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 71: Profiel Zoals Tamtaro: Nieuw bij Rangschikking: het profiel Zoals Tamtaro. Eerst direct speelbaar, dan resolutie, dan soort bron (Remux, Blu-ray, WEB-DL, WEBRip), dan de release-groep volgens TRaSH en dan taal; beeld en geluid beslissen alleen nog bij gelijkspel. Minder en betere resultaten. Nieuwe filters: Bij Rangschikking, Filters: per kwaliteit en bron (bijv. 3 x 4K Remux, 3 x 4K WEB-DL), lager alleen als nodig (720p pas als er te weinig 1080p/4K is), altijd een paar bronnen in jouw taal (Nederlands), en WEBRip, HDTV en DVD/SD-rip zijn nu ook te verbergen. Usenet: release-groep zichtbaar: Alleen in testmodus. Onder elke Usenet-bron staat nu ook de release-groep, en korte indexernamen zoals nzb.life staan er voluit.
+1.0.0 beta 1, update 70: Film wacht op de ondertitel: Nieuw bij Ondertitels en geluid: Film stilzetten tot de ondertitel er is. Samen met Zelf kiezen, op de achtergrond zet Lucent de film even stil, zoekt in al je ondertitelbronnen en -add-ons, zet de beste aan en begint de film opnieuw vanaf het begin, zodat je niets mist. Hooguit 20 seconden.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

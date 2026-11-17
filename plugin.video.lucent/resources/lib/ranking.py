@@ -25,6 +25,7 @@ COMPILED = {tag: re.compile(MARKS % pattern, re.I) for tag, pattern in BY_NAME.i
 # channels glued to the sound format, as in DDP5.1, DD+5.1, AAC2.0 or TrueHD7.1
 GLUED = r"(?:^|[ ._\-\[(]|(?<=DDP)|(?<=DDPA)|(?<=DD\+)|(?<=DD)|(?<=AC3)|(?<=EAC3)|(?<=AAC)|(?<=OPUS)|(?<=TRUEHD)|(?<=ATMOS))%s(?=$|[ ._\-\])])"
 COMPILED.update({tag: re.compile(GLUED % BY_NAME[tag], re.I) for tag in ("71", "51", "20")})
+WEBRIP_RE = re.compile(r"(?:^|[ ._\-\[(])WEB-?RIP(?=$|[ ._\-\])])", re.I)
 # HDR10+ written as HDR10P / HDR10P+ and a codec glued to it (HDR10Px265), as some web groups do
 HDR10P_RE = re.compile(r"(?:^|[ ._\-\[(])HDR10(?:\+|PLUS|P\+?)(?=$|[ ._\-\])]|X26[45]|H\.?26[45]|HEVC)", re.I)
 GLUED_CODEC_RE = re.compile(r"HDR10(?:\+|PLUS|P\+?)?(X26[45]|H\.?26[45]|HEVC)(?=$|[ ._\-\])])", re.I)
@@ -40,6 +41,8 @@ def tags_of(source):
     for tag, pattern in COMPILED.items():
         if tag not in tags and pattern.search(name):
             tags.add(tag)
+    if WEBRIP_RE.search(name):
+        tags.add("webrip")                      # a WEBRip (re-encoded) next to a WEB-DL: only the 'Like Tamtaro' order tells them apart
     if "hdr10plus" not in tags and HDR10P_RE.search(name):
         tags.add("hdr10plus")
     glued = GLUED_CODEC_RE.search(name)
@@ -104,6 +107,23 @@ TIER_BONUS = {1: 75, 2: 50, 3: 25}     # on top of the source points (web 1650, 
 TIER_KIND = {"web": "WEB", "remux": "Remux", "hdbluray": "Blu-ray", "uhdbluray": "Blu-ray 4K"}
 
 
+SOURCE_RANK = {"remux": 0, "bluray": 1, "webdl": 2, "webrip": 3, "hdtv": 4, "dvd": 5, "other": 6, "cam": 7}
+SOURCE_LABEL = {"remux": "Remux", "bluray": "Blu-ray", "webdl": "WEB-DL", "webrip": "WEBRip", "hdtv": "HDTV", "dvd": "DVD", "other": "?", "cam": "CAM"}
+
+
+def source_class(tags):
+    """The kind of source, as Tamtaro groups them: Remux, Blu-ray, WEB-DL, WEBRip, HDTV, DVD, CAM or other."""
+    for name in ("cam", "remux", "bluray"):
+        if name in tags:
+            return name
+    if "web" in tags:
+        return "webrip" if "webrip" in tags else "webdl"
+    for name in ("hdtv", "dvd"):
+        if name in tags:
+            return name
+    return "other"
+
+
 def trash_tier(source, tags):
     """(tier 1-3, label) when TRaSH lists the release group as a good group for this kind of release, else (0, '')."""
     group = release_group(source)
@@ -140,7 +160,7 @@ def release_group(source):
 # id -> (label, tags of which one must match)
 RULES = {
     "4k": ("4K", ["4k"]), "1440p": ("1440p", ["1440p"]), "1080p": ("1080p", ["1080p"]), "720p": ("720p", ["720p"]), "sd": ("SD", ["sd"]),
-    "remux": ("Remux", ["remux"]), "bluray": ("Blu-ray", ["bluray"]), "web": ("WEB-DL", ["web"]), "hdtv": ("HDTV", ["hdtv"]), "dvd": ("DVD", ["dvd"]), "cam": ("CAM / TS", ["cam"]),
+    "remux": ("Remux", ["remux"]), "webrip": ("WEBRip", ["webrip"]), "bluray": ("Blu-ray", ["bluray"]), "web": ("WEB-DL", ["web"]), "hdtv": ("HDTV", ["hdtv"]), "dvd": ("DVD", ["dvd"]), "cam": ("CAM / TS", ["cam"]),
     "felp7": ("P7 / FEL", ["fel", "p7"]), "fel": ("FEL", ["fel"]), "p7": ("P7 (MEL)", ["p7"]), "dv2": ("Dolby Vision 2", ["dv2"]), "dvany": ("Dolby Vision", ["dv"]), "dv": ("Dolby Vision", ["dv"]),
     "hdr10plus": ("HDR10+", ["hdr10plus"]), "hdr": ("HDR10", ["hdr"]), "hlg": ("HLG", ["hlg"]), "sdr": ("SDR", ["sdr"]), "3d": ("3D", ["3d"]), "imax": ("IMAX", ["imax"]), "10bit": ("10-bit", ["10bit"]),
     "lossless": ("TrueHD / DTS-HD", ["truehd", "dtsx", "dtsma", "dtshd"]), "atmos": ("Atmos", ["atmos"]), "truehd": ("TrueHD", ["truehd"]), "dtsx": ("DTS:X", ["dtsx"]), "dtsma": ("DTS-HD MA", ["dtsma"]),
@@ -157,13 +177,13 @@ GROUPS = [("resolution", T("Resolutie", "Resolution"), ["4k", "1440p", "1080p", 
           ("channels", T("Kanalen", "Channels"), ["71", "51", "20"]), ("codec", "Codec", ["hevc", "av1", "avc"]),
           ("scraper", "Scraper", [])]
 GROUP_NAMES = {g[0]: g[1] for g in GROUPS}
-HIDE_CHOICES = ["cam", "upscale", "3d", "av1", "uncached", "hardcoded"]
+HIDE_CHOICES = ["cam", "upscale", "3d", "av1", "uncached", "hardcoded", "webrip", "hdtv", "dvd"]
 STATE_NAMES = {"pref": T("Voorkeur", "Preferred"), "need": T("Verplicht", "Required"), "hide": T("Verbergen", "Hide"), "off": T("Uit", "Off")}
 
 
 def _preset(name, about, rules, hide=None, tags=None, first=None, lead=None, **limits):
     filters = {"hide": hide or [], "size_movie": [0, 0], "size_episode": [0, 0], "min_res": "", "max_per_res": 0, "prefer_groups": [], "hide_groups": [],
-               "trash_groups": True}
+               "trash_groups": True, "per_res_src": 0, "lower_if_needed": 0, "keep_lang": 0}
     filters.update(limits)
     groups = default_groups(rules)
     groups.sort(key=lambda g: 0 if g["id"] == first else 1)
@@ -192,6 +212,9 @@ def presets():
                          tags=["1080p", "WEB-DL", T("Onder 10 GB", "Under 10 GB")], size_movie=[0, 10], size_episode=[0, 4]),
         "dutch": _preset(T("Alleen Nederlands", "Dutch first"), T("Nederlandse audio of ondertitels.", "Dutch audio or subtitles."), ["nl", "nlsubs", "4k", "1080p"], ["cam"],
                          tags=[T("NL-audio", "Dutch audio"), T("NL-subs", "Dutch subs"), "4K"], first="language"),
+        "tamtaro": dict(_preset(T("Zoals Tamtaro", "Like Tamtaro"), T("Bron en groep eerst, minder en betere resultaten.", "Source and group first, fewer and better results."),
+                                ["4k", "1080p", "cached", "largest"], ["cam", "upscale"], tags=[T("Bron eerst", "Source first"), "TRaSH", T("3 per soort", "3 per kind")],
+                                first="resolution", per_res_src=3, lower_if_needed=6, keep_lang=5), strict=True),
         "anime": _preset("Anime", T("Meerdere talen en ondertitels.", "Multiple languages and subtitles."), ["multi", "1080p", "cached"], ["cam"],
                          tags=["Dual-audio", "1080p", "Subs"], first="language"),
     }
@@ -425,7 +448,14 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
             why.append((RULES[best][0], T("Regel %d", "Rule %d") % number))
     if tier_label:
         why.append((tier_label, T("Release-groep", "Release group")))
-    key.append(-round(total, 3))
+    if profile.get("strict"):
+        # 'Like Tamtaro' (AIOStreams + Tamtaro's SEL template): ready to play, resolution, kind of source, release group,
+        # language, and only then picture and sound
+        language = _points("language", next((g["order"] for g in groups if g["id"] == "language"), []), tags)[0]
+        key = key[:2] + [0 if "uncached" not in tags else 1, SOURCE_RANK.get(source_class(tags), 9), tier or 9, -round(language, 3), -round(total, 3)]
+        key[2], key[1] = key[1], key[2]         # ready to play before resolution
+    else:
+        key.append(-round(total, 3))
     key += tie
     key.append(0 if rgroup and rgroup.lower() in wanted else 1)
     return key, why
@@ -449,7 +479,7 @@ def apply(sources, profile, kind="movie", scraper_order=None):
             continue
         seen.add(fingerprint)
         key, why = _order_key(source, tags, profile, scraper_order, kind)
-        kept.append((key, position, dict(source, why=why)))
+        kept.append((key, position, dict(source, why=why, trash_low=any(w[0] in LOW_LABELS for w in why))))
     if profile.get("as_is"):
         kept = [([], row[1], dict(row[2], why=[])) for row in kept]
     kept.sort(key=lambda row: (row[0], row[1]))
@@ -463,14 +493,45 @@ def apply(sources, profile, kind="movie", scraper_order=None):
             own = per.get(name, {}).get("own")
             block = [row[2] for row in sorted(kept, key=lambda r: r[1]) if row[2].get("scraper") == name] if own else [s for s in ranked if s.get("scraper") == name]
             result += block
-    limit = int(profile["filters"].get("max_per_res") or 0)
-    if limit:
-        counts, trimmed = {}, []
-        for source in result:
-            counts[source.get("resolution")] = counts.get(source.get("resolution"), 0) + 1
-            if counts[source.get("resolution")] <= limit:
-                trimmed.append(source)
-        result = trimmed
+    return _trim(result, profile["filters"])
+
+
+HIGH = ("4K", "1440p", "1080p")
+DROP_LOW_FROM = 3
+LOW_LABELS = ("Slechte release-groep (TRaSH)", "Low-quality release group (TRaSH)")
+
+
+def _trim(result, filters):
+    """The limits after sorting. 'Always in your language': the best few with sound or subtitles in your language stay,
+    whatever the other limits say."""
+    keep_lang = int(filters.get("keep_lang") or 0)
+    safe = set()
+    if keep_lang:
+        mine = [s for s in result if tags_of(s) & {"nl", "nlsubs"}][:keep_lang]
+        safe = {id(s) for s in mine}
+
+    def limit(rows, size, key):
+        counts, out = {}, []
+        for source in rows:
+            k = key(source)
+            counts[k] = counts.get(k, 0) + 1
+            if counts[k] <= size or id(source) in safe:
+                out.append(source)
+        return out
+
+    if int(filters.get("per_res_src") or 0) and filters.get("trash_groups", True):
+        good = [s for s in result if not s.get("trash_low")]
+        if len(good) >= DROP_LOW_FROM:          # enough from decent groups: the low-quality ones (TRaSH LQ) go
+            result = [s for s in result if not s.get("trash_low") or id(s) in safe]
+    per_res = int(filters.get("max_per_res") or 0)
+    if per_res:
+        result = limit(result, per_res, lambda s: s.get("resolution"))
+    per_src = int(filters.get("per_res_src") or 0)
+    if per_src:                                 # e.g. 3 x 4K Remux, 3 x 4K WEB-DL, 3 x 1080p Blu-ray ...
+        result = limit(result, per_src, lambda s: (s.get("resolution"), source_class(tags_of(s))))
+    enough = int(filters.get("lower_if_needed") or 0)
+    if enough and sum(1 for s in result if s.get("resolution") in HIGH) >= enough:
+        result = [s for s in result if s.get("resolution") in HIGH or id(s) in safe]     # 720p and lower only when needed
     return result
 
 
