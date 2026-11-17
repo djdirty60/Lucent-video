@@ -59,3 +59,26 @@ jobs:
         with:
           name: vfs.lucent-kodi22-linux-aarch64
           path: vfs.lucent/*.zip
+
+  # The zips also go into this branch (vfs.lucent-out/), so they can be fetched with git.
+  collect:
+    needs: [android, linux-aarch64]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: art
+      - name: Commit the zips to this branch
+        run: |
+          mkdir -p vfs.lucent-out
+          rm -f vfs.lucent-out/*.zip
+          find art -name '*.zip' -exec cp {} vfs.lucent-out/ \;
+          (cd vfs.lucent-out && sha256sum *.zip > SHA256SUMS)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vfs.lucent-out
+          git commit -m "vfs.lucent: built zips [skip ci]" || echo "nothing new"
+          git push
