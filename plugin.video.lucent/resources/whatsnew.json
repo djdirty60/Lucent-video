@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+79",
+   "label": "Beta 1 · update 79",
+   "label_en": "Beta 1 · update 79",
+   "date": "2026-11-17",
+   "at": "2026-11-17T22:30Z",
+   "items": [
+    [
+     "star",
+     "Usenet voor iedereen",
+     "Usenet met je eigen provider en indexers is niet meer alleen voor testers: je vindt het in de instellingen onder Usenet. Lucent zoekt, haalt op en speelt af op dit apparaat zelf, zonder AIOStreams.",
+     "Usenet for everyone",
+     "Usenet with your own provider and indexers is no longer for testers only: you find it in the settings under Usenet. Lucent searches, fetches and plays on this device itself, without AIOStreams."
+    ],
+    [
+     "star",
+     "Snelle lezer (vfs.lucent)",
+     "Voor sneller spoelen in grote films: installeer Lucent Video VFS uit de Lucent-repository (Virtuele bestandsystemen). Er is een versie voor Android, CoreELEC / LibreELEC, Linux en Windows, voor Kodi 21 en 22; Kodi kiest zelf de juiste. Daarna staat 'Snelle lezer' aan bij Usenet.",
+     "Fast reader (vfs.lucent)",
+     "For faster seeking in big films: install Lucent Video VFS from the Lucent repository (Virtual filesystems). There is a version for Android, CoreELEC / LibreELEC, Linux and Windows, for Kodi 21 and 22; Kodi picks the right one itself. After that 'Fast reader' is on under Usenet."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+78",
    "label": "Beta 1 · update 78",
    "label_en": "Beta 1 · update 78",

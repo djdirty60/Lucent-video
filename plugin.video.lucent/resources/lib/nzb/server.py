@@ -47,7 +47,7 @@ def provider(backup=False):
 
 
 def wanted():
-    return util.lab() and util.flag("nzb_on") and bool(util.setting("nzb_host"))
+    return util.flag("nzb_on") and bool(util.setting("nzb_host"))
 
 
 def _close_release():

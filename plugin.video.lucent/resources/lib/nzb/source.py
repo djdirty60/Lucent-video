@@ -25,7 +25,7 @@ SERVICE = "USENET"
 
 
 def configured():
-    return util.lab() and util.flag("nzb_on") and bool(util.setting("nzb_host")) and newznab.configured()
+    return util.flag("nzb_on") and bool(util.setting("nzb_host")) and newznab.configured()
 
 
 def is_pack(name, titles, meta):
@@ -446,8 +446,10 @@ def _reader_line():
     except Exception:                           # noqa: BLE001 - outside Kodi
         installed, version = False, ""
     if not installed:
-        return util.T("Snelle lezer: niet geïnstalleerd (films lopen via Lucent's eigen webserver).",
-                      "Fast reader: not installed (films go through Lucent's own web server).")
+        return util.T("Snelle lezer: niet geïnstalleerd (films lopen via Lucent's eigen webserver). Sneller spoelen? "
+                      "Installeer Lucent Video VFS uit de Lucent-repository (Virtuele bestandsystemen).",
+                      "Fast reader: not installed (films go through Lucent's own web server). Faster seeking? "
+                      "Install Lucent Video VFS from the Lucent repository (Virtual filesystems).")
     if not vfs.available():
         return util.T("Snelle lezer: vfs.lucent %s is uitgeschakeld bij Kodi's add-ons (zet hem daar weer aan).",
                       "Fast reader: vfs.lucent %s is disabled in Kodi's add-ons (enable it there again).") % version

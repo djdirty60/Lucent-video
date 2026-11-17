@@ -23,8 +23,7 @@ def _order(name):
 zips = sorted((n for n in os.listdir(zd) if n.startswith('plugin.video.lucent-') and n.endswith('.zip')), key=_order)
 for old in zips[:-KEEP]:
     os.remove(os.path.join(zd, old))
-body = re.sub(r'^<\?xml[^>]*\?>\s*', '', x).rstrip()
-xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<addons>\n' + body + '\n</addons>\n'
-open(out + '/addons.xml', 'w', encoding='utf-8').write(xml)
-open(out + '/addons.xml.md5', 'w').write(hashlib.md5(xml.encode('utf-8')).hexdigest())
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import repo_index                      # addons.xml: Lucent Video and the vfs.lucent builds (tools/add_vfs.py)
+repo_index.write(dst)
 print(v)

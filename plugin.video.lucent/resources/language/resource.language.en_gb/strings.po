@@ -1570,7 +1570,7 @@ msgid "Usenet (own provider)"
 msgstr ""
 
 msgctxt "#32459"
-msgid "Use Usenet (own provider, test)"
+msgid "Use Usenet (own provider)"
 msgstr ""
 
 msgctxt "#32460"
@@ -1690,7 +1690,7 @@ msgid "Check"
 msgstr ""
 
 msgctxt "#32489"
-msgid "Usenet with your own provider and indexers (test mode)."
+msgid "Usenet with your own provider and indexers."
 msgstr ""
 
 msgctxt "#32490"
@@ -1934,7 +1934,7 @@ msgid "With 'Choose by itself, in the background': the film waits (at most 20 se
 msgstr ""
 
 msgctxt "#32550"
-msgid "Fast reader (vfs.lucent, test)"
+msgid "Fast reader (vfs.lucent)"
 msgstr ""
 
 msgctxt "#32551"
@@ -1942,7 +1942,7 @@ msgid "Only shown when the add-on vfs.lucent is installed. Kodi then reads Usene
 msgstr ""
 
 msgctxt "#32552"
-msgid "Requests at once per connection (fast reader, test)"
+msgid "Requests at once per connection (fast reader)"
 msgstr ""
 
 msgctxt "#32553"

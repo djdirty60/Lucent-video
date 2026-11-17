@@ -56,7 +56,7 @@ def _finished(name, job, limit):
 
 def names(profile):
     """Scraper names in the order of the profile; new ones at the end."""
-    usable = [n for n in REGISTRY if (n not in coco.PACKS or coco.installed(n)) and (n != "Usenet" or util.lab())]   # packs only when installed; Usenet only for testers
+    usable = [n for n in REGISTRY if n not in coco.PACKS or coco.installed(n)]   # packs only when installed
     order = [n for n in profile["scrapers"].get("order") or [] if n in usable]
     return order + [n for n in usable if n not in order]
 
@@ -124,7 +124,7 @@ def configured():
         out.append("Easynews")
     if util.setting("torbox_key"):
         out.append("TorBox")
-    if util.lab() and util.flag("nzb_on") and util.setting("nzb_host") and any(util.setting("nzb_ix%d_url" % n) for n in range(1, 11)):
+    if util.flag("nzb_on") and util.setting("nzb_host") and any(util.setting("nzb_ix%d_url" % n) for n in range(1, 11)):
         out.append("Usenet")
     if debrid.active():
         out += [n for n in coco.PACKS if coco.installed(n)]

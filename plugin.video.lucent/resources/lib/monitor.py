@@ -532,7 +532,7 @@ _USENET = {"on": False}
 
 def _usenet_tick(playing):
     """Usenet with your own provider: the local player server runs while the setting is on (loaded only then)."""
-    if not (_USENET["on"] or (util.flag("nzb_on") and util.lab())):
+    if not (_USENET["on"] or util.flag("nzb_on")):
         return
     from nzb import server
     server.tick(playing)
