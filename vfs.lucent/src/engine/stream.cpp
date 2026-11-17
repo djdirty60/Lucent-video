@@ -32,7 +32,12 @@ constexpr int64_t kHeadKeepBytes = 64 * 1024 * 1024;  // the first 64 MB of the 
 constexpr int64_t kTailWarmBytes = 4 * 1024 * 1024;   // fetched (and kept) at the start: the Matroska index
 constexpr int64_t kHardPrefetchBytes = 96 * 1024 * 1024;
 constexpr int kWorkerMargin = 8;
-constexpr double kHedgeSeconds = 4.0;
+constexpr double kHedgeSeconds = 4.0;             // an article nobody waits for yet
+constexpr double kHedgeWaitedMin = 1.0;           // an article the player waits for: ask the other
+constexpr double kHedgeWaitedFactor = 3.0;        //   provider after 3x a normal fetch, 1 to 4 s
+constexpr int kHedgeWarmupBatches = 16;           // first learn what a normal fetch takes
+constexpr size_t kHedgeQueueMax = 8;
+constexpr int64_t kSideDistance = 256 * 1024 * 1024;  // extra readers queue behind the player's read-ahead
 constexpr double kHedgeAcquireSeconds = 2.0;
 
 using ChunkPtr = std::shared_ptr<const std::vector<uint8_t>>;
@@ -249,6 +254,7 @@ struct Slot
   int fetch_pool = -1;
   double fetch_started = 0;
   bool hedged = false;
+  bool side_only = false;        // fetched for an extra reader (chapter pictures), not for the player
   std::vector<int> missing_pools;
   int64_t queue_distance = 0;
   std::list<uint64_t>::iterator lru;
@@ -409,7 +415,7 @@ public:
       Log(LogLevel::Info, "read jump to %.2f GB (%.0f MB from the previous read)",
           offset / 1073741824.0, (offset - previous) / 1048576.0);
       CancelFar(offset);
-      seek_started_ = Now();
+      seek_started_.store(Now());
       seek_pending_.store(true);
     }
     read_offset_.store(offset);
@@ -464,7 +470,7 @@ public:
       }
       if (seek_pending_.exchange(false))
         Log(LogLevel::Info, "seek to %.2f GB: first byte in %.1f s", offset / 1073741824.0,
-            Now() - seek_started_);
+            Now() - seek_started_.load());
       const int64_t inside = volume_position - index * part_size;
       if (inside >= static_cast<int64_t>(chunk.data->size()))
       {
@@ -519,7 +525,7 @@ public:
         position = end_of_part;
         continue;
       }
-      const ChunkInfo chunk = GetChunk(part_index, static_cast<int>(index));
+      const ChunkInfo chunk = GetChunk(part_index, static_cast<int>(index), true);
       if (!chunk.data)
       {
         if (closing_.load() || fatal_.load())
@@ -566,13 +572,24 @@ public:
     return last_error_;
   }
 
+  void LogTotals(const char* when) { LogStats(when); }
+
 private:
+  // How long an article the player is waiting for may take before the other provider is asked
+  // too: a few times what a fetch normally takes on this connection, between 1 and 4 seconds.
+  double WaitedHedgeLimitLocked() const
+  {
+    if (batch_samples_ < kHedgeWarmupBatches)
+      return kHedgeSeconds;
+    return std::min(kHedgeSeconds, std::max(kHedgeWaitedMin, batch_ewma_ * kHedgeWaitedFactor));
+  }
+
   void HedgeLoop()
   {
     Trace("hedge thread start");
     while (!closing_.load())
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       if (closing_.load() || fatal_.load())
         break;
       if (pools_.size() < 2)
@@ -587,15 +604,22 @@ private:
       {
         std::lock_guard<std::mutex> lock(mutex_);
         const double now = Now();
+        const double waited_limit = WaitedHedgeLimitLocked();
         for (auto& item : slots_)
         {
           Slot& slot = item.second;
           if (slot.state != Slot::State::Fetching || slot.hedged ||
               slot.fetch_started <= 0.0)
             continue;
-          if (now - slot.fetch_started < kHedgeSeconds)
+          const bool waited = waiting_.count(item.first) > 0;
+          if (now - slot.fetch_started < (waited ? waited_limit : kHedgeSeconds))
             continue;
+          if (hedges_.size() >= kHedgeQueueMax)
+            break;
           slot.hedged = true;
+          ++hedges_total_;
+          if (waited)
+            ++hedges_waited_;
           Job job;
           job.key = item.first;
           job.part = PartOf(item.first);
@@ -607,8 +631,8 @@ private:
           if (hedge_logs_ < 20)
           {
             ++hedge_logs_;
-            Log(LogLevel::Info, "hedge %d:%d after %.1f s", job.part, job.article,
-                now - slot.fetch_started);
+            Log(LogLevel::Info, "hedge %d:%d after %.1f s%s", job.part, job.article,
+                now - slot.fetch_started, waited ? " (the player waits for it)" : "");
           }
         }
       }
@@ -960,6 +984,11 @@ private:
     stat.bytes += bytes;
     stat.seconds += elapsed;
     article_seconds_ += elapsed;
+    if (delivered > 0)
+    {
+      batch_ewma_ = batch_samples_ == 0 ? elapsed : batch_ewma_ * 0.9 + elapsed * 0.1;
+      ++batch_samples_;
+    }
   }
 
   void LogWarning(const char* where, const std::string& message)
@@ -1159,11 +1188,39 @@ private:
     return cache_limit_ > 0 ? cache_limit_ : plan_->cache;
   }
 
+  // Articles fetched only for an extra reader go first, once read: they never cost the player its
+  // read-ahead. One in the player's window ahead stays, the player will want it soon.
+  bool EvictSideLocked(int64_t read)
+  {
+    for (auto entry = lru_.end(); entry != lru_.begin();)
+    {
+      --entry;
+      const uint64_t key = *entry;
+      if (pinned_.count(key) != 0)
+        continue;
+      const auto found = slots_.find(key);
+      if (found == slots_.end() || found->second.state != Slot::State::Ready ||
+          !found->second.side_only)
+        continue;
+      const int64_t start = SlotStart(key);
+      if (start < HeadKeep() || (start + found->second.bytes > read && start < read + kHardPrefetchBytes))
+        continue;
+      cache_bytes_ -= found->second.bytes;
+      slots_.erase(found);
+      lru_.erase(entry);
+      ++evictions_;
+      return true;
+    }
+    return false;
+  }
+
   void EvictLocked()
   {
     while (cache_bytes_ > CacheLimit() && !lru_.empty())
     {
       const int64_t read = read_offset_.load();
+      if (EvictSideLocked(read))
+        continue;
       bool removed = false;
       auto entry = lru_.end();
       while (entry != lru_.begin())
@@ -1363,7 +1420,7 @@ private:
         2, std::min<int64_t>(wanted, static_cast<int64_t>(part.articles.size()))));
   }
 
-  ChunkInfo GetChunk(int part_index, int article)
+  ChunkInfo GetChunk(int part_index, int article, bool side = false)
   {
     const uint64_t key = MakeKey(part_index, article);
     const double started = Now();
@@ -1376,11 +1433,14 @@ private:
       auto found = slots_.find(key);
       if (found == slots_.end())
       {
-        EnqueueLocked(key, 0);
+        EnqueueLocked(key, side ? kSideDistance : 0);
         found = slots_.find(key);
+        found->second.side_only = side;
         job_cv_.notify_all();
       }
       Slot& slot = found->second;
+      if (!side)
+        slot.side_only = false;
       if (slot.state == Slot::State::Ready)
       {
         TouchLocked(key, slot);
@@ -1388,9 +1448,11 @@ private:
           ++cache_hits_;
         return {slot.data, slot.zero_filled};
       }
-      if (slot.state == Slot::State::Queued)
+      if (slot.state == Slot::State::Queued && !side)
         PromoteLocked(key, 0);
       pinned_.insert(key);
+      if (!side)
+        ++waiting_[key];
       cv_.wait(lock,
                [this, key]()
                {
@@ -1400,6 +1462,12 @@ private:
                  return current != slots_.end() && current->second.state == Slot::State::Ready;
                });
       waited_once = true;
+      if (!side)
+      {
+        const auto waiting = waiting_.find(key);
+        if (waiting != waiting_.end() && --waiting->second <= 0)
+          waiting_.erase(waiting);
+      }
       if (key != tail_key_)
         pinned_.erase(key);
       if (closing_.load() || fatal_.load())
@@ -1529,7 +1597,7 @@ private:
     return -1;
   }
 
-  void LogStats()
+  void LogStats(const char* when = "stream closed")
   {
     StreamStats stats = Stats();
     if (stats.articles <= 0)
@@ -1547,6 +1615,9 @@ private:
     double wait_max = 0;
     double decode_seconds = 0;
     int64_t decoded_articles = 0;
+    int64_t hedges = 0;
+    int64_t hedges_waited = 0;
+    double hedge_limit = 0;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       read_bytes = read_bytes_.load();
@@ -1558,6 +1629,9 @@ private:
       refetches = refetches_;
       decode_seconds = decode_seconds_;
       decoded_articles = decoded_articles_;
+      hedges = hedges_total_;
+      hedges_waited = hedges_waited_;
+      hedge_limit = WaitedHedgeLimitLocked();
     }
     const double served = wall > 0.1 ? read_bytes / 1048576.0 / wall : 0.0;
     const double decode_average =
@@ -1575,19 +1649,21 @@ private:
       providers += entry;
     }
     Log(LogLevel::Info,
-        "stream closed: %lld articles, %lld missing, %.1f MB decoded, %.1f MB/s fetched, "
+        "%s: %lld articles, %lld missing, %.1f MB decoded, %.1f MB/s fetched, "
         "%.0f ms/article%s%s",
-        static_cast<long long>(stats.articles), static_cast<long long>(stats.missing), megabytes,
+        when, static_cast<long long>(stats.articles), static_cast<long long>(stats.missing), megabytes,
         fetched, average, providers.empty() ? "" : "; ", providers.c_str());
     Log(LogLevel::Info,
-        "stream stats: %.1f MB served in %.1f s (%.1f MB/s), first byte %.1f s, %lld waits "
+        "%s, details: %.1f MB served in %.1f s (%.1f MB/s), first byte %.1f s, %lld waits "
         "%.1f s (max %.1f s), %lld evictions, %lld refetches, %lld cache hits, decode %.1f "
-        "ms/article, cache %.0f MB, %.1f MB to extra readers",
-        read_bytes / 1048576.0, wall, served, first_read_cs_.load() / 100.0,
+        "ms/article, cache %.0f MB, %.1f MB to extra readers, %lld asked at the other provider "
+        "too (%lld the player waited for, after %.1f s)",
+        when, read_bytes / 1048576.0, wall, served, first_read_cs_.load() / 100.0,
         static_cast<long long>(waits), wait_seconds, wait_max,
         static_cast<long long>(evictions), static_cast<long long>(refetches),
         static_cast<long long>(hits), decode_average, CacheLimit() / 1048576.0,
-        side_bytes_.load() / 1048576.0);
+        side_bytes_.load() / 1048576.0, static_cast<long long>(hedges), static_cast<long long>(hedges_waited),
+        hedge_limit);
   }
 
   void DoClose()
@@ -1659,6 +1735,9 @@ private:
   std::set<QueueEntry, QueueOrder> queue_;
   std::deque<Job> hedges_;
   std::unordered_set<uint64_t> pinned_;
+  std::unordered_map<uint64_t, int> waiting_;     // articles a reader is blocked on right now
+  double batch_ewma_ = 0;                         // what one fetch normally takes (seconds)
+  int64_t batch_samples_ = 0;
   std::vector<std::unique_ptr<Pool>> pools_;
   std::vector<std::thread> threads_;
   std::once_flag close_once_;
@@ -1673,7 +1752,7 @@ private:
   std::map<std::string, ProviderStat> provider_stats_;
   int64_t cache_limit_ = 0;
   double started_at_ = 0;
-  double seek_started_ = 0;
+  std::atomic<double> seek_started_{0};
   std::atomic<bool> first_read_logged_{false};
   std::atomic<bool> seek_pending_{false};
   std::atomic<int64_t> first_read_cs_{0};
@@ -1685,6 +1764,8 @@ private:
   int64_t evictions_ = 0;
   int64_t refetches_ = 0;
   int hedge_logs_ = 0;
+  int64_t hedges_total_ = 0;      // articles also asked at the other provider
+  int64_t hedges_waited_ = 0;     //   of which the player was waiting for
   double decode_seconds_ = 0;
   int64_t decoded_articles_ = 0;
   std::unordered_set<uint64_t> stored_keys_;
@@ -1750,6 +1831,12 @@ int64_t Stream::Read(int64_t offset, uint8_t* dest, size_t size, bool lead)
 StreamStats Stream::Stats() const
 {
   return impl_ ? impl_->Stats() : StreamStats{};
+}
+
+void Stream::LogTotals(const char* when)
+{
+  if (impl_)
+    impl_->LogTotals(when);
 }
 
 std::string Stream::LastError() const

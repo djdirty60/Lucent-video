@@ -46,6 +46,8 @@ public:
   // it gets its bytes without moving the read-ahead of the player.
   int64_t Read(int64_t offset, uint8_t* dest, size_t size, bool lead = true);
   StreamStats Stats() const;
+  // The totals so far, in the log (when the player stops; the stream itself stays warm a while).
+  void LogTotals(const char* when);
   std::string LastError() const;
 
 private:

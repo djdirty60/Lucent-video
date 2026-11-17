@@ -71,7 +71,7 @@ void Log(LogLevel level, const char* fmt, ...)
 bool Base64Decode(const std::string& text, std::string& out)
 {
   out.clear();
-  int value = 0;
+  uint32_t value = 0;
   int bits = -8;
   for (unsigned char ch : text)
   {
@@ -92,7 +92,7 @@ bool Base64Decode(const std::string& text, std::string& out)
       continue;
     else
       return false;
-    value = (value << 6) | digit;
+    value = ((value << 6) | static_cast<uint32_t>(digit)) & 0xFFFFFFu;
     bits += 6;
     if (bits >= 0)
     {

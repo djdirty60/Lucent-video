@@ -557,6 +557,7 @@ public:
     if (!handle)
       return false;
     engine::Trace("addon close begin");
+    bool last = false;
     {
       std::lock_guard<std::mutex> lock(g_session_mutex);
       auto found = g_sessions.find(handle->token);
@@ -567,8 +568,13 @@ public:
         if (found->second->refs > 0)
           --found->second->refs;
         found->second->last_used = NowSeconds();
+        last = found->second->refs <= 0;
       }
     }
+    // The totals right away: the stream itself stays warm for a while (to continue watching),
+    // so its own closing line can come long after the log was sent.
+    if (last && handle->stream && handle->read_total > 0)
+      handle->stream->LogTotals("player stopped");
     engine::Trace("addon close end");
     delete handle;
     return true;
