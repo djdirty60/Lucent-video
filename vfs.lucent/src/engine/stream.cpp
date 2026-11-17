@@ -28,6 +28,8 @@ namespace
 {
 constexpr int64_t kSeekLogBytes = 16 * 1024 * 1024;
 constexpr int64_t kIndexTailBytes = 8 * 1024 * 1024;
+constexpr int64_t kHeadKeepBytes = 64 * 1024 * 1024;  // the first 64 MB of the film are never evicted
+constexpr int64_t kTailWarmBytes = 4 * 1024 * 1024;   // fetched (and kept) at the start: the Matroska index
 constexpr int64_t kHardPrefetchBytes = 96 * 1024 * 1024;
 constexpr int kWorkerMargin = 8;
 constexpr double kHedgeSeconds = 4.0;
@@ -1149,6 +1151,9 @@ private:
     return start < 0 ? 0 : start;
   }
 
+  // At most a third of the cache is kept for the film's start, so read-ahead always has room.
+  int64_t HeadKeep() const { return std::min<int64_t>(kHeadKeepBytes, CacheLimit() / 3); }
+
   int64_t CacheLimit() const
   {
     return cache_limit_ > 0 ? cache_limit_ : plan_->cache;
@@ -1173,6 +1178,8 @@ private:
           entry = lru_.erase(entry);
           continue;
         }
+        if (SlotStart(key) < HeadKeep())
+          continue;                             // the film's start stays: "back to the beginning" is instant
         if (SlotStart(key) + found->second.bytes > read)
           continue;
         cache_bytes_ -= found->second.bytes;
@@ -1195,6 +1202,8 @@ private:
           if (found == slots_.end() || found->second.state != Slot::State::Ready)
             continue;
           const int64_t start = SlotStart(key);
+          if (start < HeadKeep())
+            continue;
           if (start > farthest)
           {
             farthest = start;
@@ -1447,12 +1456,25 @@ private:
     if (index >= static_cast<int64_t>(part.articles.size()))
       index = static_cast<int64_t>(part.articles.size()) - 1;
     const uint64_t key = MakeKey(part_index, static_cast<int>(index));
+    // Kodi reads the Matroska index right after the start: it is in the last few MB, not only in the very last
+    // article (seen: Kodi waited 2.6 s for the one before it). Fetch the last kTailWarmBytes as well.
+    const int64_t first_volume = std::max<int64_t>(part.skip, volume - kTailWarmBytes + 1);
+    const int64_t first_index = std::max<int64_t>(0, first_volume / part_size);
     {
       std::lock_guard<std::mutex> lock(mutex_);
       pinned_.insert(key);
       tail_key_ = key;
       EnqueueLocked(key, -1);
       PromoteLocked(key, -1);
+      for (int64_t earlier = index - 1; earlier >= first_index; --earlier)
+      {
+        const uint64_t other = MakeKey(part_index, static_cast<int>(earlier));
+        if (slots_.find(other) != slots_.end())
+          continue;
+        pinned_.insert(other);
+        EnqueueLocked(other, -1);
+        PromoteLocked(other, -1);
+      }
     }
     job_cv_.notify_all();
   }
