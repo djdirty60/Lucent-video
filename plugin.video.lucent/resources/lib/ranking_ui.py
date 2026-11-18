@@ -8,6 +8,7 @@ import xbmcvfs
 
 import dialogs
 import ranking
+import mylang
 import streams
 import scrapers
 import util
@@ -22,7 +23,7 @@ def rule_label(rule_id):
 
 def preview_items(profile, count=6):
     rows = []
-    for number, source in enumerate(ranking.apply(ranking.SAMPLES, profile)[:count], 1):
+    for number, source in enumerate(ranking.apply(ranking.samples(), profile)[:count], 1):
         item = xbmcgui.ListItem(source["name"].replace("Demo.", "").split("-GROUP")[0].replace(".", " ").replace("2160p", "4K"), offscreen=True)
         item.setProperty("nr", str(number))
         for slot, flag in enumerate(streams.tidy_flags(source["flags"])[:5], 1):
@@ -49,7 +50,8 @@ def group_summary(group, profile):
     if group["id"] == "speed":
         return T("Cached eerst", "Cached first") if order[0] == "cached" else T("Niet-cached eerst", "Uncached first")
     if group["id"] == "language":
-        return {"nl": T("NL eerst", "Dutch first"), "nlsubs": T("NL-subs eerst", "Dutch subs first"), "multi": T("Meertalig eerst", "Multi first")}[order[0]]
+        return {"nl": T("%s eerst" % mylang.short(), "%s first" % mylang.label()), "nlsubs": T("%s-subs eerst" % mylang.short(), "%s subs first" % mylang.label()),
+                "multi": T("Meertalig eerst", "Multi first")}[order[0]]
     if group["id"] == "size":
         return T("Groot eerst", "Large first") if order[0] == "largest" else T("Klein eerst", "Small first")
     return ", ".join(rule_label(r) for r in order[:2]) + "…"
@@ -367,7 +369,7 @@ class Filters(Options):
                            T("720p als < %d hoger", "720p when < %d higher") % f.get("lower_if_needed", 0) if f.get("lower_if_needed") else T("Uit", "Off"))]
         groups = [self.row(T("Voorkeur", "Preferred"), ", ".join(f["prefer_groups"]) or none), self.row(T("Verbergen", "Hide"), ", ".join(f["hide_groups"]) or none),
                   self.row(T("Groepen volgens TRaSH", "Groups by TRaSH"), T("Aan", "On") if f.get("trash_groups", True) else T("Uit", "Off")),
-                  self.row(T("Altijd in jouw taal (NL)", "Always in your language (NL)"),
+                  self.row(T("Altijd in jouw taal (%s)" % mylang.short(), "Always in your language (%s)" % mylang.short()),
                            T("%d bronnen", "%d sources") % f.get("keep_lang", 0) if f.get("keep_lang") else none)]
         return left, limits, groups
 

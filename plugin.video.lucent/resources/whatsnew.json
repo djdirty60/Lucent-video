@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+81",
+   "label": "Beta 1 · update 81",
+   "label_en": "Beta 1 · update 81",
+   "date": "2026-11-18",
+   "at": "2026-11-18T18:00Z",
+   "items": [
+    [
+     "star",
+     "Jouw taal bij de bronnen",
+     "Bronnen in jouw taal waren altijd Nederlands. Nu kies je bij Bronnen de 'Taal van bronnen' (17 talen, of automatisch: de taal van Kodi). Audio en ondertitels in die taal krijgen een eigen label met een eigen kleur (NL, DE, FR, RO …) en kunnen vooraan in de volgorde.",
+     "Your language for sources",
+     "Sources in your language were always Dutch. Now you pick the 'Language of sources' under Sources (17 languages, or automatic: the language of Kodi). Audio and subtitles in that language get their own label in their own colour (NL, DE, FR, RO …) and can go first in the order."
+    ],
+    [
+     "star",
+     "Verbindingen afstemmen",
+     "Nieuwe knop bij Usenet: meet in een paar minuten hoeveel verbindingen je account echt toestaat, vergelijkt de poorten 563 en 443 en meet je snelheid. Daarna een voorstel; er verandert niets tot je op Toepassen drukt. Haalt tot ongeveer 800 MB testdata op.",
+     "Tune connections",
+     "New button under Usenet: measures in a few minutes how many connections your account really allows, compares ports 563 and 443 and measures your speed. Then a suggestion; nothing changes until you press Apply. Fetches up to about 800 MB of test data."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+80",
    "label": "Beta 1 · update 80",
    "label_en": "Beta 1 · update 80",

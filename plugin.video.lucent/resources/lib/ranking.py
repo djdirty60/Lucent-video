@@ -6,6 +6,7 @@ A scraper only has to give a file name; everything else is read from that name w
 import copy
 import re
 
+import mylang
 import util
 
 T = util.T
@@ -14,13 +15,13 @@ MARKS = r"(?:^|[ ._\-\[(])%s(?=$|[ ._\-\])])"
 FROM_FLAG = {"DV": "dv", "DV2": "dv2", "HDR": "hdr", "HLG": "hlg", "SDR": "sdr", "3D": "3d", "aio_FEL": "fel", "aio_P7": "p7", "aio_IMAX": "imax", "aio_10BIT": "10bit",
              "REMUX": "remux", "BLURAY": "bluray", "WEB": "web", "HDTV": "hdtv", "DVDRIP": "dvd", "CAM": "cam", "SCR": "cam", "ATMOS": "atmos",
              "TRUEHD": "truehd", "DTS-X": "dtsx", "DTS-HDMA": "dtsma", "DTS-HD": "dtshd", "DTS": "dts", "DD+": "ddplus", "DD": "dd", "AAC": "aac",
-             "OPUS": "opus", "7.1": "71", "5.1": "51", "2.0": "20", "aio_NL": "nl", "aio_MULTI": "multi", "aio_NL-SUBS": "nlsubs", "HEVC": "hevc",
+             "OPUS": "opus", "7.1": "71", "5.1": "51", "2.0": "20", "aio_MULTI": "multi", "HEVC": "hevc",
              "AVC": "avc", "AV1": "av1"}
 BY_NAME = {"remux": "REMUX", "bluray": "(?:BLU-?RAY|BDRIP|BRRIP)", "web": "WEB(?:-?DL|-?RIP)?", "hdtv": "HDTV", "cam": "(?:CAM|HDCAM|HDTS|TS|TELESYNC|TC|SCREENER|SCR)",
            "dv": "(?:DV|DOVI|DOLBY[ ._]?VISION)", "dv2": "DV2", "fel": "FEL", "p7": "(?:DV[ ._-]?)?P7", "hdr10plus": r"HDR10(?:\+|PLUS)", "hdr": r"HDR(?:10)?", "hlg": "HLG",
            "sdr": "SDR", "3d": "3D", "imax": "IMAX", "10bit": r"(?:10[- ]?BIT|HI10P?)", "atmos": r"(?:ATMOS|DDPA(?:[257][. ]?[01])?|DD\+A(?:[257][. ]?[01])?)", "truehd": r"TRUEHD(?:[257][. ]?[01])?", "dtsx": "DTS[-.:]?X", "dtsma": "DTS[-. ]?HD[-. ]?MA", "dtshd": "DTS[-. ]?HD",
            "dts": "DTS", "ddplus": r"(?:DDPA?|DD\+A?|EAC3)(?:[257][. ]?[01])?", "dd": r"(?:DD|AC3)(?:[257][. ]?[01])?", "aac": r"AAC(?:[257][. ]?[01])?", "opus": r"OPUS(?:[257][. ]?[01])?", "hevc": "(?:HEVC|X265|H[. ]?265)", "avc": "(?:AVC|X264|H[. ]?264)",
-           "av1": "AV1", "upscale": "(?:UPSCALED?|REGRADED?|AI[. ]?UPSCALE)", "hardcoded": "(?:HC|HARDCODED|HARDSUBS?)", "nl": "(?:DUTCH|NLD?(?![-. ]?SUBS?))", "71": r"7[. ]1", "51": r"5[. ]1", "20": r"2[. ]0", "multi": "MULTI", "nlsubs": "(?:NL[. ]?SUBS?|DUTCH[. ]?SUBS?)"}
+           "av1": "AV1", "upscale": "(?:UPSCALED?|REGRADED?|AI[. ]?UPSCALE)", "hardcoded": "(?:HC|HARDCODED|HARDSUBS?)", "71": r"7[. ]1", "51": r"5[. ]1", "20": r"2[. ]0", "multi": "MULTI"}
 COMPILED = {tag: re.compile(MARKS % pattern, re.I) for tag, pattern in BY_NAME.items()}
 # channels glued to the sound format, as in DDP5.1, DD+5.1, AAC2.0 or TrueHD7.1
 GLUED = r"(?:^|[ ._\-\[(]|(?<=DDP)|(?<=DDPA)|(?<=DD\+)|(?<=DD)|(?<=AC3)|(?<=EAC3)|(?<=AAC)|(?<=OPUS)|(?<=TRUEHD)|(?<=ATMOS))%s(?=$|[ ._\-\])])"
@@ -41,6 +42,14 @@ def tags_of(source):
     for tag, pattern in COMPILED.items():
         if tag not in tags and pattern.search(name):
             tags.add(tag)
+    # your language (mylang.py): 'nl' / 'nlsubs' mean audio / subtitles in it, whatever the language is
+    audio_flag, subs_flag = mylang.flags()
+    flags = source.get("flags") or []
+    audio_re, subs_re = mylang.compiled(MARKS)
+    if audio_flag in flags or audio_re.search(name):
+        tags.add("nl")
+    if subs_flag in flags or subs_re.search(name):
+        tags.add("nlsubs")
     if WEBRIP_RE.search(name):
         tags.add("webrip")                      # a WEBRip (re-encoded) next to a WEB-DL: only the 'Like Tamtaro' order tells them apart
     if "hdr10plus" not in tags and HDR10P_RE.search(name):
@@ -171,7 +180,7 @@ RULES = {
     "dtshd": ("DTS-HD", ["dtshd"]), "dts": ("DTS", ["dts"]), "ddplus": ("Dolby Digital Plus", ["ddplus"]), "dd": ("Dolby Digital", ["dd"]), "aac": ("AAC", ["aac"]), "opus": ("Opus", ["opus"]),
     "71": ("7.1", ["71"]), "51": ("5.1", ["51"]), "20": ("Stereo", ["20"]), "hevc": ("HEVC", ["hevc"]), "avc": ("H.264", ["avc"]), "av1": ("AV1", ["av1"]),
     "cached": (T("Direct speelbaar", "Ready to play"), ["cached"]), "uncached": (T("Niet direct speelbaar", "Not ready to play"), ["uncached"]),
-    "nl": (T("Nederlandse audio", "Dutch audio"), ["nl"]), "nlsubs": (T("Nederlandse ondertitels", "Dutch subtitles"), ["nlsubs"]), "multi": (T("Meerdere talen", "Multiple languages"), ["multi"]),
+    "nl": (mylang.audio_label(), ["nl"]), "nlsubs": (mylang.subs_label(), ["nlsubs"]), "multi": (T("Meerdere talen", "Multiple languages"), ["multi"]),
     "upscale": (T("Upscales", "Upscales"), ["upscale"]), "hardcoded": (T("Ingebrande ondertitels", "Hardcoded subtitles"), ["hardcoded"]), "under1gb": (T("Kleiner dan 1 GB", "Under 1 GB"), ["under1gb"]),
     "largest": (T("Grootste bestand", "Largest file"), []), "smallest": (T("Kleinste bestand", "Smallest file"), []),
 }
@@ -214,8 +223,11 @@ def presets():
                         tags=["4K", "Remux", "DV", T("Lossless geluid", "Lossless sound")], lead=["resolution", "visual", "source"]),
         "small": _preset(T("Snel en zuinig", "Fast and small"), T("Kleine bestanden, start snel.", "Small files, quick to start."), ["1080p", "web", "cached", "smallest"], ["cam"],
                          tags=["1080p", "WEB-DL", T("Onder 10 GB", "Under 10 GB")], size_movie=[0, 10], size_episode=[0, 4]),
-        "dutch": _preset(T("Alleen Nederlands", "Dutch first"), T("Nederlandse audio of ondertitels.", "Dutch audio or subtitles."), ["nl", "nlsubs", "4k", "1080p"], ["cam"],
-                         tags=[T("NL-audio", "Dutch audio"), T("NL-subs", "Dutch subs"), "4K"], first="language"),
+        "dutch": _preset(T("Alleen Nederlands", "Dutch first") if mylang.code() == "nl" else T("Eerst %s" % mylang.label(), "%s first" % mylang.label()),
+                         T("Nederlandse audio of ondertitels.", "Dutch audio or subtitles.") if mylang.code() == "nl" else
+                         T("Audio of ondertitels in het %s." % mylang.label(), "%s audio or subtitles." % mylang.label()), ["nl", "nlsubs", "4k", "1080p"], ["cam"],
+                         tags=[T("NL-audio", "Dutch audio"), T("NL-subs", "Dutch subs"), "4K"] if mylang.code() == "nl" else
+                         ["%s-audio" % mylang.short(), "%s-subs" % mylang.short(), "4K"], first="language"),
         "tamtaro": dict(_preset(T("Zoals Tamtaro", "Like Tamtaro"), T("Bron en groep eerst, minder en betere resultaten.", "Source and group first, fewer and better results."),
                                 ["4k", "1080p", "cached", "largest"], ["cam", "upscale"], tags=[T("Bron eerst", "Source first"), "TRaSH", T("3 per soort", "3 per kind")],
                                 first="resolution", per_res_src=3, lower_if_needed=6, keep_lang=5), strict=True),
@@ -539,7 +551,7 @@ def _trim(result, filters):
     return result
 
 
-SAMPLES = [
+_SAMPLES = [
     {"name": "Demo.2160p.BluRay.REMUX.DV.FEL.TrueHD.Atmos-GROUP.mkv", "resolution": "4K", "flags": ["DV", "aio_FEL", "REMUX", "ATMOS", "TRUEHD"], "size": 62e9, "cached": True, "scraper": "AIOStreams"},
     {"name": "Demo.2160p.BluRay.REMUX.DV.P7.DTS-HD.MA-GROUP.mkv", "resolution": "4K", "flags": ["DV", "aio_P7", "REMUX", "DTS-HDMA"], "size": 55e9, "cached": True, "scraper": "AIOStreams"},
     {"name": "Demo.2160p.BluRay.REMUX.HDR.TrueHD-GROUP.mkv", "resolution": "4K", "flags": ["HDR", "REMUX", "TRUEHD"], "size": 48e9, "cached": True, "scraper": "AIOStreams"},
@@ -550,3 +562,16 @@ SAMPLES = [
     {"name": "Demo.720p.HDTV.AAC-GROUP.mkv", "resolution": "720p", "flags": ["AVC", "HDTV", "AAC"], "size": 0.9e9, "cached": True, "scraper": "AIOStreams"},
     {"name": "Demo.2160p.HDCAM-GROUP.mkv", "resolution": "4K", "flags": ["CAM"], "size": 4e9, "cached": True, "scraper": "AIOStreams"},
 ]
+
+
+def samples():
+    """The demo sources for 'How it will look', with your language's labels (NL-SUBS / RO-SUBS ...)."""
+    audio, subs = mylang.flags()
+    word = mylang.LANGS[mylang.code()][0].upper()
+    out = []
+    for row in _SAMPLES:
+        row = dict(row, flags=[{"aio_NL": audio, "aio_NL-SUBS": subs}.get(f, f) for f in row["flags"]])
+        row["name"] = row["name"].replace("NL-SUBS", "%s-SUBS" % mylang.short()).replace("DUTCH", word)
+        out.append(row)
+    return out
+

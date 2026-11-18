@@ -6,9 +6,9 @@ own resolution. Uses the subtitle search built into Lucent Video, with its own k
 import threading
 
 
+import mylang
 import util
 
-FLAG = "aio_NL-SUBS"
 FIT = 0.85
 
 
@@ -27,7 +27,7 @@ def start(meta):
     if not available():
         return None
     import subs
-    langs = sorted(subs.mine()) or ["nl"]
+    langs = sorted(subs.mine() | {mylang.code()})
     episode = meta["kind"] == "episode"
     video = {"title": meta.get("original_title") or meta.get("show") or meta["title"], "year": str(meta.get("year") or ""),
              "show": meta.get("show") or "" if episode else "", "season": str(meta.get("season") or "") if episode else "",
@@ -62,8 +62,8 @@ def mark(holder, sources, wait=8):
         video = {"release": core.release_name(source.get("name") or "")}
         if any(core.release_match(release, video) >= FIT for release in releases):
             fitting.add(id(source))
-            if FLAG not in (source.get("flags") or []):
-                source["flags"] = list(source.get("flags") or []) + [FLAG]
+            if mylang.subs_flag() not in (source.get("flags") or []):
+                source["flags"] = list(source.get("flags") or []) + [mylang.subs_flag()]
     util.log("subtitle check: %d subtitles, %d of %d sources fit" % (len(rows), len(fitting), len(sources)))
     return fitting
 

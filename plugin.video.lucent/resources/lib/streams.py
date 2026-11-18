@@ -3,6 +3,7 @@
 import re
 import urllib.parse
 
+import mylang
 import util
 
 def size_text(size):
@@ -78,12 +79,12 @@ def flags_of(parsed, name):
             out.append(AUDIO[tag.upper()])
     out += [c for c in parsed.get("audioChannels") or [] if c in ("2.0", "5.1", "7.1")]
     languages = [l.lower() for l in parsed.get("languages") or []]
-    if "dutch" in languages:
-        out.append("aio_NL")
+    if any(mylang.is_mine(l) for l in languages):
+        out.append(mylang.audio_flag())
     elif "multi" in languages:
         out.append("aio_MULTI")
-    if "dutch" in [l.lower() for l in parsed.get("subtitles") or []]:
-        out.append("aio_NL-SUBS")
+    if any(mylang.is_mine(l) for l in parsed.get("subtitles") or []):
+        out.append(mylang.subs_flag())
     seen = []
     return [f for f in out if not (f in seen or seen.append(f))]
 
@@ -96,7 +97,7 @@ BADGE_ORDER = ["DV", "DV2", "aio_FEL", "aio_P7", "HDR", "SDR", "3D", "aio_IMAX",
                "HEVC", "AVC", "AV1", "XVID", "DIVX",
                "ATMOS", "TRUEHD", "DTS-X", "DTS-HDMA", "DTS-HD", "DTS", "DD+", "DD", "AAC", "OPUS",
                "7.1", "5.1", "2.0",
-               "aio_NL", "aio_MULTI", "aio_NL-SUBS"]
+               ] + ["aio_%s" % c.upper() for c in mylang.LANGS] + ["aio_MULTI"] + ["aio_%s-SUBS" % c.upper() for c in mylang.LANGS]
 _RANK = {flag: n for n, flag in enumerate(BADGE_ORDER)}
 _FAMILIES = (("DTS-X", "DTS-HDMA", "DTS-HD", "DTS"), ("DD+", "DD"), ("7.1", "5.1", "2.0"), ("DV", "DV2"), ("REMUX", "BLURAY"))
 

@@ -12,6 +12,7 @@ import uuid
 
 import xbmc
 
+import mylang
 import ranking
 import streams
 import tmdb
@@ -26,7 +27,7 @@ MIN_SECONDS = 600
 KEEP_RESULTS = 600
 FLAG_OF = [("dv2", "DV2"), ("fel", "aio_FEL"), ("p7", "aio_P7"), ("hdr", "HDR"), ("hlg", "HDR"), ("sdr", "SDR"), ("3d", "3D"), ("imax", "aio_IMAX"), ("10bit", "aio_10BIT"), ("hevc", "HEVC"), ("avc", "AVC"), ("av1", "AV1"),
            ("remux", "REMUX"), ("bluray", "BLURAY"), ("web", "WEB"), ("hdtv", "HDTV"), ("cam", "CAM"), ("atmos", "ATMOS"), ("truehd", "TRUEHD"), ("dtsx", "DTS-X"), ("dtsma", "DTS-HDMA"),
-           ("dtshd", "DTS-HD"), ("dts", "DTS"), ("ddplus", "DD+"), ("dd", "DD"), ("aac", "AAC"), ("opus", "OPUS"), ("71", "7.1"), ("51", "5.1"), ("20", "2.0"), ("nl", "aio_NL"), ("multi", "aio_MULTI"), ("nlsubs", "aio_NL-SUBS")]
+           ("dtshd", "DTS-HD"), ("dts", "DTS"), ("ddplus", "DD+"), ("dd", "DD"), ("aac", "AAC"), ("opus", "OPUS"), ("71", "7.1"), ("51", "5.1"), ("20", "2.0"), ("multi", "aio_MULTI")]
 AGENT = "Lucent-Video"
 
 
@@ -37,7 +38,12 @@ def _flags(name):
     if "ddplus" in tags:
         tags.discard("dd")
     flags = ["DV"] if "dv" in tags and "dv2" not in tags else []
-    return flags + [flag for tag, flag in FLAG_OF if tag in tags]
+    flags += [flag for tag, flag in FLAG_OF if tag in tags]
+    if "nl" in tags:                                # your language (mylang.py): its own label, NL / RO / DE ...
+        flags.append(mylang.audio_flag())
+    if "nlsubs" in tags:
+        flags.append(mylang.subs_flag())
+    return flags
 
 
 def _source(name, size, service, url="", cached=True, resolve=None):

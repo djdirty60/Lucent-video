@@ -14,6 +14,7 @@ import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
+import mylang
 import ranking
 import streams
 import usenet
@@ -174,7 +175,6 @@ def fetch(meta):
     return out
 
 
-DUTCH = ("dutch", "nederlands", "flemish", "vlaams", "nl", "nld", "dut")
 AUDIO_INFO = (("atmos", "ATMOS"), ("truehd", "TRUEHD"), ("dts:x", "DTS-X"), ("dts-x", "DTS-X"), ("dts-hd ma", "DTS-HDMA"), ("dts-hd", "DTS-HD"),
               ("e-ac-3", "DD+"), ("eac3", "DD+"), ("dd+", "DD+"), ("ac-3", "DD"), ("ac3", "DD"), ("aac", "AAC"), ("opus", "OPUS"))
 VIDEO_INFO = (("hevc", "HEVC"), ("h.265", "HEVC"), ("x265", "HEVC"), ("avc", "AVC"), ("h.264", "AVC"), ("x264", "AVC"), ("av1", "AV1"))
@@ -184,13 +184,13 @@ def _info_flags(info):
     """Labels from what the indexer itself says is inside (Newznab extended attributes), next to those from the name."""
     out = []
     languages = [w.strip().lower() for w in re.split(r"[,/|;-]", info.get("language") or "") if w.strip()]
-    if any(w in DUTCH for w in languages):
-        out.append("aio_NL")
+    if any(mylang.is_mine(w) for w in languages):
+        out.append(mylang.audio_flag())
     if len(set(languages)) > 1:
         out.append("aio_MULTI")
     subs = [w.strip().lower() for w in re.split(r"[,/|;\s-]+", info.get("subs") or "") if w.strip()]
-    if any(w in DUTCH for w in subs):
-        out.append("aio_NL-SUBS")
+    if any(mylang.is_mine(w) for w in subs):
+        out.append(mylang.subs_flag())
     audio = (info.get("audio") or "").lower()
     for mark, flag in AUDIO_INFO:
         if mark in audio and flag not in out:

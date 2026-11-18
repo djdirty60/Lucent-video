@@ -1948,3 +1948,19 @@ msgstr ""
 msgctxt "#32553"
 msgid "How many articles the fast reader asks for on one connection before the first answer is in (pipelining). 2 is the normal value. A higher value can help when your provider answers slowly per article; it can also make a jump take a bit longer, because what you jump to waits behind the requests already on that connection. Try it and compare."
 msgstr ""
+
+msgctxt "#32554"
+msgid "Language of sources"
+msgstr ""
+
+msgctxt "#32555"
+msgid "Which language counts as yours for the sources: audio and subtitles in it get their own label (NL, RO, DE ...) and can go first in the order of sources. Automatic takes the language of Kodi (or, with Kodi in English, Kodi's preferred audio or subtitle language)."
+msgstr ""
+
+msgctxt "#32556"
+msgid "Tune connections"
+msgstr ""
+
+msgctxt "#32557"
+msgid "Measures in a few minutes how many connections your account really allows (other devices on the same account lower that number), compares the secure ports 563 and 443 and measures your speed with more and more connections. Then it suggests a port and a number of connections; nothing changes until you press Apply. It fetches up to about 800 MB of test data, which counts against a block account. Don't play anything while it runs."
+msgstr ""

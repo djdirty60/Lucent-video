@@ -1118,6 +1118,12 @@ def _run(argv):
         if action == "hide_languages":
             import hide
             return hide.choose()
+        if action == "nzb_tune":
+            from nzb import tune
+            return tune.run()
+        if action == "sources_lang":
+            import mylang
+            return mylang.choose()
         if action == "trakt_refresh":                # for the skin: renew the Trakt login quietly when needed
             util.OVERRIDE_USER = users.MAIN          # the skin reads the file of the first profile
             try:
