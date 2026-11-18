@@ -342,6 +342,7 @@ def search_with_screen(params, before=None):
     """Shows the screen while searching. Returns (meta, sources), or None when cancelled or failed. 'before' runs right
     after the search started (the 'previous time' recap), so the search goes on meanwhile."""
     out = {}
+    begun = time.time()
     worker = threading.Thread(target=find, args=(out, params), daemon=True)
     worker.start()
     if before:
@@ -367,6 +368,8 @@ def search_with_screen(params, before=None):
         # only 'address' when the scrapers really said they are not set up; anything else is a failed search
         return None, out.get("error") or util.T("Zoeken mislukt. Probeer het opnieuw.", "The search failed. Try again.")
     screen.live(scrapers.LIVE, final=True)
+    dialogs.SEARCH_DONE["at"] = time.time()
+    util.log("search: %d sources after %.1f s" % (len(out["sources"]), time.time() - begun))
     screen.done(out["sources"])
     if out["sources"]:
         monitor.waitForAbort(0.8)

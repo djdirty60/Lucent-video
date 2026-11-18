@@ -83,7 +83,10 @@ def fetch(meta):
             return newznab.search(slot, base, key, meta, titles, background=bool(meta.get("background")))
         except newznab.IndexerError as error:
             if str(error) == "daily limit":
-                why = newznab.pause_text(base) or "Lucent's own stop at 90% of the limit"
+                why = newznab.pause_text(base) or ("background search (getting things ready): Lucent's own stop at half "
+                                                   "the limit, or %d a day when the indexer does not tell its limit"
+                                                   % newznab.UNKNOWN_BACKGROUND if meta.get("background")
+                                                   else "Lucent's own stop at 90% of the limit")
                 util.log("usenet: indexer %d: not asked, %s; %s today" % (slot, why, newznab.usage(base, log=True)))
             else:
                 util.log("usenet: indexer %d: %s%s" % (slot, error, " (the API key is not accepted)" if str(error) in ("HTTP 401", "HTTP 403") else ""))
@@ -228,7 +231,9 @@ DEAD_DAYS = 60
 CHECK_TOP = 8               # look among this many best sources
 CHECK_MOST = 4              # check at most this many Usenet releases there
 CHECK_SAMPLE = 8            # articles per release
-CHECK_SECONDS = 8           # the whole check never takes longer than this
+CHECK_SECONDS = 3           # the whole check never takes longer than this (the list waits for it)
+CHECK_IDLE_RUNS = 3         # this many checks in a row that could check nothing: skip the check for CHECK_IDLE_HOURS
+CHECK_IDLE_HOURS = 24
 NZB_FRESH = 7 * 86400       # an NZB never changes: one that was fetched is used again for a week (indexers warn
                             # and can close an account when the same NZB is fetched over and over)
 ALIVE = "nzb_alive.json"
@@ -350,6 +355,11 @@ def prune(ranked, meta):
     jobs = [s for s in jobs if _dead_key(s["resolve"]["link"]) not in alive_before]
     if not jobs:
         return ranked
+    idle = util.cache_get("nzbcheckidle", CHECK_IDLE_HOURS * 3600) or {}
+    if idle.get("runs", 0) >= CHECK_IDLE_RUNS:
+        util.log("usenet: check of the best releases skipped (the last %d could check nothing, mostly slow NZBs at the "
+                 "indexers); trying again after %d hours" % (CHECK_IDLE_RUNS, CHECK_IDLE_HOURS))
+        return ranked
     started = time.time()
     pool = nntp.Pool(server.provider(), limit=8)
     spare_settings = server.provider(backup=True)
@@ -372,10 +382,15 @@ def prune(ranked, meta):
             newznab.outcome(futures[future]["resolve"], False)
         elif alive:
             _mark_alive(futures[future]["resolve"])
-    pool.close()
-    if spare:
-        spare.close()
-    util.log("usenet: checked %d of the best releases in %.1f s: %d taken down, left out" % (len(done), time.time() - started, len(gone)))
+    def close():                                # in the background: a connection still being made must not hold up the list
+        pool.close()
+        if spare:
+            spare.close()
+    threading.Thread(target=close, daemon=True).start()
+    checked = sum(1 for future in done if future.exception() is None and future.result() is not None)
+    runs = 0 if checked else int((util.cache_get("nzbcheckidle", CHECK_IDLE_HOURS * 3600) or {}).get("runs", 0)) + 1
+    util.cache_set("nzbcheckidle", {"runs": runs})
+    util.log("usenet: checked %d of the best releases in %.1f s: %d taken down, left out" % (checked, time.time() - started, len(gone)))
     return [s for s in ranked if not any(s is g for g in gone)]
 
 

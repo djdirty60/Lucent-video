@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+86",
+   "label": "Beta 1 · update 86",
+   "label_en": "Beta 1 · update 86",
+   "date": "2026-11-18",
+   "at": "2026-11-18T22:55Z",
+   "items": [
+    [
+     "refresh",
+     "Bronnenlijst sneller",
+     "De controle van de beste Usenet-releases vóór de lijst wacht nu hooguit 3 seconden (was 8, en liep soms uit tot 13). Lukt die controle 3 keer achter elkaar niet (trage NZB's bij je indexers), dan slaat Lucent hem een dag over. De lijst verschijnt meteen; 'compleet' en de audiotalen worden daarna ingevuld.",
+     "Faster source list",
+     "The check of the best Usenet releases before the list now waits at most 3 seconds (was 8, sometimes up to 13). When it can't check anything 3 times in a row (slow NZBs at your indexers), Lucent skips it for a day. The list shows straight away; 'complete' and the audio languages are filled in afterwards."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+85",
    "label": "Beta 1 · update 85",
    "label_en": "Beta 1 · update 85",

@@ -3,6 +3,7 @@
 with another skin they are read from a converted copy (anyskin.py)."""
 import os
 import threading
+import time
 
 import xbmcgui
 import xbmcvfs
@@ -80,16 +81,23 @@ class Sources(Base):
         self.tabs, self.rows = self.getControl(100), self.getControl(200)
         self.tab = None
         self.done = False
-        self._start_checks()
         self.build_tabs()
         self.setFocusId(200)
+        if SEARCH_DONE.get("at"):
+            util.log("sources: list shown %.1f s after the search" % (time.time() - SEARCH_DONE.pop("at")))
+        self._start_checks()                    # after the list is up: looking up what is known costs time on slow boxes
 
     def _start_checks(self):
         """Usenet releases whose NZB Lucent already has: a full check (every article) in the background, shown as
         ' · ✓ compleet' or ' · 97% compleet' after the line under the name as soon as it is in."""
+        threading.Thread(target=self._checks, daemon=True).start()
+
+    def _checks(self):
         from nzb import source as nzb_source
         todo = []
-        for source in self.sources:
+        for source in self.sources:             # what is already known (a file per release): shown as it is found
+            if self.done:
+                return
             job = source.get("resolve") or {}
             if job.get("scraper") != "Usenet" or not job.get("link"):
                 continue
@@ -100,11 +108,9 @@ class Sources(Base):
             elif nzb_source.can_check(job):
                 source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
                 todo.append(source)
-        if todo:
-            threading.Thread(target=self._checks, args=(todo,), daemon=True).start()
-
-    def _checks(self, todo):
-        from nzb import source as nzb_source
+            else:
+                continue
+            self._show_health(source)
         for source in todo:
             if self.done:
                 return
@@ -233,6 +239,9 @@ def _with_scraper(source):
     if not short or line.upper().startswith(short.upper()):
         return line
     return "%s · %s" % (short, line) if line else short
+
+
+SEARCH_DONE = {}                  # when the last search finished (player.py), for the log line when the list is up
 
 
 def choose_source(meta, sources, show_uncached):
