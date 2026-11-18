@@ -68,20 +68,7 @@ def _group(name):
     return group if group and not group.isdigit() else ""
 
 
-def _indexer_name(base):
-    """'NZBGEEK' for https://api.nzbgeek.info/api: the site's own name, for the source list."""
-    host = (urllib.parse.urlsplit(base).hostname or "").lower()
-    if re.fullmatch(r"[\d.:]+", host):
-        return host                        # an address of your own (a local indexer)
-    parts = [p for p in host.split(".") if p not in ("www", "api", "feed", "feeds")]
-    if len(parts) >= 2:
-        parts = parts[:-1]                 # without .info / .com / .net
-    if len(parts) >= 2 and parts[-1] in ("co", "com", "net", "org", "ac", "gov", "or", "ne"):
-        parts = parts[:-1]                 # without the .co of .co.za / .co.uk (althub.co.za is ALTHUB, not CO)
-    name = parts[-1] if parts else host
-    if len(name) <= 3 and len(host.split(".")) >= 2:      # nzb.life, nzb.su: 'NZB' alone says nothing, keep the end
-        name = ".".join(p for p in host.split(".") if p not in ("www", "api", "feed", "feeds"))
-    return name.upper()[:20]
+_indexer_name = newznab.name_of
 
 
 def fetch(meta):
@@ -381,6 +368,7 @@ def prune(ranked, meta):
         if alive is False:
             gone.append(futures[future])
             _mark_dead(futures[future]["resolve"])
+            newznab.outcome(futures[future]["resolve"], False)
         elif alive:
             _mark_alive(futures[future]["resolve"])
     pool.close()
@@ -407,6 +395,8 @@ def link(job):
         except newznab.IndexerError as error:
             host = next((urllib.parse.urlsplit(base).hostname for slot, base, _k in newznab.indexers() if slot == job.get("slot")), "?")
             util.log("usenet: indexer %s (%s): %s" % (job.get("slot"), host, error))
+            if "daily limit" not in str(error):
+                newznab.outcome(job, False)
             return None
     query = {"nzb": name}
     if job.get("season") and job.get("episode"):
@@ -425,9 +415,12 @@ def link(job):
         util.log("usenet: release cannot be played (%s)" % answer.get("error"))
         if any(word in str(answer.get("error")) for word in ("are gone", "encrypted", "password")):
             _mark_dead(job)                     # taken down or locked with a password: never shown again
+        if answer.get("error") not in ("login", "busy", "nzb missing"):
+            newznab.outcome(job, False)
         if answer.get("error") == "login":
             util.notify(util.T("Usenet: inloggen bij je provider lukt niet", "Usenet: signing in to your provider fails"))
         return None
+    newznab.outcome(job, True)
     if answer.get("native"):
         return answer["native"]                 # vfs.lucent reads it (lucentv://)
     return "http://127.0.0.1:%s/stream/%s/%s" % (port, answer["key"], urllib.parse.quote(answer.get("name") or "film.mkv"))

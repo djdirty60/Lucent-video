@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+82",
+   "label": "Beta 1 · update 82",
+   "label_en": "Beta 1 · update 82",
+   "date": "2026-11-18",
+   "at": "2026-11-18T21:00Z",
+   "items": [
+    [
+     "star",
+     "Usenet-statistieken",
+     "Nieuwe knop bij Usenet: Statistieken. Data per dag, en per provider en indexer hoeveel erdoor ging, de snelheid, wachttijd, fouten, ontbrekende stukjes en hoe vaak een NZB echt afspeelde. Alleen tellingen, hooguit een paar MB; ouder dan een jaar gaat vanzelf weg. Met Wissen maak je het leeg. Voor de cijfers van de snelle lezer is Lucent Video VFS 0.1.2 nodig.",
+     "Usenet statistics",
+     "New button under Usenet: Statistics. Data per day, and per provider and indexer how much went through it, the speed, latency, errors, missing articles and how often an NZB really played. Only counts, a couple of MB at most; anything older than a year goes by itself. Clear empties it. The fast reader's numbers need Lucent Video VFS 0.1.2."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+81",
    "label": "Beta 1 · update 81",
    "label_en": "Beta 1 · update 81",

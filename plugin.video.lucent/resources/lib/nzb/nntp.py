@@ -134,7 +134,8 @@ class Connection:
         for number, _m in enumerate(message_ids):
             code, _text = self._line()
             if not number:
-                _answered(time.time() - asked)
+                self.answer = time.time() - asked
+                _answered(self.answer)
             if code in (420, 423, 430):
                 out.append(Missing(str(code)))
             elif code == 222:
@@ -151,7 +152,8 @@ class Connection:
         asked = time.time()
         code, text = self._command(b"BODY " + self._id(message_id))
         self.used = time.time()
-        _answered(self.used - asked)
+        self.answer = self.used - asked
+        _answered(self.answer)
         if code in (420, 423, 430):
             raise Missing(str(code))
         if code != 222:
@@ -193,6 +195,28 @@ class Pool:
         self.lock = threading.Condition()
         self.closed = False
         self.urgent = 0                     # takers for an article Kodi is waiting for right now: they go first
+        self.record = False                 # True for the pool that plays: its counts go to the statistics
+        self.busy = 0                       # fetches running now, and since when (for the speed in the statistics)
+        self.busy_since = 0.0
+
+    def _count(self, started, **values):
+        """Statistics of a fetch that ended (only when this pool plays)."""
+        if not self.record:
+            return
+        from . import stats
+        with self.lock:
+            self.busy -= 1
+            if not self.busy:
+                values["busy"] = time.time() - self.busy_since
+        stats.provider(self.provider.get("host"), **values)
+
+    def _begin(self):
+        if self.record:
+            with self.lock:
+                if not self.busy:
+                    self.busy_since = time.time()
+                self.busy += 1
+        return time.time()
 
     def _new(self):
         p = self.provider
@@ -257,19 +281,24 @@ class Pool:
         """One article, with a fresh connection once when the first one broke. urgent: Kodi waits for it, it goes first."""
         for attempt in range(2):
             connection = self.take(urgent=urgent)
+            started = self._begin()
             try:
                 data = connection.body(message_id)
             except Missing:
+                self._count(started, m=1, ln=1, ls=getattr(connection, "answer", 0))
                 self.give(connection)
                 raise
             except (OSError, NntpError):
+                self._count(started, e=1)
                 self.give(connection, broken=True)
                 if attempt:
                     raise
                 continue
             except BaseException:
+                self._count(started, e=1)
                 self.give(connection, broken=True)      # never lose a connection, whatever went wrong
                 raise
+            self._count(started, b=len(data), a=1, ln=1, ls=getattr(connection, "answer", 0))
             self.give(connection)
             return data
         raise NntpError("unreachable")
@@ -277,11 +306,16 @@ class Pool:
     def body_many(self, message_ids, each=None):
         """Neighbouring articles over one connection, asked at once (see Connection.body_many)."""
         connection = self.take()
+        started = self._begin()
         try:
             out = connection.body_many(message_ids, each)
         except BaseException:                       # broken, or anything unexpected: never lose the connection
+            self._count(started, e=1)
             self.give(connection, broken=True)
             raise
+        missing = sum(1 for body in out if isinstance(body, Missing))
+        self._count(started, b=sum(len(body) for body in out if not isinstance(body, Missing)), a=len(out) - missing,
+                    m=missing, ln=1, ls=getattr(connection, "answer", 0))
         self.give(connection)
         return out
 

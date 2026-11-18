@@ -30,7 +30,7 @@ MAX_WORKERS = 48
 WARM = 4                                # first articles that Lucent already has, handed over beside the plan
 GONE_AFTER = 60                         # seconds without playback before the plan (with the sign-in) is removed
 
-_state = {"token": "", "stopped": 0.0}
+_state = {"token": "", "stopped": 0.0, "hosts": {}}
 
 
 def available():
@@ -51,8 +51,39 @@ def folder():
     return path
 
 
+def collect():
+    """The counts vfs.lucent left (one .stats file each time the player stopped) go to the statistics."""
+    from . import stats
+    base = os.path.join(util.PROFILE, FOLDER)
+    try:
+        names = [n for n in os.listdir(base) if n.endswith(".stats")]
+    except OSError:
+        return
+    for name in names:
+        path = os.path.join(base, name)
+        try:
+            with open(path, encoding="utf-8") as handle:
+                lines = handle.read().splitlines()
+            os.remove(path)
+        except (OSError, ValueError):
+            continue
+        if not lines or not lines[0].startswith("lucent-stats 1"):
+            continue
+        for line in lines[1:]:
+            parts = line.split()
+            if len(parts) != 9 or parts[0] != "provider":
+                continue
+            host = _state["hosts"].get(parts[1])
+            try:
+                b, a, m, e, ln, ls_ms, busy_ms = (int(p) for p in parts[2:])
+            except ValueError:
+                continue
+            stats.provider(host, b=b, a=a, m=m, e=e, ln=ln, ls=ls_ms / 1000.0, busy=busy_ms / 1000.0)
+
+
 def clear():
     """Remove every plan and article file (and with that the sign-in)."""
+    collect()
     _state["token"], _state["stopped"] = "", 0.0
     try:
         base = os.path.join(util.PROFILE, FOLDER)
@@ -75,6 +106,7 @@ def tick(playing):
     """From the service: a minute after the film stopped, the plan goes."""
     if not _state["token"]:
         return
+    collect()
     if playing:
         _state["stopped"] = 0.0
     elif not _state["stopped"]:
@@ -229,5 +261,6 @@ def hand_over(release, provider, backup, fill=True):
         clear()
         return None
     _state["token"], _state["stopped"] = token, 0.0
+    _state["hosts"] = {"provider": (provider or {}).get("host"), "backup": (backup or {}).get("host")}
     util.log("usenet: handed to the fast reader (vfs.lucent): %d piece(s), %.2f GB" % (len(release.pieces), release.size / 1e9))
     return "%s://%s/%s" % (SCHEME, token, urllib.parse.quote(name))

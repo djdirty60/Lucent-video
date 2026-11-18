@@ -20,7 +20,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import util
 
-from . import nntp, nzbfile, stream, vfs, yenc
+from . import nntp, nzbfile, stats, stream, vfs, yenc
 
 PORT_PROPERTY = "lucent.video.nzb.port"
 FOLDER = "nzb"
@@ -89,6 +89,9 @@ def prepare(name, season=None, episode=None, pack=False, minutes=0):
         pool = nntp.Pool(provider())
         spare_settings = provider(backup=True)
         spare = nntp.Pool(spare_settings) if spare_settings else None
+        pool.record = True                          # this one plays: its counts go to the statistics
+        if spare:
+            spare.record = True
         started = time.time()
         ahead, cache = _sizes(minutes)
         try:
@@ -274,6 +277,7 @@ def start():
 
 def stop():
     vfs.clear()
+    stats.flush(force=True)
     with _state["lock"]:
         _close_release()
     if _state["http"]:
@@ -333,6 +337,7 @@ def _speed_line(release):
 
 def tick(playing):
     """From the service every few seconds: on or off with the setting; an unread release is closed."""
+    stats.flush()
     if wanted():
         start()
     elif _state["http"]:

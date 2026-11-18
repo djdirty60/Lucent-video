@@ -1964,3 +1964,11 @@ msgstr "Verbindingen afstemmen"
 msgctxt "#32557"
 msgid "Measures in a few minutes how many connections your account really allows (other devices on the same account lower that number), compares the secure ports 563 and 443 and measures your speed with more and more connections. Then it suggests a port and a number of connections; nothing changes until you press Apply. It fetches up to about 800 MB of test data, which counts against a block account. Don't play anything while it runs."
 msgstr "Meet in een paar minuten hoeveel verbindingen je account echt toestaat (andere apparaten op hetzelfde account verlagen dat aantal), vergelijkt de veilige poorten 563 en 443 en meet je snelheid met steeds meer verbindingen. Daarna stelt Lucent een poort en een aantal verbindingen voor; er verandert niets tot je op Toepassen drukt. Haalt tot ongeveer 800 MB testdata op, wat bij een blokaccount meetelt. Speel niets af terwijl het loopt."
+
+msgctxt "#32558"
+msgid "Statistics"
+msgstr "Statistieken"
+
+msgctxt "#32559"
+msgid "Data per day, and per provider and indexer how much went through it, how fast, how often something was missing and how often an NZB could really be played. Only counts are kept (no titles), at most a couple of MB; anything older than a year goes by itself. Clear empties it."
+msgstr "Data per dag, en per provider en indexer hoeveel erdoor ging, hoe snel, hoe vaak er iets ontbrak en hoe vaak een NZB echt afgespeeld kon worden. Alleen tellingen (geen titels), hooguit een paar MB; alles ouder dan een jaar gaat vanzelf weg. Met Wissen maak je het leeg."

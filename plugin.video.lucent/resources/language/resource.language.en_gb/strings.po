@@ -1964,3 +1964,11 @@ msgstr ""
 msgctxt "#32557"
 msgid "Measures in a few minutes how many connections your account really allows (other devices on the same account lower that number), compares the secure ports 563 and 443 and measures your speed with more and more connections. Then it suggests a port and a number of connections; nothing changes until you press Apply. It fetches up to about 800 MB of test data, which counts against a block account. Don't play anything while it runs."
 msgstr ""
+
+msgctxt "#32558"
+msgid "Statistics"
+msgstr ""
+
+msgctxt "#32559"
+msgid "Data per day, and per provider and indexer how much went through it, how fast, how often something was missing and how often an NZB could really be played. Only counts are kept (no titles), at most a couple of MB; anything older than a year goes by itself. Clear empties it."
+msgstr ""

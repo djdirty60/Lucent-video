@@ -1121,6 +1121,9 @@ def _run(argv):
         if action == "nzb_tune":
             from nzb import tune
             return tune.run()
+        if action == "nzb_stats":
+            import stats_ui
+            return stats_ui.run()
         if action == "sources_lang":
             import mylang
             return mylang.choose()

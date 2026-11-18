@@ -207,6 +207,22 @@ def indexers():
     return out
 
 
+def name_of(base):
+    """'NZBGEEK' for https://api.nzbgeek.info/api: the site's own name, for the source list."""
+    host = (urllib.parse.urlsplit(base).hostname or "").lower()
+    if re.fullmatch(r"[\d.:]+", host):
+        return host                        # an address of your own (a local indexer)
+    parts = [p for p in host.split(".") if p not in ("www", "api", "feed", "feeds")]
+    if len(parts) >= 2:
+        parts = parts[:-1]                 # without .info / .com / .net
+    if len(parts) >= 2 and parts[-1] in ("co", "com", "net", "org", "ac", "gov", "or", "ne"):
+        parts = parts[:-1]                 # without the .co of .co.za / .co.uk (althub.co.za is ALTHUB, not CO)
+    name = parts[-1] if parts else host
+    if len(name) <= 3 and len(host.split(".")) >= 2:      # nzb.life, nzb.su: 'NZB' alone says nothing, keep the end
+        name = ".".join(p for p in host.split(".") if p not in ("www", "api", "feed", "feeds"))
+    return name.upper()[:20]
+
+
 def configured():
     return bool(indexers())
 
@@ -219,12 +235,16 @@ def latest(slot, base, key, count=10):
 
 
 def _get(base, key, params, timeout=20):
+    from . import stats
     _count(base, "api")
+    started = time.time()
     try:
         body = fetch(base + "?" + urllib.parse.urlencode(dict(params, apikey=key, o="xml")), timeout)
     except IndexerError as error:
+        stats.indexer(name_of(base), s=1, se=1)
         _limit_hit(base, error)
         raise
+    stats.indexer(name_of(base), s=1, ss=time.time() - started)
     return body.replace(key.encode("utf-8"), b"[key]") if len(key) >= 8 else body     # a real key, not a short word
 
 
@@ -425,6 +445,9 @@ def search(slot, base, key, meta, text_titles, background=False):
         rows = rows + _packs(slot, base, key, meta, background)
     if not rows and error is not None:
         raise error
+    if rows:
+        from . import stats
+        stats.indexer(name_of(base), r=len(rows))
     util.cache_set(cache, rows)
     return rows
 
@@ -469,6 +492,14 @@ def _note_grab(link):
     util.save_json(GRABBED, seen)
 
 
+def outcome(row, played):
+    """Could the NZB of this row be played (True) or not (False: taken down, locked, broken)? For the statistics."""
+    from . import stats
+    base = next((b for slot, b, _key in indexers() if slot == row.get("slot")), None)
+    if base:
+        stats.indexer(name_of(base), **({"ok": 1} if played else {"bad": 1}))
+
+
 def nzb(row):
     """The NZB bytes of a row (the key is put back only for this request)."""
     match = next(((base, key) for slot, base, key in indexers() if slot == row["slot"]), None)
@@ -487,6 +518,8 @@ def nzb(row):
         query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True) + [(row.get("param") or "apikey", key)]
         url = urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, urllib.parse.urlencode(query), ""))
     _note_grab(row["link"])
+    from . import stats
+    stats.indexer(name_of(base), g=1)
     try:
         body = fetch(url, 30)
     except IndexerError as error:
