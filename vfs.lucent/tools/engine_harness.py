@@ -178,7 +178,7 @@ def b64(text):
 
 def write_plan(server_ports, ids, count, pipeline=2, connections=4, workers=4,
                total=None, length=None, hole_percent=2, hole_consecutive=4, tls=False,
-               cacert=None, timeout=5):
+               cacert=None, timeout=5, seconds=None):
     total = total if total is not None else count * SEG
     length = length if length is not None else total
     lines = ['lucent-plan 1', 'token test', 'name fake.mkv', 'container mkv',
@@ -188,6 +188,8 @@ def write_plan(server_ports, ids, count, pipeline=2, connections=4, workers=4,
              'holepercent %g' % hole_percent, 'holeconsecutive %d' % hole_consecutive]
     if cacert:
         lines.append('cacert %s' % cacert)
+    if seconds:
+        lines.append('seconds %d' % seconds)
     for port, backup, label, limits in server_ports:
         lines.append('server 127.0.0.1 %d %d %d %d %s %s %s'
                      % (port, 1 if tls else 0, limits, 1 if backup else 0,
@@ -197,7 +199,7 @@ def write_plan(server_ports, ids, count, pipeline=2, connections=4, workers=4,
     return '\n'.join(lines) + '\n'
 
 
-def run_plan(plan_text, offset=None, length=None, chunk=None, timeout_seconds=120):
+def run_plan(plan_text, offset=None, length=None, chunk=None, timeout_seconds=120, delay_ms=None):
     folder = tempfile.mkdtemp(prefix='tmdbusenet-')
     plan_path = os.path.join(folder, 'test.plan')
     dump_path = os.path.join(folder, 'dump.bin')
@@ -210,6 +212,8 @@ def run_plan(plan_text, offset=None, length=None, chunk=None, timeout_seconds=12
         command += ['--length', str(length)]
     if chunk is not None:
         command += ['--chunk', str(chunk)]
+    if delay_ms is not None:
+        command += ['--delay-ms', str(delay_ms)]
     result = subprocess.run(command, capture_output=True, text=True, timeout=timeout_seconds)
     found = b''
     if os.path.exists(dump_path):
@@ -542,6 +546,23 @@ def test_silent_provider():
         server.server_close()
 
 
+def test_jump_prefetch():
+    print('native, articles ready for skips forward')
+    server = FakeNntp(articles_for(COUNT))
+    serve(server)
+    try:
+        plan = write_plan([(server.server_address[1], False, 'fake', 4)], ids_for(COUNT), COUNT, seconds=100)
+        result, found = run_plan(plan, length=1024 * 1024, chunk=65536, delay_ms=40)
+        check('jump exit code', result.returncode == 0, result.stderr)
+        rate = TOTAL // 100
+        wanted = [ids_for(COUNT)[(rate * s) // SEG] for s in (30, 60)]
+        check('skip targets fetched', all(w in server.requests for w in wanted), wanted)
+        check('nothing in between', ids_for(COUNT)[90] not in server.requests)
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
 def main():
     if not os.path.exists(EXE):
         raise SystemExit('build the project first: %s is missing' % EXE)
@@ -549,6 +570,7 @@ def main():
     test_stale_connections()
     test_part_crc()
     test_seek()
+    test_jump_prefetch()
     test_missing()
     test_backup()
     test_hedge()

@@ -143,6 +143,8 @@ Plan Plan::Parse(const std::string& text)
       plan.hole_percent = Decimal(fields[1], line_number, "holepercent");
     else if (kind == "holeconsecutive" && fields.size() >= 2)
       plan.hole_consecutive = static_cast<int>(Number(fields[1], line_number, "holeconsecutive"));
+    else if (kind == "seconds" && fields.size() >= 2)
+      plan.seconds = std::max<int64_t>(0, std::strtoll(fields[1].c_str(), nullptr, 10));
     else if (kind == "cacert")
       plan.cacert = Rest(line, 6);
     else if (kind == "server")

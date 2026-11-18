@@ -38,6 +38,11 @@ constexpr double kHedgeWaitedFactor = 3.0;        //   provider after 3x a norma
 constexpr int kHedgeWarmupBatches = 16;           // first learn what a normal fetch takes
 constexpr size_t kHedgeQueueMax = 8;
 constexpr int64_t kSideDistance = 256 * 1024 * 1024;  // extra readers queue behind the player's read-ahead
+// Jump prefetch: where a skip forward lands (30 s, 1 min, 10 min later in the film), two articles are made ready
+// with low priority, so the picture is there at once. Needs the running time in the plan ('seconds').
+constexpr int kJumpSeconds[] = {30, 60, 600};
+constexpr int kJumpArticles = 2;
+constexpr int64_t kJumpRefreshSeconds = 10;     // planned again after the film moved on this far
 constexpr double kHedgeAcquireSeconds = 2.0;
 
 using ChunkPtr = std::shared_ptr<const std::vector<uint8_t>>;
@@ -450,6 +455,8 @@ public:
         position = end_of_part;
         continue;
       }
+      if (done == 0 && !tail_read)
+        JumpAhead(position);                    // after EnsurePartSize: the size of this part is known now
       int window = Lookahead(part_index, end_of_part - position);
       if (articles_attempted_.load() < 4)
         window = std::min(window, std::max(2, std::min(8, workers_)));
@@ -1425,6 +1432,52 @@ private:
       job_cv_.notify_all();
   }
 
+  void JumpAhead(int64_t position)
+  {
+    if (plan_->seconds <= 0 || plan_->length <= 0)
+      return;
+    const int64_t rate = plan_->length / plan_->seconds;
+    if (rate <= 0)
+      return;
+    const int64_t mark = jump_mark_.load();
+    if (mark >= 0 && std::llabs(position - mark) < rate * kJumpRefreshSeconds)
+      return;
+    jump_mark_.store(position);
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (closing_.load() || fatal_.load())
+      return;
+    bool queued = false;
+    for (const int seconds : kJumpSeconds)
+    {
+      const int64_t target = position + rate * seconds;
+      if (target >= plan_->length - kIndexTailBytes)
+        break;
+      int64_t local = 0;
+      const int part_index = Locate(target, local);
+      if (part_index < 0)
+        continue;
+      const PlanPart& part = plan_->parts[part_index];
+      const int64_t part_size = part_sizes_[part_index].load();
+      if (part_size <= 0)
+        continue;                               // that part's article size is not known yet: no extra fetch for it
+      const int64_t first = (part.skip + (target - part.media_start)) / part_size;
+      for (int64_t index = first; index < first + kJumpArticles; ++index)
+      {
+        if (index < 0 || index >= static_cast<int64_t>(part.articles.size()))
+          break;
+        const uint64_t key = MakeKey(part_index, static_cast<int>(index));
+        if (slots_.find(key) != slots_.end())
+          continue;
+        EnqueueLocked(key, kSideDistance);
+        slots_.find(key)->second.side_only = true;
+        queued = true;
+        ++jump_articles_;
+      }
+    }
+    if (queued)
+      job_cv_.notify_all();
+  }
+
   void ScheduleNextPart(int part_index, int64_t remaining)
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1693,6 +1746,7 @@ private:
     int64_t hedges = 0;
     int64_t hedges_waited = 0;
     double hedge_limit = 0;
+    int64_t jumps = 0;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       read_bytes = read_bytes_.load();
@@ -1707,6 +1761,7 @@ private:
       hedges = hedges_total_;
       hedges_waited = hedges_waited_;
       hedge_limit = WaitedHedgeLimitLocked();
+      jumps = jump_articles_;
     }
     const double served = wall > 0.1 ? read_bytes / 1048576.0 / wall : 0.0;
     const double decode_average =
@@ -1732,13 +1787,13 @@ private:
         "%s, details: %.1f MB served in %.1f s (%.1f MB/s), first byte %.1f s, %lld waits "
         "%.1f s (max %.1f s), %lld evictions, %lld refetches, %lld cache hits, decode %.1f "
         "ms/article, cache %.0f MB, %.1f MB to extra readers, %lld asked at the other provider "
-        "too (%lld the player waited for, after %.1f s)",
+        "too (%lld the player waited for, after %.1f s), %lld ready for skips",
         when, read_bytes / 1048576.0, wall, served, first_read_cs_.load() / 100.0,
         static_cast<long long>(waits), wait_seconds, wait_max,
         static_cast<long long>(evictions), static_cast<long long>(refetches),
         static_cast<long long>(hits), decode_average, CacheLimit() / 1048576.0,
         side_bytes_.load() / 1048576.0, static_cast<long long>(hedges), static_cast<long long>(hedges_waited),
-        hedge_limit);
+        hedge_limit, static_cast<long long>(jumps));
   }
 
   void DoClose()
@@ -1794,6 +1849,8 @@ private:
   std::atomic<bool> fatal_{false};
   std::atomic<int64_t> read_offset_{0};
   std::atomic<int64_t> side_bytes_{0};
+  std::atomic<int64_t> jump_mark_{-1};
+  int64_t jump_articles_ = 0;     // articles fetched in advance for skips forward
   std::atomic<int64_t> last_read_{-1};
   std::atomic<int64_t> articles_attempted_{0};
   std::atomic<int> active_workers_{0};

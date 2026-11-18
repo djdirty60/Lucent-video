@@ -50,6 +50,7 @@ struct Plan
   bool hole_filling = true;
   double hole_percent = 2.0;
   int hole_consecutive = 4;
+  int64_t seconds = 0;           // running time of the film (0: unknown), for the jump prefetch
   std::string cacert;
   std::vector<ServerConfig> servers;
   std::vector<PlanPart> parts;
