@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Scraper packs from others, as scrapers: CocoScrapers, and its relatives FenomScrapers and OpenScrapers (same
-build: sources(specified_folders=...) gives providers with a sources(data, hostDict) method). They find torrents; a
-debrid service plays them (see debrid.py).
+"""Scraper packs from others, as scrapers: CocoScrapers, and its relatives FenomScrapers, OpenScrapers and
+GearsScrapers (same build: sources(specified_folders=...) gives providers with a sources(data, hostDict) method).
+They find torrents; a debrid service plays them (see debrid.py).
 
 A pack is only used when it is installed and at least one debrid service has a key. The pack's own settings decide
 which of its providers are on.
@@ -24,7 +24,8 @@ WAIT = 25
 # name shown in Lucent -> (Kodi add-on, Python package)
 PACKS = {"CocoScrapers": (ADDON, "cocoscrapers"),
          "FenomScrapers": ("script.module.fenomscrapers", "fenomscrapers"),
-         "OpenScrapers": ("script.module.openscrapers", "openscrapers")}
+         "OpenScrapers": ("script.module.openscrapers", "openscrapers"),
+         "GearsScrapers": ("script.module.gearsscrapers", "gearsscrapers")}
 BTIH = re.compile(r"btih:([0-9a-fA-F]{40}|[A-Za-z2-7]{32})")
 
 

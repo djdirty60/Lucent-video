@@ -23,7 +23,7 @@ def _usenet_link(job):
 
 REGISTRY = {"AIOStreams": streams.fetch, "Easynews": usenet.easynews, "TorBox": usenet.torbox, "Usenet": _usenet_fetch}
 LINKS = {"TorBox": usenet.torbox_link, "Usenet": _usenet_link}
-for _pack in coco.PACKS:                     # CocoScrapers, FenomScrapers, OpenScrapers: only used when installed
+for _pack in coco.PACKS:                     # CocoScrapers, FenomScrapers, OpenScrapers, GearsScrapers: only when installed
     REGISTRY[_pack] = (lambda pack: lambda meta: coco.fetch(meta, pack))(_pack)
     LINKS[_pack] = coco.link
 

@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+80",
+   "label": "Beta 1 · update 80",
+   "label_en": "Beta 1 · update 80",
+   "date": "2026-11-18",
+   "at": "2026-11-18T14:40Z",
+   "items": [
+    [
+     "star",
+     "GearsScrapers als bron",
+     "Heb je GearsScrapers geïnstalleerd, dan gebruikt Lucent het nu ook, net als CocoScrapers, FenomScrapers en OpenScrapers. Het vindt torrents die je debrid-dienst afspeelt; welke zoekers aan staan, stel je in bij GearsScrapers zelf.",
+     "GearsScrapers as a source",
+     "When GearsScrapers is installed, Lucent now uses it too, just like CocoScrapers, FenomScrapers and OpenScrapers. It finds torrents that your debrid service plays; which of its providers are on, you set in GearsScrapers itself."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+79",
    "label": "Beta 1 · update 79",
    "label_en": "Beta 1 · update 79",

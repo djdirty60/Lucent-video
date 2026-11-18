@@ -169,7 +169,7 @@ class Why(Base):
         self.close()
 
 
-SCRAPER_SHORT = {"AIOStreams": "AIO", "CocoScrapers": "Coco", "FenomScrapers": "Fenom", "OpenScrapers": "Open",
+SCRAPER_SHORT = {"AIOStreams": "AIO", "CocoScrapers": "Coco", "FenomScrapers": "Fenom", "OpenScrapers": "Open", "GearsScrapers": "Gears",
                  "Easynews": "Easynews", "TorBox": "TorBox"}
 
 
