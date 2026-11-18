@@ -16,6 +16,11 @@ struct ProviderStat
   int64_t articles = 0;
   int64_t bytes = 0;
   double seconds = 0;
+  int64_t missing = 0;
+  int64_t errors = 0;
+  int64_t replies = 0;           // batches whose first-answer time is in reply_seconds
+  double reply_seconds = 0;
+  double busy_seconds = 0;       // wall time with at least one fetch running at this provider
 };
 
 struct StreamStats
@@ -48,6 +53,8 @@ public:
   StreamStats Stats() const;
   // The totals so far, in the log (when the player stops; the stream itself stays warm a while).
   void LogTotals(const char* when);
+  // The provider counts since the previous call, as text for Lucent's statistics ("" when nothing new).
+  std::string TakeReport();
   std::string LastError() const;
 
 private:

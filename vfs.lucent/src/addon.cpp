@@ -128,6 +128,24 @@ std::string WarmPath(const std::string& token)
   return kodi::vfs::TranslateSpecialProtocol(PLAN_FOLDER) + token + ".first2";
 }
 
+// Lucent's statistics: the provider counts of one play, picked up (and removed) by Lucent's service.
+void WriteReport(const std::string& token, const std::shared_ptr<engine::Stream>& stream)
+{
+  static std::atomic<int> sequence{0};
+  if (!stream)
+    return;
+  const std::string text = stream->TakeReport();
+  if (text.empty())
+    return;
+  const std::string path = kodi::vfs::TranslateSpecialProtocol(PLAN_FOLDER) + token + "-" +
+                           std::to_string(++sequence) + ".stats";
+  kodi::vfs::CFile file;
+  if (!file.OpenFileForWrite(path, true))
+    return;
+  file.Write(text.data(), text.size());
+  file.Close();
+}
+
 std::string ActivePath()
 {
   return kodi::vfs::TranslateSpecialProtocol(PLAN_FOLDER) + "active";
@@ -574,7 +592,10 @@ public:
     // The totals right away: the stream itself stays warm for a while (to continue watching),
     // so its own closing line can come long after the log was sent.
     if (last && handle->stream && handle->read_total > 0)
+    {
       handle->stream->LogTotals("player stopped");
+      WriteReport(handle->token, handle->stream);
+    }
     engine::Trace("addon close end");
     delete handle;
     return true;

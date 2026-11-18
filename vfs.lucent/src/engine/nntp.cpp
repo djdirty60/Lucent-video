@@ -1,5 +1,7 @@
 #include "nntp.h"
 
+#include <chrono>
+
 #include "common.h"
 
 #include <algorithm>
@@ -229,12 +231,20 @@ std::vector<NntpReply> NntpConnection::BodyMany(const std::vector<std::string>& 
     commands += "\r\n";
   }
   std::string error;
+  const auto sent = std::chrono::steady_clock::now();
   if (!transport_->SendAll(commands.data(), commands.size(), error))
     throw NntpError("cannot send BODY: " + error);
 
+  bool first = true;
   for (const std::string& message_id : message_ids)
   {
     auto reply = Reply();
+    if (first)
+    {
+      first = false;
+      first_reply_seconds_ =
+          std::chrono::duration<double>(std::chrono::steady_clock::now() - sent).count();
+    }
     NntpReply found;
     if (IsMissing(reply.first))
     {

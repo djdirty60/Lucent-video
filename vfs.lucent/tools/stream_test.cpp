@@ -159,6 +159,11 @@ int main(int argc, char** argv)
               static_cast<long long>(stream.Length()), static_cast<long long>(total), crc,
               static_cast<long long>(stats.articles), static_cast<long long>(stats.missing),
               seconds, total / 1048576.0);
+  const std::string report = stream.TakeReport();
+  if (!report.empty())
+    std::printf("%s", report.c_str());
+  const std::string again = stream.TakeReport();
+  std::printf("report-again=%s\n", again.empty() ? "empty" : "NOT EMPTY");
   std::fflush(stdout);
   stream.Close();
   if (closer.joinable())

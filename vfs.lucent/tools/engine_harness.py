@@ -14,7 +14,7 @@ import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-EXE = os.path.join(ROOT, 'build', 'dist', 'tools', 'stream_test.exe')
+EXE = os.path.join(os.environ.get('VFS_BUILD', os.path.join(ROOT, 'build')), 'dist', 'tools', 'stream_test.exe' if os.name == 'nt' else 'stream_test')
 
 SEG = 64 * 1024
 COUNT = 400
@@ -181,7 +181,7 @@ def write_plan(server_ports, ids, count, pipeline=2, connections=4, workers=4,
                cacert=None, timeout=5):
     total = total if total is not None else count * SEG
     length = length if length is not None else total
-    lines = ['tmdbm-plan 1', 'token test', 'name fake.mkv', 'container mkv',
+    lines = ['lucent-plan 1', 'token test', 'name fake.mkv', 'container mkv',
              'length %d' % length, 'timeout %d' % timeout, 'prefetch %d' % (256 * 1024),
              'cache %d' % (8 * 1024 * 1024), 'pipeline %d' % pipeline,
              'workers %d' % workers, 'holefilling 1',
@@ -255,6 +255,13 @@ def test_sequential():
         check('tail fetched alone',
               bool(tail_batches) and all(len(ids) == 1 for ids in tail_batches), tail_batches)
         check('no missing', 'missing=0' in result.stdout, result.stdout)
+        report = [l.split() for l in result.stdout.splitlines() if l.startswith('provider ')]
+        check('report line', len(report) == 1 and len(report[0]) == 9, result.stdout)
+        if report:
+            fields = [int(v) for v in report[0][2:]]
+            check('report bytes >= file', fields[0] >= TOTAL, fields)
+            check('report articles', fields[1] >= COUNT, fields)
+            check('report busy time', fields[6] > 0 and fields[4] > 0, fields)
     finally:
         server.shutdown()
         server.server_close()
@@ -336,6 +343,8 @@ def test_missing():
         check('all bytes returned', found == expected,
               'len %d vs %d' % (len(found), len(expected)))
         check('hole zero-filled', 'missing=1' in result.stdout, result.stdout)
+        check('report counts the missing article', any(l.startswith('provider ') and l.split()[4] == '1' for l in result.stdout.splitlines()), result.stdout)
+        check('report taken once', 'report-again=empty' in result.stdout, result.stdout)
     finally:
         server.shutdown()
         server.server_close()

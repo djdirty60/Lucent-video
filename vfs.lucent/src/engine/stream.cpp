@@ -574,6 +574,46 @@ public:
 
   void LogTotals(const char* when) { LogStats(when); }
 
+  std::string TakeReport()
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    const double now = Now();
+    std::string text;
+    for (const auto& item : provider_stats_)
+    {
+      ProviderStat current = item.second;
+      const auto running = busy_since_.find(item.first);
+      if (running != busy_since_.end() && busy_count_[item.first] > 0)
+        current.busy_seconds += now - running->second;
+      ProviderStat& before = reported_[item.first];
+      const long long bytes = current.bytes - before.bytes;
+      const long long articles = current.articles - before.articles;
+      const long long missing = current.missing - before.missing;
+      const long long errors = current.errors - before.errors;
+      const long long replies = current.replies - before.replies;
+      const long long reply_ms =
+          static_cast<long long>((current.reply_seconds - before.reply_seconds) * 1000.0);
+      const long long busy_ms =
+          static_cast<long long>((current.busy_seconds - before.busy_seconds) * 1000.0);
+      before = current;
+      if (bytes <= 0 && articles <= 0 && missing <= 0 && errors <= 0)
+        continue;
+      std::string label;
+      for (char value : item.first)
+        if ((value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z') ||
+            (value >= '0' && value <= '9') || value == '-' || value == '_')
+          label += value;
+      if (label.empty())
+        continue;
+      char line[256] = {};
+      std::snprintf(line, sizeof(line), "provider %s %lld %lld %lld %lld %lld %lld %lld\n",
+                    label.c_str(), bytes, articles, missing, errors, replies, reply_ms,
+                    busy_ms < 0 ? 0LL : busy_ms);
+      text += line;
+    }
+    return text.empty() ? text : "lucent-stats 1\n" + text;
+  }
+
 private:
   // How long an article the player is waiting for may take before the other provider is asked
   // too: a few times what a fetch normally takes on this connection, between 1 and 4 seconds.
@@ -864,6 +904,8 @@ private:
 
     const double started = Now();
     std::vector<NntpReply> replies;
+    const std::string busy_label = pool->config.label;
+    BusyBegin(busy_label);
     try
     {
       replies = connection->BodyMany(ids);
@@ -871,6 +913,7 @@ private:
     catch (const NntpTooManyError& exception)
     {
       pool->Discard(connection);
+      BusyEnd(busy_label, !closing_.load());
       if (closing_.load())
         return;
       pool->Narrow();
@@ -884,6 +927,7 @@ private:
     catch (const NntpAuthError& exception)
     {
       pool->Discard(connection);
+      BusyEnd(busy_label, !closing_.load());
       if (closing_.load())
         return;
       pool->MarkDead();
@@ -896,6 +940,7 @@ private:
     catch (const std::exception& exception)
     {
       pool->Discard(connection);
+      BusyEnd(busy_label, !closing_.load());
       if (closing_.load())
         return;
       const std::string reason = exception.what();
@@ -912,8 +957,10 @@ private:
       return;
     }
     const double elapsed = Now() - started;
+    const double first_reply = connection->FirstReplySeconds();
     pool->Release(connection);
-    RecordBatch(pool, elapsed, replies);
+    RecordBatch(pool, elapsed, replies, first_reply);
+    BusyEnd(busy_label, false);
 
     if (replies.size() != jobs.size())
     {
@@ -966,10 +1013,30 @@ private:
     }
   }
 
-  void RecordBatch(Pool* pool, double elapsed, const std::vector<NntpReply>& replies)
+  void BusyBegin(const std::string& label)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (busy_count_[label]++ == 0)
+      busy_since_[label] = Now();
+  }
+
+  void BusyEnd(const std::string& label, bool error)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    ProviderStat& stat = provider_stats_[label];
+    if (error)
+      ++stat.errors;
+    int& count = busy_count_[label];
+    if (count > 0 && --count == 0)
+      stat.busy_seconds += Now() - busy_since_[label];
+  }
+
+  void RecordBatch(Pool* pool, double elapsed, const std::vector<NntpReply>& replies,
+                   double first_reply)
   {
     int64_t delivered = 0;
     int64_t bytes = 0;
+    int64_t missing = 0;
     for (const NntpReply& reply : replies)
     {
       if (!reply.missing)
@@ -977,12 +1044,20 @@ private:
         ++delivered;
         bytes += static_cast<int64_t>(reply.body.size());
       }
+      else
+        ++missing;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     ProviderStat& stat = provider_stats_[pool->config.label];
     stat.articles += delivered;
     stat.bytes += bytes;
     stat.seconds += elapsed;
+    stat.missing += missing;
+    if (!replies.empty())
+    {
+      ++stat.replies;
+      stat.reply_seconds += first_reply;
+    }
     article_seconds_ += elapsed;
     if (delivered > 0)
     {
@@ -1750,6 +1825,9 @@ private:
   int64_t bytes_decoded_ = 0;
   double article_seconds_ = 0;
   std::map<std::string, ProviderStat> provider_stats_;
+  std::map<std::string, ProviderStat> reported_;      // what TakeReport handed over already
+  std::map<std::string, int> busy_count_;
+  std::map<std::string, double> busy_since_;
   int64_t cache_limit_ = 0;
   double started_at_ = 0;
   std::atomic<double> seek_started_{0};
@@ -1837,6 +1915,11 @@ void Stream::LogTotals(const char* when)
 {
   if (impl_)
     impl_->LogTotals(when);
+}
+
+std::string Stream::TakeReport()
+{
+  return impl_ ? impl_->TakeReport() : std::string();
 }
 
 std::string Stream::LastError() const

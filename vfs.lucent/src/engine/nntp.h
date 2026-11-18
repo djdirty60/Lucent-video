@@ -55,6 +55,8 @@ public:
 
   std::vector<NntpReply> BodyMany(const std::vector<std::string>& message_ids);
   const std::string& Greeting() const { return greeting_; }
+  // Seconds from sending the last BODY batch until its first answer line (for the statistics).
+  double FirstReplySeconds() const { return first_reply_seconds_; }
   void Abort();
 
 private:
@@ -68,6 +70,7 @@ private:
   std::string buffer_;
   std::string greeting_;
   std::atomic<bool> closed_{false};
+  double first_reply_seconds_ = 0;
 };
 
 }  // namespace engine
