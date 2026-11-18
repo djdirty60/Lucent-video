@@ -59,8 +59,8 @@ def tags_of(source):
         tags.add("avc" if glued.group(1)[-1] == "4" else "hevc")
     if tags & {"fel", "p7", "dv2"}:
         tags.add("dv")
-    if tags & {"fel", "p7"}:
-        tags.add("hdr")                     # Dolby Vision profile 7 always has an HDR10 base layer
+    if tags & {"fel", "p7"} or ("dv" in tags and tags & {"remux", "bluray"}):
+        tags.add("hdr")                     # Dolby Vision from a Blu-ray (profile 7) always has an HDR10 base layer
     if tags & {"hdr10plus"}:
         tags.add("hdr")
     tags.add({"4K": "4k", "1440p": "1440p", "1080p": "1080p", "720p": "720p"}.get(source.get("resolution"), "sd"))
@@ -384,6 +384,8 @@ def _points(group_id, order, tags):
         found = [(10.0 * (n - pos) / n, rule) for pos, rule in enumerate(order) if _match(rule, tags)]
         return (max(found)[0], max(found)[1]) if found else (0.0, None)
     found = [(values.get(rule, 0) * _factor(pos), rule) for pos, rule in enumerate(order) if _match(rule, tags)]
+    if group_id == "visual" and "dv" in tags:
+        found = [f for f in found if f[1] != "hdr10plus"]   # with Dolby Vision the player uses that: HDR10+ adds nothing
     if group_id == "audio" and "atmos" in tags:
         place = order.index("atmos") if "atmos" in order else len(order)
         if tags & {"truehd"}:
@@ -479,6 +481,42 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
 
 def _is_plain(profile):
     return profile.get("as_is")
+
+
+def quality_class(source):
+    """(picture, source) class of a source: what an extra like 'learned good' or 'subtitle fits' may never jump over.
+    Picture: Dolby Vision, HDR or neither; source: Remux, Blu-ray, WEB or other."""
+    tags = tags_of(source)
+    picture = "dv" if tags & {"dv", "dv2", "fel", "p7"} else ("hdr" if tags & {"hdr", "hdr10plus", "hlg"} else "sdr")
+    origin = "remux" if "remux" in tags else ("bluray" if "bluray" in tags else ("web" if "web" in tags else "other"))
+    return picture, origin
+
+
+def within_class(sources, first, apart=lambda s: None):
+    """Moves the sources for which first(source) is True to the front, but only among sources of the same resolution
+    and quality_class (and the same apart(source)): the order between those groups stays as it is."""
+    def group(s):
+        return s.get("resolution"), quality_class(s), apart(s)
+    anchor = {}
+    for number, source in enumerate(sources):
+        anchor.setdefault(group(source), number)
+    # only the chosen ones move: each goes just before the first source of its own group, the rest keeps its place
+    keys = {id(s): (anchor[group(s)] - 0.5, n) if first(s) else (n, 0) for n, s in enumerate(sources)}
+    return sorted(sources, key=lambda s: keys[id(s)])
+
+
+def heavy_last(sources):
+    """Usenet releases that need more per second than this box ever got from Usenet (measured while Kodi was waiting)
+    go to the end of their own resolution: the best one that plays smoothly on your line comes first."""
+    if not any(s.get("heavy") for s in sources):
+        return sources
+    groups = {}
+    for source in sources:
+        groups.setdefault(source.get("resolution"), len(groups))
+        if source.get("heavy") and source.get("why") is not None:
+            source["why"] = list(source["why"]) + [(T("Te zwaar voor je lijn", "Too heavy for your line"), T("Lager gezet", "Moved down"))]
+    order = {id(s): n for n, s in enumerate(sources)}
+    return sorted(sources, key=lambda s: (groups[s.get("resolution")], bool(s.get("heavy")), order[id(s)]))
 
 
 def apply(sources, profile, kind="movie", scraper_order=None):

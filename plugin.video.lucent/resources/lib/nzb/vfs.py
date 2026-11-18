@@ -99,7 +99,11 @@ def clear():
 def exists(url):
     """Is the plan for this lucentv:// address still there (so vfs.lucent can still read it)?"""
     token = urllib.parse.urlsplit(url).hostname or ""
-    return bool(re.fullmatch(r"[0-9a-f]{8,64}", token)) and os.path.exists(os.path.join(util.PROFILE, FOLDER, token + ".plan"))
+    if not re.fullmatch(r"[0-9a-f]{8,64}", token):
+        return False
+    base = os.path.join(util.PROFILE, FOLDER)
+    # <token>.failed: vfs.lucent (0.1.3 and later) could not read on (too many articles gone): the link is dead
+    return os.path.exists(os.path.join(base, token + ".plan")) and not os.path.exists(os.path.join(base, token + ".failed"))
 
 
 def tick(playing):
@@ -189,6 +193,8 @@ def plan_text(release, provider, backup, token, name, fill=True):
              "holeconsecutive 4"]
     if _cacert():
         lines.append("cacert " + _cacert())
+    if getattr(release, "minutes", 0):
+        lines.append("seconds %d" % (int(release.minutes) * 60))       # vfs.lucent 0.1.3: ready for skips forward
     lines += _servers(provider, backup)
     if not any(line.startswith("server ") for line in lines):
         return None

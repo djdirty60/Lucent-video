@@ -263,6 +263,14 @@ def same_release_first(meta, sources):
     return sorted(sources, key=lambda s: 0 if (ranking.release_group(s) or "").lower() == last["group"] and s["resolution"] == last["res"] else 1)
 
 
+def would_play(meta, sources):
+    """The source play() would start on its own for these sources (the first of the same order), or None."""
+    usable = sources if util.flag("include_uncached") or not any(s["cached"] for s in sources) else [s for s in sources if s["cached"]]
+    usable = [s for s in usable if not cannot_play(s)] or usable
+    order = same_release_first(meta, usable)
+    return order[0] if order else None
+
+
 def remember_release(meta, source):
     group = ranking.release_group(source)
     if meta["kind"] == "episode" and group:

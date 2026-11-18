@@ -69,10 +69,9 @@ def mark(holder, sources, wait=8):
 
 
 def first(sources, fitting):
-    """With 'Sources with subtitles first' on: those go first within their own resolution."""
+    """With 'Sources with subtitles first' on: those go first, but only above sources of the same resolution and
+    quality (picture and source): a fitting subtitle never puts a plain release above a Dolby Vision remux."""
     if not fitting or not util.flag("subs_first"):
         return sources
-    groups = {}
-    for source in sources:
-        groups.setdefault(source.get("resolution"), len(groups))
-    return [s for _n, s in sorted(enumerate(sources), key=lambda p: (groups[p[1].get("resolution")], id(p[1]) not in fitting, p[0]))]
+    import ranking
+    return ranking.within_class(sources, lambda s: id(s) in fitting)

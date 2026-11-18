@@ -356,14 +356,28 @@ class Watcher(xbmc.Player):
             self.play_next(meta)
 
     def prefetch(self, meta):
-        """Finds the sources of the next episode in advance, so it starts right away."""
+        """Finds the sources of the next episode in advance and keeps them, so 'Next' skips the search. When the source
+        that will be played is a Usenet release, its NZB is fetched and the release opened as well: it starts at once."""
         try:
             step = tmdb.next_episode(meta["tmdb"], int(meta["season"]), int(meta["episode"]))
             following = step and player.title_meta("episode", meta["tmdb"], step["season"], step["episode"])
-            if following:
-                scrapers.search(following)
+            if not following:
+                return
+            started = time.time()
+            found, _problem = scrapers.search(following)
+            if not found:
+                return
+            prefetch.keep(following, found)
+            util.log("next episode: %d sources found in advance in %.1f s" % (len(found), time.time() - started))
+            first = player.would_play(following, found)
+            job = (first or {}).get("resolve") or {}
+            if job.get("scraper") == "Usenet" and not first.get("url"):
+                from nzb import source as nzb_source
+                nzb_source.warm(job)
         except util.HttpError:
             pass
+        except Exception as error:          # noqa: BLE001 - only a quicker start; never disturb what plays now
+            util.log("next episode: not ready in advance (%s)" % type(error).__name__)
 
     def open_next(self, meta):
         if meta.get("bedtime_last"):          # the last one for today: no next episode

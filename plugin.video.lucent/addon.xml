@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+83" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+84" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -82,7 +82,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 83: searching is fast again (the language setting was read for every source).
+        <news>1.0.0 beta 1, update 84: next episode starts at once; Usenet completeness and audio check; learns from statistics; switching when a film stops; skipping without waiting; ready for tomorrow; season ready; sorting follows your profile; Tune connections fixed.
+1.0.0 beta 1, update 83: searching is fast again (the language setting was read for every source).
 1.0.0 beta 1, update 82: Usenet statistics (data per day, providers, indexers; Clear button).
 1.0.0 beta 1, update 81: Language of sources (your own language, its own coloured labels); Tune connections for Usenet.
 1.0.0 beta 1, update 80: GearsScrapers is used as a source when installed (like CocoScrapers).
@@ -91,12 +92,10 @@
 1.0.0 beta 1, update 77: the real release group on cross-posts (not -xpost); Clear resume point also works on Simkl.
 1.0.0 beta 1, update 76: source labels in one fixed order without duplicates.
 1.0.0 beta 1, update 75: test mode only: the Usenet test button also shows the fast reader (on/off, version).
-1.0.0 beta 1, update 74: test mode only: setting for requests at once per connection (pipelining) for the fast reader.
-1.0.0 beta 1, update 73: test mode only: the same NZB is no longer fetched from the indexer again and again (kept for a week); big NZBs are read about three times as fast.
-1.0.0 beta 1, update 72: test mode only: optional fast Usenet reader through the separate add-on vfs.lucent (C++), for faster seeking.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 83: Zoeken weer snel: Sinds update 81 las Lucent bij elke bron opnieuw de instelling 'Taal van bronnen' (honderden keren per zoekopdracht). Op een trage box kostte dat seconden. Nu één keer per zoekopdracht.
-1.0.0 beta 1, update 82: Usenet-statistieken: Nieuwe knop bij Usenet: Statistieken. Data per dag, en per provider en indexer hoeveel erdoor ging, de snelheid, wachttijd, fouten, ontbrekende stukjes en hoe vaak een NZB echt afspeelde. Alleen tellingen, hooguit een paar MB; ouder dan een jaar gaat vanzelf weg. Met Wissen maak je het leeg. Voor de cijfers van de snelle lezer is Lucent Video VFS 0.1.2 nodig.
-1.0.0 beta 1, update 81: Jouw taal bij de bronnen: Bronnen in jouw taal waren altijd Nederlands. Nu kies je bij Bronnen de 'Taal van bronnen' (17 talen, of automatisch: de taal van Kodi). Audio en ondertitels in die taal krijgen een eigen label met een eigen kleur (NL, DE, FR, RO …) en kunnen vooraan in de volgorde. Verbindingen afstemmen: Nieuwe knop bij Usenet: meet in een paar minuten hoeveel verbindingen je account echt toestaat, vergelijkt de poorten 563 en 443 en meet je snelheid. Daarna een voorstel; er verandert niets tot je op Toepassen drukt. Haalt tot ongeveer 800 MB testdata op.</news>
+1.0.0 beta 1, update 74: test mode only: setting for requests at once per connection (pipelining) for the fast reader.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 84: Volgende aflevering start meteen; Compleet-controle bij Usenet; Lucent leert van je statistieken; Overstappen als een film halverwege stopt; Spoelen zonder wachten; Klaar voor vanavond: ook morgen; Sortering volgt je profiel; Verbindingen afstemmen klopt nu; Seizoen klaarzetten.
+1.0.0 beta 1, update 83: Zoeken weer snel: Sinds update 81 las Lucent bij elke bron opnieuw de instelling 'Taal van bronnen' (honderden keren per zoekopdracht). Op een trage box kostte dat seconden. Nu één keer per zoekopdracht.
+1.0.0 beta 1, update 82: Usenet-statistieken: Nieuwe knop bij Usenet: Statistieken. Data per dag, en per provider en indexer hoeveel erdoor ging, de snelheid, wachttijd, fouten, ontbrekende stukjes en hoe vaak een NZB echt afspeelde. Alleen tellingen, hooguit een paar MB; ouder dan een jaar gaat vanzelf weg. Met Wissen maak je het leeg. Voor de cijfers van de snelle lezer is Lucent Video VFS 0.1.2 nodig.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

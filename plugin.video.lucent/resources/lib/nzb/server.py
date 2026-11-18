@@ -27,7 +27,10 @@ FOLDER = "nzb"
 LOCK_WAIT = 30                  # seconds a new release waits for one still being opened
 IDLE = 300                      # seconds without reads before a release is closed
 CHUNK = 1048576
-_state = {"http": None, "release": None, "key": "", "pool": None, "lock": threading.Lock()}
+_state = {"http": None, "release": None, "key": "", "pool": None, "lock": threading.Lock(), "warm": None}
+WARM_KEEP = 20 * 60             # a release opened in advance (the next episode) is kept this long
+WARM_CONNS = 4                  # connections used to open it in advance (closed again right after)
+_warm_lock = threading.Lock()
 
 
 def folder():
@@ -86,17 +89,27 @@ def prepare(name, season=None, episode=None, pack=False, minutes=0):
         return {"ok": False, "error": "busy"}
     try:
         _close_release()
-        pool = nntp.Pool(provider())
         spare_settings = provider(backup=True)
-        spare = nntp.Pool(spare_settings) if spare_settings else None
-        pool.record = True                          # this one plays: its counts go to the statistics
-        if spare:
-            spare.record = True
         started = time.time()
+        warmed = _take_warm(_warm_key(name, season, episode, pack))
+        if warmed:
+            release, pool, spare = warmed["release"], warmed["pool"], warmed["spare"]
+            pool.limit = max(pool.limit, int(provider().get("connections") or 8))      # now it plays: all connections
+            if spare and spare_settings:
+                spare.limit = max(spare.limit, int(spare_settings.get("connections") or 8))
+            util.log("usenet: release was opened in advance %.0f s ago" % (time.time() - warmed["at"]))
+        else:
+            drop_warm()                             # another release than the one opened in advance
+            pool = nntp.Pool(provider())
+            spare = nntp.Pool(spare_settings) if spare_settings else None
+            pool.record = True                      # this one plays: its counts go to the statistics
+            if spare:
+                spare.record = True
         ahead, cache = _sizes(minutes)
         try:
-            release = stream.open_release(pool, data, season, episode, log=lambda text: util.log("usenet: " + text), pack=pack,
-                                          backup=spare, fill=util.flag("nzb_fill"), ahead=ahead, cache=cache, minutes=minutes)
+            if not warmed:
+                release = stream.open_release(pool, data, season, episode, log=lambda text: util.log("usenet: " + text), pack=pack,
+                                              backup=spare, fill=util.flag("nzb_fill"), ahead=ahead, cache=cache, minutes=minutes)
         except nntp.AuthError:
             pool.close()
             if spare:
@@ -128,6 +141,82 @@ def prepare(name, season=None, episode=None, pack=False, minutes=0):
         return {"ok": True, "key": _state["key"], "name": release.name, "size": release.size}
     finally:
         _state["lock"].release()
+
+
+def _warm_key(name, season, episode, pack):
+    return (os.path.basename(name or ""), str(season or ""), str(episode or ""), bool(pack))
+
+
+def warm(name, season=None, episode=None, pack=False, minutes=0):
+    """While an episode plays: open the release of the next one in advance (NZB read, first articles in), so pressing
+    'Next' starts at once. It uses a few connections only while opening; they are closed again right away, so the
+    episode that plays now keeps all of them. True when it is ready."""
+    key = _warm_key(name, season, episode, pack)
+    with _warm_lock:
+        ready = _state["warm"]
+        if ready and ready["key"] == key:
+            return True
+    drop_warm()
+    try:
+        with open(os.path.join(folder(), os.path.basename(name)), "rb") as handle:
+            data = handle.read()
+    except OSError:
+        return False
+    started = time.time()
+    pool = nntp.Pool(provider(), limit=WARM_CONNS)
+    spare_settings = provider(backup=True)
+    spare = nntp.Pool(spare_settings, limit=2) if spare_settings else None
+    for one in (pool, spare):
+        if one:
+            one.record = True
+    ahead, cache = _sizes(minutes)
+    try:
+        release = stream.open_release(pool, data, season, episode, log=lambda text: util.log("usenet: next episode: " + text),
+                                      pack=pack, backup=spare, fill=util.flag("nzb_fill"), ahead=ahead, cache=cache, minutes=minutes)
+    except Exception as error:                  # noqa: BLE001 - only a quicker start; pressing play opens it as before
+        util.log("usenet: next episode not opened in advance (%s)" % type(error).__name__)
+        for one in (pool, spare):
+            if one:
+                one.close()
+        return False
+    for one in (pool, spare):
+        if one:
+            one.drop_idle()                     # no connections stay open while the current episode plays
+    with _warm_lock:
+        old, _state["warm"] = _state["warm"], {"key": key, "release": release, "pool": pool, "spare": spare, "at": time.time()}
+    if old:
+        _close_warm(old)
+    util.log("usenet: next episode opened in advance in %.1f s" % (time.time() - started))
+    return True
+
+
+def _take_warm(key):
+    with _warm_lock:
+        ready = _state["warm"]
+        if ready and ready["key"] == key and time.time() - ready["at"] < WARM_KEEP:
+            _state["warm"] = None
+            return ready
+    return None
+
+
+def _close_warm(ready):
+    try:
+        ready["release"].close()
+    except Exception:                           # noqa: BLE001
+        pass
+    for one in (ready["pool"], ready["spare"]):
+        if one:
+            one.close()
+
+
+def drop_warm(older_than=None):
+    """Close the release opened in advance (all of it, or only when it is older than older_than seconds)."""
+    with _warm_lock:
+        ready = _state["warm"]
+        if not ready or (older_than is not None and time.time() - ready["at"] < older_than):
+            return
+        _state["warm"] = None
+    _close_warm(ready)
 
 
 SLOW_WARNED = "lucent.video.slowunpack"
@@ -277,6 +366,7 @@ def start():
 
 def stop():
     vfs.clear()
+    drop_warm()
     stats.flush(force=True)
     with _state["lock"]:
         _close_release()
@@ -345,6 +435,7 @@ def tick(playing):
         util.log("usenet: local player server off")
         return
     vfs.tick(playing)
+    drop_warm(older_than=WARM_KEEP)
     release = _state["release"]
     if release and time.time() - release.last_read < SPEED_EVERY:
         _speed_line(release)

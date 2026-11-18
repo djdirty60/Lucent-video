@@ -268,6 +268,15 @@ class Pool:
                 self.idle.append(connection)
             self.lock.notify_all()
 
+    def drop_idle(self):
+        """Close the connections nobody uses now (the pool itself stays usable and makes new ones when needed)."""
+        with self.lock:
+            idle, self.idle = self.idle, []
+            self.count -= len(idle)
+            self.lock.notify_all()
+        for connection in idle:
+            connection.close()
+
     def close(self):
         with self.lock:
             self.closed = True

@@ -79,8 +79,60 @@ class Sources(Base):
         self.setProperty("has_uncached", "1" if self.has_uncached else "")
         self.tabs, self.rows = self.getControl(100), self.getControl(200)
         self.tab = None
+        self.done = False
+        self._start_checks()
         self.build_tabs()
         self.setFocusId(200)
+
+    def _start_checks(self):
+        """Usenet releases whose NZB Lucent already has: a full check (every article) in the background, shown as
+        ' · ✓ compleet' or ' · 97% compleet' after the line under the name as soon as it is in."""
+        from nzb import source as nzb_source
+        todo = []
+        for source in self.sources:
+            job = source.get("resolve") or {}
+            if job.get("scraper") != "Usenet" or not job.get("link"):
+                continue
+            known = nzb_source.health_known(job)
+            heard = nzb_source.tracks_known(job)
+            if known and heard:
+                source["health"] = nzb_source.health_text(known) + nzb_source.tracks_text(heard)
+            elif nzb_source.can_check(job):
+                source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
+                todo.append(source)
+        if todo:
+            threading.Thread(target=self._checks, args=(todo,), daemon=True).start()
+
+    def _checks(self, todo):
+        from nzb import source as nzb_source
+        for source in todo:
+            if self.done:
+                return
+            result = nzb_source.health(source["resolve"], stop=lambda: self.done)
+            if self.done:
+                return
+            source["health"] = nzb_source.health_text(result)
+            self._show_health(source)
+        for source in todo:                     # then the tracks in the file (audio languages): a few articles each
+            if self.done:
+                return
+            found = nzb_source.tracks(source["resolve"], stop=lambda: self.done)
+            if self.done:
+                return
+            if found:
+                source["health"] = (source.get("health") or "") + nzb_source.tracks_text(found)
+                self._show_health(source)
+
+    def _show_health(self, source):
+        try:
+            position = next(n for n, s in enumerate(self.current) if s is source)
+            self.rows.getListItem(position).setProperty("health", source.get("health") or "")
+        except (StopIteration, RuntimeError, AttributeError):
+            pass                                # on another tab now: shown when that tab is opened
+
+    def close(self):
+        self.done = True
+        Base.close(self)
 
     def visible(self):
         return [s for s in self.sources if self.show_all or s["cached"] or not self.has_uncached]
@@ -107,6 +159,7 @@ class Sources(Base):
             item.setProperty("res", source["resolution"])
             item.setProperty("meta", _with_scraper(source) + (T(" · Kan dit apparaat niet", " · Not for this device") if source.get("cannot") else ""))
             item.setProperty("scraper", SCRAPER_SHORT.get(source.get("scraper"), source.get("scraper") or ""))
+            item.setProperty("health", source.get("health") or "")
             if source["cached"] and not source.get("always"):
                 item.setProperty("cached", "1")   # Usenet and direct links are always there: no 'CACHED' for those
             for number, flag in enumerate(streams.tidy_flags(source["flags"])[:12], 1):

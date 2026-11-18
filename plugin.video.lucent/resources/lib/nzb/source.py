@@ -133,6 +133,7 @@ def fetch(meta):
             job = {"scraper": "Usenet", "slot": row["slot"], "link": row["link"], "param": row["param"], "name": name,
                    "season": meta.get("season"), "episode": meta.get("episode"), "minutes": int(meta.get("runtime") or 0)}
             where = names.get(row["slot"]) or ""
+            job["indexer"] = where                  # for learning from the statistics (learn.py)
             badges = _badges(row) if show_badges else ""
             # needs more per second than this box ever got from Usenet: say so (it may stop to buffer)
             heavy = bool(most and seconds and row["size"] / seconds > most * 0.95)
@@ -141,6 +142,7 @@ def fetch(meta):
                 source = usenet._source(name, row["size"], SERVICE, resolve=job)          # noqa: SLF001 - same add-on
                 _add_info(source, row)
                 source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"]), _group(row["title"]), badges, warn) if p)
+                source["heavy"] = heavy
                 source["always"] = True
                 out.append(source)
                 continue
@@ -149,12 +151,11 @@ def fetch(meta):
             episodes = int(meta.get("season_count") or 0) or 10
             source = usenet._source(name, row["size"] // episodes, SERVICE, resolve=job)    # noqa: SLF001
             _add_info(source, row)
-            if most and seconds and row["size"] / episodes / seconds > most * 0.95:
-                warn = util.T("mogelijk te zwaar", "may be too heavy")
-            else:
-                warn = ""
+            heavy = bool(most and seconds and row["size"] / episodes / seconds > most * 0.95)
+            warn = util.T("mogelijk te zwaar", "may be too heavy") if heavy else ""
             source["meta"] = " · ".join(p for p in (SERVICE, where, util.T("Seizoenspakket", "Season pack"), streams.size_text(row["size"]), _group(row["title"]), badges, warn) if p)
             source["pack"] = True
+            source["heavy"] = heavy
             source["always"] = True
             out.append(source)
     if skipped:
@@ -376,6 +377,186 @@ def prune(ranked, meta):
         spare.close()
     util.log("usenet: checked %d of the best releases in %.1f s: %d taken down, left out" % (len(done), time.time() - started, len(gone)))
     return [s for s in ranked if not any(s is g for g in gone)]
+
+
+def ensure_nzb(job, why):
+    """The NZB of this release saved beforehand (for 'why': the next episode, ready for tonight). Only when there is
+    room at the indexer (at most half of a known daily NZB limit). True when it is there."""
+    name = _nzb_name(job)
+    if _saved_nzb(name):
+        return True
+    base = next((b for slot, b, _key in newznab.indexers() if slot == job.get("slot")), None)
+    if not base or not newznab.grab_room(base):
+        util.log("usenet: %s: no room for an extra NZB at the indexer today" % why)
+        return False
+    try:
+        _save_nzb(name, newznab.nzb(job))
+    except newznab.IndexerError as error:
+        util.log("usenet: %s: NZB not fetched beforehand (%s)" % (why, error))
+        return False
+    return True
+
+
+def warm(job):
+    """While an episode plays (from the service): fetch the NZB of the next episode's source and open its release in
+    advance, so 'Next' starts at once. Only when there is room for an NZB at the indexer (at most half of a known
+    daily limit, like the check while searching). True when it is ready."""
+    name = _nzb_name(job)
+    if not ensure_nzb(job, "next episode"):
+        return False
+    season, episode = (job.get("season"), job.get("episode")) if job.get("season") and job.get("episode") else (None, None)
+    return server.warm(name, season, episode, bool(job.get("pack")), int(job.get("minutes") or 0))
+
+
+HEALTH_HOURS = 6                # a full check is remembered this long
+HEALTH_PART = 400               # articles per STAT batch over one connection
+HEALTH_CONNS = 8                # connections the full check uses at most
+
+
+def health_known(job):
+    """The remembered full check of this release: (present, total) or None."""
+    saved = util.cache_get("nzbhealth" + _dead_key(job["link"]), HEALTH_HOURS * 3600)
+    return tuple(saved) if saved else None
+
+
+def can_check(job):
+    """A full check needs the NZB itself: only for releases whose NZB Lucent already has (no extra indexer grab)."""
+    return bool(_saved_nzb(_nzb_name(job)))
+
+
+def health(job, stop=lambda: False):
+    """(present, total) articles of the files that would be played, over the provider and the backup provider; or
+    None when it cannot be told. Only STAT questions: no data is downloaded and nothing is fetched at the indexer."""
+    from . import nntp, nzbfile
+    known = health_known(job)
+    if known:
+        return known
+    try:
+        with open(os.path.join(server.folder(), _nzb_name(job)), "rb") as handle:
+            files = nzbfile.parse(handle.read())
+        _kind, chosen = nzbfile.pick(files, job.get("season"), job.get("episode"), job.get("pack"))
+    except Exception:                           # noqa: BLE001 - hidden names, an odd NZB: no badge
+        return None
+    ids = list(dict.fromkeys(seg[2] for posted in chosen for seg in posted.segments))
+    if not ids:
+        return None
+    provider = server.provider()
+    pool = nntp.Pool(provider, limit=min(HEALTH_CONNS, int(provider.get("connections") or 8)))
+    spare_settings = server.provider(backup=True)
+    spare = nntp.Pool(spare_settings, limit=min(4, int(spare_settings.get("connections") or 4))) if spare_settings else None
+    parts = [ids[at:at + HEALTH_PART] for at in range(0, len(ids), HEALTH_PART)]
+
+    def one(part):
+        if stop():
+            raise InterruptedError
+        found = pool.stat_many(part)
+        lost = [i for i in part if not found.get(i)]
+        if lost and spare:
+            extra = spare.stat_many(lost)
+            lost = [i for i in lost if not extra.get(i)]
+        return len(part) - len(lost)
+
+    started = time.time()
+    try:
+        with ThreadPoolExecutor(max_workers=pool.limit) as run:
+            present = sum(run.map(one, parts))
+    except InterruptedError:
+        return None
+    except Exception as error:                  # noqa: BLE001 - no badge, never an error on screen
+        util.log("usenet: full check failed (%s)" % type(error).__name__)
+        return None
+    finally:
+        pool.close()
+        if spare:
+            spare.close()
+    util.log("usenet: full check: %d of %d articles there (%.1f s)" % (present, len(ids), time.time() - started))
+    util.cache_set("nzbhealth" + _dead_key(job["link"]), [present, len(ids)])
+    return present, len(ids)
+
+
+def health_text(result):
+    """The text after the line under the name: ' · ✓ compleet' in green, ' · 97% compleet' in amber or red."""
+    if not result:
+        return ""
+    present, total = result
+    if present >= total:
+        return "  ·  [COLOR FF4CC38A]✓ %s[/COLOR]" % util.T("compleet", "complete")
+    share = int(present * 1000 // max(1, total)) / 10.0         # never rounded up: 99.97% is not 100%
+    colour = "FFF2B84B" if share >= 95 else "FFE5534B"
+    text = ("%.1f" % share).rstrip("0").rstrip(".")
+    if util.NL:
+        text = text.replace(".", ",")
+    return "  ·  [COLOR %s]%s%% %s[/COLOR]" % (colour, text, util.T("compleet", "complete"))
+
+
+CHECKING = "  ·  [COLOR FF8D99AA]%s[/COLOR]"
+TRACKS_DAYS = 7
+TRACKS_BYTES = 3 * 1024 * 1024          # the track list of an MKV is in its first few hundred KB; 3 MB to be safe
+
+
+def tracks_known(job):
+    saved = util.cache_get("nzbtracks" + _dead_key(job["link"]), TRACKS_DAYS * 86400)
+    return saved or None
+
+
+def tracks(job, stop=lambda: False):
+    """{'audio': [...], 'subs': [...]} really in the MKV of this release (read from its first megabytes), or None.
+    Only for releases whose NZB Lucent already has; a few articles are read, nothing at the indexer."""
+    from . import nntp, stream, tracks as mkv
+    known = tracks_known(job)
+    if known:
+        return known
+    if stop():
+        return None
+    try:
+        with open(os.path.join(server.folder(), _nzb_name(job)), "rb") as handle:
+            data = handle.read()
+    except OSError:
+        return None
+    provider = server.provider()
+    pool = nntp.Pool(provider, limit=4)
+    spare_settings = server.provider(backup=True)
+    spare = nntp.Pool(spare_settings, limit=2) if spare_settings else None
+    release = None
+    started = time.time()
+    try:
+        release = stream.open_release(pool, data, job.get("season"), job.get("episode"), pack=bool(job.get("pack")), backup=spare,
+                                      ahead=4 * 1024 * 1024, cache=16 * 1024 * 1024)
+        if not (release.name or "").lower().endswith(".mkv"):
+            return None
+        found = mkv.read(release.read(0, min(TRACKS_BYTES, int(release.size))))
+    except Exception as error:                  # noqa: BLE001 - no track info, never an error on screen
+        util.log("usenet: tracks not read (%s)" % type(error).__name__)
+        return None
+    finally:
+        if release:
+            release.close()
+        pool.close()
+        if spare:
+            spare.close()
+    if found is None:
+        return None
+    util.log("usenet: tracks read in %.1f s: audio %s, subtitles %s" % (time.time() - started, ",".join(found["audio"]) or "-",
+                                                                         ",".join(found["subs"]) or "-"))
+    util.cache_set("nzbtracks" + _dead_key(job["link"]), found)
+    return found
+
+
+def tracks_text(found):
+    """'  ·  audio NL EN · subs NL' with your own language in green; '' when unknown."""
+    if not found or not (found.get("audio") or found.get("subs")):
+        return ""
+    import mylang
+    mine = mylang.code()
+
+    def show(codes):
+        return " ".join(("[COLOR FF4CC38A]%s[/COLOR]" % c.upper()) if c == mine else c.upper() for c in codes[:5])
+    parts = []
+    if found.get("audio"):
+        parts.append("audio " + show(found["audio"]))
+    if mine in (found.get("subs") or []):
+        parts.append("subs [COLOR FF4CC38A]%s[/COLOR]" % mine.upper())
+    return "  ·  [COLOR FF8D99AA]%s[/COLOR]" % " · ".join(parts)
 
 
 def _port():

@@ -34,6 +34,7 @@ STEP_SECONDS = 6.0
 PORT_CONNECTIONS = 8
 CLEARLY = 1.10                  # 'clearly faster': at least 10 % more
 SETTLE = 10                     # seconds: Lucent's own connections were just closed, the provider may still count them
+BETWEEN = 6                     # seconds between two measurements: the provider lets go of the connections just closed
 
 
 class _Probe(nntp.Connection):
@@ -174,6 +175,13 @@ class _Run:
         return sum(got) / 1048576.0 / elapsed, len(errors)
 
 
+def _pause(run, seconds):
+    """Wait (cancellable) so the provider no longer counts the connections of the step before."""
+    for _ in range(int(seconds * 10)):
+        if run.cancelled() or xbmc.Monitor().waitForAbort(0.1):
+            return
+
+
 def _steps(limit):
     steps = [n for n in (4, 8, 12, 16, 20, 30, 40, 50, 60) if n <= limit]
     if limit not in steps:
@@ -195,6 +203,7 @@ def measure(provider, progress):
             return out
     progress.update(2, T("Inloggen…", "Logging in…"))
     run.connect().close()                                       # a wrong password stops here, before anything else
+    _pause(run, BETWEEN)                                        # ... and that connection must not count in the limit
     limit, refused, reason = run.limit()
     out.update(limit=limit, limit_reached=refused, limit_reason=reason)
     if run.cancelled() or limit < 1:
@@ -203,8 +212,11 @@ def measure(provider, progress):
         ports = {}
         for number, port in enumerate(sorted({563, 443, provider["port"]})):
             progress.update(30 + 8 * number, T("Poort %d vergelijken…" % port, "Comparing port %d…" % port))
+            _pause(run, BETWEEN)
             try:
-                ports[port] = run.speed(min(PORT_CONNECTIONS, limit), port)[0]
+                wanted = min(PORT_CONNECTIONS, limit)
+                speed, failed = run.speed(wanted, port)
+                ports[port] = speed if failed < wanted else 0.0     # no connection at all on this port: it does not work
             except Exception:                   # noqa: BLE001 - a port that does not answer
                 ports[port] = 0.0
             if run.cancelled():
@@ -223,7 +235,16 @@ def measure(provider, progress):
         progress.update(55 + int(40 * number / len(steps)),
                         T("Snelheid met %d verbindingen…" % connections, "Speed with %d connections…" % connections))
         before = max(speeds.values()) if speeds else 0.0
-        speeds[connections] = run.speed(connections, out["port"])[0]
+        _pause(run, BETWEEN)
+        speed, failed = run.speed(connections, out["port"])
+        if failed:
+            # some connections were refused (other devices on the account, or the provider still counted old ones):
+            # this step measured fewer connections than it says, so it is not used for the suggestion
+            refused_at = out.setdefault("refused_at", {})
+            refused_at[connections] = failed
+            util.log("usenet tune: %d of %d connections refused at this step, not counted" % (failed, connections))
+            break
+        speeds[connections] = speed
         slower = slower + 1 if speeds[connections] < before * 1.03 else 0
         if slower >= 2:
             break                                               # two steps in a row no faster: stop early
@@ -256,9 +277,13 @@ def _report(result, backup):
         lines.append(T("Je account accepteert er minstens [B]%d[/B] (meer test Lucent niet; nu ingesteld: %d)." % (limit, result["current_conns"]),
                        "Your account accepts at least [B]%d[/B] (Lucent tests no more; set now: %d)." % (limit, result["current_conns"])))
     if result.get("ports"):
-        lines.append(T("Poorten: ", "Ports: ") + ", ".join("%d: %.1f MB/s" % (p, s) for p, s in sorted(result["ports"].items())))
+        lines.append(T("Poorten: ", "Ports: ") + ", ".join(("%d: %.1f MB/s" % (p, s)) if s > 0 else T("%d: werkt niet" % p, "%d: does not work" % p)
+                                                          for p, s in sorted(result["ports"].items())))
     if result.get("speeds"):
         lines.append(T("Snelheid: ", "Speed: ") + ", ".join("%d: %.1f MB/s" % (n, s) for n, s in sorted(result["speeds"].items())))
+    for connections, failed in sorted((result.get("refused_at") or {}).items()):
+        lines.append(T("Bij %d verbindingen weigerde je provider er %d; vanaf daar niet verder gemeten." % (connections, failed),
+                       "At %d connections your provider refused %d; not measured beyond that." % (connections, failed)))
     if result.get("bytes"):
         lines.append(T("Testdata: %d MB." % (result["bytes"] >> 20), "Test data: %d MB." % (result["bytes"] >> 20)))
     change = []

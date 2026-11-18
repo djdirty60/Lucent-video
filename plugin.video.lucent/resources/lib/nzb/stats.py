@@ -165,3 +165,23 @@ def summary(days_back=30):
             _add(indexers, name, values)
     per_day = [(day, sum(v.get("b", 0) for v in (days.get(day, {}).get("p") or {}).values())) for day in span]
     return {"days": per_day, "providers": providers, "indexers": indexers}
+
+
+_rates = {"at": 0.0, "value": {}}
+
+
+def indexer_rates(days=90, least=5):
+    """{indexer name: share of its NZBs that could be played} over the last days, only for indexers with at least
+    `least` outcomes. Read at most once every ten minutes (it is asked at every search)."""
+    if time.time() - _rates["at"] < 600:
+        return _rates["value"]
+    first = _day(time.time() - (days - 1) * 86400)
+    totals = {}
+    for day, values in (util.load_json(FILE, {}).get("days") or {}).items():
+        if day >= first:
+            for name, entry in (values.get("i") or {}).items():
+                _add(totals, name, {"ok": entry.get("ok", 0), "bad": entry.get("bad", 0)})
+    value = {name: v.get("ok", 0) / (v.get("ok", 0) + v.get("bad", 0))
+             for name, v in totals.items() if v.get("ok", 0) + v.get("bad", 0) >= least}
+    _rates.update(at=time.time(), value=value)
+    return value

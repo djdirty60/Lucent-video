@@ -2,6 +2,78 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+84",
+   "label": "Beta 1 · update 84",
+   "label_en": "Beta 1 · update 84",
+   "date": "2026-11-18",
+   "at": "2026-11-18T21:00Z",
+   "items": [
+    [
+     "play",
+     "Volgende aflevering start meteen",
+     "Vijf minuten voor het einde van een aflevering zoekt Lucent de volgende al op en onthoudt de bronnen, zodat 'Volgende' niet opnieuw zoekt. Is het een Usenet-bron, dan haalt Lucent ook de NZB op en opent de release alvast (met een paar verbindingen die meteen weer dicht gaan). Kost één NZB per aflevering bij je indexer, alleen als daar vandaag nog ruimte voor is.",
+     "Next episode starts at once",
+     "Five minutes before an episode ends, Lucent looks up the next one and keeps its sources, so 'Next' doesn't search again. For a Usenet source it also fetches the NZB and opens the release in advance (with a few connections that are closed again right away). Costs one NZB per episode at your indexer, only when there is room left today."
+    ],
+    [
+     "star",
+     "Compleet-controle bij Usenet",
+     "In de bronnenlijst controleert Lucent bij de beste Usenet-releases elk stukje bij je provider (geen data, niets bij de indexer). Achter de regel komt '✓ compleet', of bijvoorbeeld '97% compleet', en welke audiotalen er echt in het bestand zitten.",
+     "Completeness check for Usenet",
+     "In the source list Lucent checks every article of the best Usenet releases at your provider (no data, nothing at the indexer). The line gets '✓ complete' or for example '97% complete', and which audio languages are really in the file."
+    ],
+    [
+     "star",
+     "Lucent leert van je statistieken",
+     "Releases van een indexer waarvan de NZB's bij jou vaak mislukken, en releases waar stukjes ontbreken, zakken binnen hun resolutie. Releases die te zwaar zijn voor je lijn ook.",
+     "Lucent learns from your statistics",
+     "Releases from an indexer whose NZBs often fail here, and releases missing articles, move down within their resolution. So do releases too heavy for your line."
+    ],
+    [
+     "play",
+     "Overstappen als een film halverwege stopt",
+     "Kan de snelle lezer een film niet verder lezen (te veel stukjes weg), dan gaat Lucent verder met een andere bron op hetzelfde moment. Nodig: Lucent Video VFS 0.1.3.",
+     "Switching when a film stops halfway",
+     "When the fast reader can't read on (too many articles gone), Lucent continues with another source at the same moment. Needs Lucent Video VFS 0.1.3."
+    ],
+    [
+     "play",
+     "Spoelen zonder wachten",
+     "De snelle lezer zet de plekken 30 seconden, 1 minuut en 10 minuten verderop alvast klaar. Nodig: Lucent Video VFS 0.1.3.",
+     "Skipping without waiting",
+     "The fast reader makes the spots 30 seconds, 1 minute and 10 minutes ahead ready in advance. Needs Lucent Video VFS 0.1.3."
+    ],
+    [
+     "resume",
+     "Klaar voor vanavond: ook morgen",
+     "Na de avond klaargezet blijft een titel staan voor morgenavond. Bij Usenet haalt Lucent de NZB alvast op en controleert hij de release volledig; de melding zegt of hij compleet is.",
+     "Ready for tonight: also tomorrow",
+     "Put ready after the evening, a title stays for tomorrow evening. For Usenet, Lucent fetches the NZB in advance and checks the whole release; the message says whether it's complete."
+    ],
+    [
+     "settings",
+     "Sortering volgt je profiel",
+     "Zelflerend en 'ondertitels eerst' zetten een release alleen nog vóór releases van dezelfde kwaliteit. Bij Dolby Vision van een Blu-ray of Remux telt HDR mee en HDR10+ niet extra: een DV-Remux staat weer boven een DV-encode.",
+     "Sorting follows your profile",
+     "Self-learning and 'subtitles first' only move a release ahead of releases of the same quality. Dolby Vision from a Blu-ray or Remux counts HDR, and HDR10+ adds nothing: a DV remux is above a DV encode again."
+    ],
+    [
+     "settings",
+     "Verbindingen afstemmen klopt nu",
+     "De meting wacht tussen de stappen tot je provider de vorige verbindingen loslaat, telt een stap met geweigerde verbindingen niet meer mee, en toont een poort die niet werkt als 'werkt niet'.",
+     "Tune connections is right now",
+     "The test waits between steps until your provider lets go of the previous connections, no longer counts a step where connections were refused, and shows a port that doesn't work as 'does not work'."
+    ],
+    [
+     "library",
+     "Seizoen klaarzetten",
+     "Nieuw in het menu van een seizoen: Lucent haalt één seizoenspak van Usenet op (alleen de NZB), kijkt welke afleveringen erin zitten en zet die drie dagen klaar. Elke aflevering start daarna meteen, zonder zoeken.",
+     "Get season ready",
+     "New in the menu of a season: Lucent fetches one season pack from Usenet (only the NZB), checks which episodes are in it and keeps them ready for three days. Every episode then starts at once, without searching."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+83",
    "label": "Beta 1 · update 83",
    "label_en": "Beta 1 · update 83",

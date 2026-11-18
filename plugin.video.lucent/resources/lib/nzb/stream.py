@@ -829,4 +829,5 @@ def open_release(pool, nzb_bytes, season=None, episode=None, log=None, ahead=Non
         release.close()
         raise
     release.fit_to_film(minutes)
+    release.minutes = int(minutes or 0)         # the running time, for vfs.lucent's skip prefetch
     return release

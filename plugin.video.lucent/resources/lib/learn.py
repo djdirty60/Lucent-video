@@ -51,7 +51,8 @@ def adjust(sources):
     if not util.flag("learn") or not sources:
         return sources
     data = util.load_json(FILE, {})
-    if not data:
+    rates, health = _usenet_hints(sources)
+    if not data and not rates and not health:
         return sources
     groups = {}
     for source in sources:
@@ -59,9 +60,46 @@ def adjust(sources):
 
     def bucket(source):
         value = score(key(source), data)
-        return 0 if value >= 2 else (2 if value <= -2 else 1)
+        place = 0 if value >= 2 else (2 if value <= -2 else 1)
+        job = source.get("resolve") or {}
+        if job.get("scraper") == "Usenet":
+            # from the Usenet statistics: an indexer whose NZBs often fail here, or a release known to miss articles
+            if rates.get(job.get("indexer")) is not None and rates[job["indexer"]] < WEAK_INDEXER:
+                place = min(2, place + 1)
+            known = health.get(id(source))
+            if known and known[0] < known[1] * GAPPY:
+                place = 2
+        return place
+    places = {id(s): bucket(s) for s in sources}
+    # failing releases go to the end of their resolution; good ones move up only within their own quality class
+    # (same picture and source), so a release that played well never jumps over a better one from your profile
     order = {id(s): n for n, s in enumerate(sources)}
-    return sorted(sources, key=lambda s: (groups[s.get("resolution")], bucket(s), order[id(s)]))
+    kept = sorted(sources, key=lambda s: (groups[s.get("resolution")], places[id(s)] == 2, order[id(s)]))
+    return ranking.within_class(kept, lambda s: places[id(s)] == 0, apart=lambda s: places[id(s)] == 2)
+
+
+WEAK_INDEXER = 0.80     # an indexer whose NZBs played less often than this (at least 5 times) moves its releases down
+GAPPY = 0.98            # a release known (full check) to miss more than 2% of its articles goes to the end of its resolution
+
+
+def _usenet_hints(sources):
+    """({indexer: share played}, {id(source): (present, total)}) for the Usenet sources; empty when there are none."""
+    if not any((s.get("resolve") or {}).get("scraper") == "Usenet" for s in sources):
+        return {}, {}
+    try:
+        from nzb import source as nzb_source, stats
+        rates = stats.indexer_rates()
+        health = {}
+        for source in sources:
+            job = source.get("resolve") or {}
+            if job.get("scraper") == "Usenet" and job.get("link"):
+                known = nzb_source.health_known(job)
+                if known:
+                    health[id(source)] = known
+        return rates, health
+    except Exception as error:          # noqa: BLE001 - learning is extra; the plain order always stays
+        util.log("learn: Usenet hints not read (%s)" % type(error).__name__)
+        return {}, {}
 
 
 def forget():

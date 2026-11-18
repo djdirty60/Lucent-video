@@ -1121,6 +1121,9 @@ def _run(argv):
         if action == "nzb_tune":
             from nzb import tune
             return tune.run()
+        if action == "season_ready":
+            import seasonready
+            return seasonready.run(params["tmdb"], params["season"])
         if action == "nzb_stats":
             import stats_ui
             return stats_ui.run()

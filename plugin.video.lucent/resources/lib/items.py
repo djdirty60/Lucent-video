@@ -88,6 +88,17 @@ def play_url(meta, **extra):
                         episode=meta["episode"], **extra)
 
 
+_usenet = {}
+
+
+def _usenet_on():
+    """Usenet set up (read once per run: a list asks it for every season)."""
+    if "on" not in _usenet:
+        from nzb import source as nzb_source
+        _usenet["on"] = nzb_source.configured()
+    return _usenet["on"]
+
+
 def context(meta, watched, resumable=False):
     entries = []
 
@@ -101,6 +112,8 @@ def context(meta, watched, resumable=False):
             run(util.T("Hervatpunt wissen", "Clear resume point"), action="resume_forget", **target)
     run(util.T("Markeer als niet bekeken", "Mark as unwatched") if watched else
         util.T("Markeer als bekeken", "Mark as watched"), action="watched", value=0 if watched else 1, **target)
+    if meta["kind"] == "season" and meta.get("season") and _usenet_on():
+        run(util.T("Seizoen klaarzetten", "Get season ready"), action="season_ready", tmdb=meta["tmdb"], season=meta["season"])
     if meta["kind"] in ("tvshow", "episode", "season"):
         run(util.T("Intro vanzelf overslaan: aan/uit", "Skip intro by itself: on/off"), action="introskip", tmdb=meta["tmdb"])
     if meta["kind"] in ("movie", "tvshow"):
@@ -169,6 +182,9 @@ def title_item(meta, watched=False, resume=None, last_played="", counts=None):
         item.setProperty("tmdb_episode_id", meta["tmdb_episode"])
     if kind == "episode":
         season_props(item, meta)
+        import seasonready
+        if seasonready.is_ready(meta["tmdb"], meta.get("season"), meta.get("episode")):
+            item.setProperty("lucent.ready", "1")          # in a season put ready: starts at once (for the skin)
     if meta.get("mdb_average"):
         item.setProperty("mdblist_score", str(int(meta["mdb_average"])))
     if counts:
