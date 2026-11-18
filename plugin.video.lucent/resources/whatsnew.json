@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+87",
+   "label": "Beta 1 · update 87",
+   "label_en": "Beta 1 · update 87",
+   "date": "2026-11-18",
+   "at": "2026-11-18T23:05Z",
+   "items": [
+    [
+     "library",
+     "Alle Lucent-opties bovenaan in de bibliotheek",
+     "Met de Lucent-skin kunnen nu alle opties van Lucent Video in het menu van je bibliotheek bovenaan staan (Bron kiezen, kijklijst, trailer, acteurs, vergelijkbare titels, beoordelen, uit je bibliotheek halen …), boven die van Kodi. Zodra de skin dat doet, verdwijnen de oude onderaan vanzelf.",
+     "All Lucent options at the top in the library",
+     "With the Lucent skin all of Lucent Video's options in your library menu can now be at the top (Choose source, watchlist, trailer, cast, similar titles, rate, remove from your library …), above Kodi's. As soon as the skin does that, the old ones at the bottom disappear by themselves."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+86",
    "label": "Beta 1 · update 86",
    "label_en": "Beta 1 · update 86",

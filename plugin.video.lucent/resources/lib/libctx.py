@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Get ready for tonight, Marathon planner and Get season ready on the titles Lucent Video put in the Kodi library.
+"""Lucent Video's options on the titles it put in the Kodi library (Get ready for tonight, Marathon planner, Get season
+ready, Choose source, watchlist, trailer, cast, similar, rate ...).
 Used by context.py (Kodi's add-on menu items, below Kodi's own) and by the Lucent skin's own buttons at the top of
 the context menu (action=library_ctx), which read the focused library item from its info labels."""
 import os
@@ -68,7 +69,30 @@ def run(what, meta):
         util.notify(util.T("Deze titel komt niet van Lucent Video", "This title does not come from Lucent Video"))
         return
     clean = {k: v for k, v in meta.items() if v not in (None, "")}
-    if what == "tonight" and clean.get("type") in ("movie", "episode"):
+    kind = "movie" if clean.get("type") == "movie" else "tvshow"
+    if what == "source":
+        xbmc.executebuiltin("PlayMedia(%s)" % util.url_for(action="play", select=1, **clean))
+    elif what == "watched":
+        seen = (xbmc.getInfoLabel("ListItem.PlayCount") or "0") not in ("", "0")
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="watched", value=0 if seen else 1, **clean))
+    elif what in ("watchlist_add", "watchlist_remove"):
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="watchlist", value=1 if what == "watchlist_add" else 0, **clean))
+    elif what == "resume":
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="resume_forget", **clean))
+    elif what == "trailer":
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="trailer", type=kind, tmdb=clean["tmdb"]))
+    elif what == "cast":
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="cast_popup", type=kind, tmdb=clean["tmdb"]))
+    elif what == "similar":
+        xbmc.executebuiltin("ActivateWindow(Videos,%s,return)" % util.url_for(action="list", name="similar", type=kind, tmdb=clean["tmdb"]))
+    elif what == "removelib":
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="library_remove", type=kind, tmdb=clean["tmdb"]))
+    elif what == "rate":
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="kompas_rate", type=kind, tmdb=clean["tmdb"]))
+    elif what == "skiplib" and clean.get("season"):
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="library_skip", tmdb=clean["tmdb"], season=clean["season"],
+                                                         episode=clean.get("episode")))
+    elif what == "tonight" and clean.get("type") in ("movie", "episode"):
         xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="tonight_add", **clean))
     elif what == "marathon":
         xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="marathon", tmdb=clean["tmdb"]))
