@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+83",
+   "label": "Beta 1 · update 83",
+   "label_en": "Beta 1 · update 83",
+   "date": "2026-11-18",
+   "at": "2026-11-18T20:20Z",
+   "items": [
+    [
+     "refresh",
+     "Zoeken weer snel",
+     "Sinds update 81 las Lucent bij elke bron opnieuw de instelling 'Taal van bronnen' (honderden keren per zoekopdracht). Op een trage box kostte dat seconden. Nu één keer per zoekopdracht.",
+     "Searching fast again",
+     "Since update 81 Lucent read the setting 'Language of sources' again for every source (hundreds of times per search). On a slow box that cost seconds. Now once per search."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+82",
    "label": "Beta 1 · update 82",
    "label_en": "Beta 1 · update 82",

@@ -90,10 +90,20 @@ def _auto():
     return _cache["auto"]
 
 
+CODE_KEEP = 10                  # seconds the setting is remembered: one search asks it hundreds of times (per source)
+
+
 def code():
-    """The language of sources: the setting 'Language of sources', or automatic."""
+    """The language of sources: the setting 'Language of sources', or automatic. Read again after CODE_KEEP seconds
+    (reading a setting makes a new Addon object: a few ms each on a slow box, times hundreds per search)."""
+    import time
+    saved = _cache.get("code")
+    if saved and time.time() - saved[1] < CODE_KEEP:
+        return saved[0]
     chosen = (util.setting("sources_lang") or "").strip().lower()
-    return chosen if chosen in LANGS else _auto()
+    value = chosen if chosen in LANGS else _auto()
+    _cache["code"] = (value, time.time())
+    return value
 
 
 def name():
@@ -179,4 +189,5 @@ def choose():
     if picked < 0:
         return
     xbmcaddon.Addon(util.ADDON_ID).setSetting("sources_lang", "" if picked == 0 else ORDER[picked - 1])
+    _cache.pop("code", None)                        # the new choice counts right away
     util.notify(util.T("Taal van bronnen: %s" % label(), "Language of sources: %s" % label()))
