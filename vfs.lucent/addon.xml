@@ -18,7 +18,8 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+    <news>0.1.3: tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
 0.1.1: own icon (blue, with a lightning bolt).
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>

@@ -146,6 +146,19 @@ void WriteReport(const std::string& token, const std::shared_ptr<engine::Stream>
   file.Close();
 }
 
+// Tells Lucent that this film cannot be read any further (too many articles missing, the providers gone): Lucent then
+// continues with another source at the same moment instead of taking it for you pressing stop.
+void WriteFailed(const std::string& token, const std::string& reason)
+{
+  const std::string path = kodi::vfs::TranslateSpecialProtocol(PLAN_FOLDER) + token + ".failed";
+  kodi::vfs::CFile file;
+  if (!file.OpenFileForWrite(path, true))
+    return;
+  const std::string text = "lucent-failed 1\n" + reason.substr(0, 200) + "\n";
+  file.Write(text.data(), text.size());
+  file.Close();
+}
+
 std::string ActivePath()
 {
   return kodi::vfs::TranslateSpecialProtocol(PLAN_FOLDER) + "active";
@@ -644,6 +657,8 @@ public:
         kodi::Log(ADDON_LOG_ERROR, "read failed at %.1f MB: %s",
                   static_cast<double>(handle->position) / 1048576.0,
                   handle->stream->LastError().c_str());
+        if (!handle->stream->Usable() && !handle->stream->LastError().empty())
+          WriteFailed(handle->token, handle->stream->LastError());
       }
       return -1;
     }
