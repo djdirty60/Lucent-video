@@ -149,7 +149,7 @@ def show_status(raw_status):
     return SHOW_STATUS.get(str(raw_status or "").strip().lower(), "")
 
 
-DETAILS_FORMAT = 2          # raise when the fields below change: old saved titles are then fetched again
+DETAILS_FORMAT = 3          # raise when the fields below change: old saved titles are then fetched again
 
 
 def details(kind, tmdb_id):
@@ -163,6 +163,17 @@ def details(kind, tmdb_id):
     if meta:
         util.cache_set(saved_as, meta)
     return meta
+
+
+def collection_art(set_id):
+    """Posters and backdrops of a TMDB collection (Kodi: a movie set), best first. TMDB has no logos for collections."""
+    if not set_id:
+        return {}
+    try:
+        raw = get("collection/%s/images" % set_id, ttl=7 * DAY, language="", include_image_language="nl,en,null")
+    except util.HttpError:
+        return {}
+    return {"poster": _gallery(raw, "posters", "w500"), "fanart": _gallery(raw, "backdrops", "w1280")}
 
 
 def _details(kind, tmdb_id):
@@ -217,6 +228,7 @@ def _details(kind, tmdb_id):
         "mpaa": _mpaa(raw, movie),
         "trailer": _trailer(raw),
         "set": (raw.get("belongs_to_collection") or {}).get("name") or "",
+        "set_id": str((raw.get("belongs_to_collection") or {}).get("id") or ""),
         "lang": raw.get("original_language") or "",
         "digital": _digital(raw) if movie else date,
         "cast": [{"id": c.get("id"), "name": c["name"], "role": c.get("character") or "", "thumb": image(c.get("profile_path"), "w185")}
@@ -508,6 +520,7 @@ def episode_meta(show, raw):
         "rating": raw.get("vote_average") or 0,
         "votes": raw.get("vote_count") or 0,
         "genres": show["genres"],
+        "lang": show.get("lang") or "",
         "studios": show["studios"],
         "runtime": raw.get("runtime") or show["runtime"],
         "season_count": next((s.get("episode_count") or 0 for s in show.get("seasons") or []

@@ -178,6 +178,8 @@ class Screen(dialogs.Base):
             item.setProperty("resp", _ms(v.get("ss", 0) / answered) if answered > 0 else "–")
             items.append(item)
         control.addItems(items)
+        self.setProperty("ixmore", T("%d indexers · scroll omlaag voor de rest", "%d indexers · scroll down for the rest") % len(items)
+                         if len(items) > 6 else "")         # room for 6 rows
         self.setProperty("noix", "" if items else T("Nog geen zoekopdrachten bij je indexers", "No searches at your indexers yet"))
 
     def onClick(self, control):

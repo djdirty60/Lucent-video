@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+84" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+85" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -10,6 +10,18 @@
     <extension point="xbmc.service" library="service.py"/>
     <extension point="kodi.context.item">
         <menu id="kodi.core.main">
+            <item library="context.py" args="tonight">
+                <label>32560</label>
+                <visible>[String.Contains(ListItem.Path,plugin.video.lucent/library) | String.Contains(ListItem.FolderPath,plugin.video.lucent/library) | String.Contains(ListItem.FileNameAndPath,plugin.video.lucent/library)] + [String.IsEqual(ListItem.DBTYPE,movie) | String.IsEqual(ListItem.DBTYPE,episode)] + String.IsEmpty(Window(Home).Property(lucent.skin.libctx))</visible>
+            </item>
+            <item library="context.py" args="marathon">
+                <label>32561</label>
+                <visible>[String.Contains(ListItem.Path,plugin.video.lucent/library) | String.Contains(ListItem.FolderPath,plugin.video.lucent/library) | String.Contains(ListItem.FileNameAndPath,plugin.video.lucent/library)] + String.IsEqual(ListItem.DBTYPE,tvshow) + String.IsEmpty(Window(Home).Property(lucent.skin.libctx))</visible>
+            </item>
+            <item library="context.py" args="seasonready">
+                <label>32562</label>
+                <visible>[String.Contains(ListItem.Path,plugin.video.lucent/library) | String.Contains(ListItem.FolderPath,plugin.video.lucent/library) | String.Contains(ListItem.FileNameAndPath,plugin.video.lucent/library)] + String.IsEqual(ListItem.DBTYPE,season) + !String.IsEmpty(Window(Home).Property(lucent.video.usenet)) + String.IsEmpty(Window(Home).Property(lucent.skin.libctx))</visible>
+            </item>
             <item library="context.py" args="source">
                 <label>32130</label>
                 <visible>String.Contains(ListItem.Path,plugin.video.lucent/library) + [String.IsEqual(ListItem.DBTYPE,movie) | String.IsEqual(ListItem.DBTYPE,episode)]</visible>
@@ -83,18 +95,17 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 84: next episode starts at once; Usenet completeness and audio check; learns from statistics; switching when a film stops; skipping without waiting; ready for tomorrow; season ready; sorting follows your profile; Tune connections fixed.
+        <news>1.0.0 beta 1, update 85: MediUX and fanart.tv pictures (own keys) and collection art in the library; asks for a Kodi restart after a VFS update; FLAC/PCM count as lossless sound; dubbed versions go to the bottom of their group; Get ready for tonight, Marathon planner and Get season ready in the library menu; scroll bar in the statistics.
+1.0.0 beta 1, update 84: next episode starts at once; Usenet completeness and audio check; learns from statistics; switching when a film stops; skipping without waiting; ready for tomorrow; season ready; sorting follows your profile; Tune connections fixed.
 1.0.0 beta 1, update 83: searching is fast again (the language setting was read for every source).
 1.0.0 beta 1, update 82: Usenet statistics (data per day, providers, indexers; Clear button).
 1.0.0 beta 1, update 81: Language of sources (your own language, its own coloured labels); Tune connections for Usenet.
 1.0.0 beta 1, update 80: GearsScrapers is used as a source when installed (like CocoScrapers).
 1.0.0 beta 1, update 79: Usenet for everyone (no test code needed); fast reader Lucent Video VFS in the Lucent repository for Android, CoreELEC/LibreELEC, Linux and Windows.
 1.0.0 beta 1, update 78: Clear resume point also clears Kodi's own point; test mode only: fast reader asks the other provider sooner, chapter pictures after the film.
-1.0.0 beta 1, update 77: the real release group on cross-posts (not -xpost); Clear resume point also works on Simkl.
-1.0.0 beta 1, update 76: source labels in one fixed order without duplicates.
-1.0.0 beta 1, update 75: test mode only: the Usenet test button also shows the fast reader (on/off, version).
-1.0.0 beta 1, update 74: test mode only: setting for requests at once per connection (pipelining) for the fast reader.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 84: Volgende aflevering start meteen; Compleet-controle bij Usenet; Lucent leert van je statistieken; Overstappen als een film halverwege stopt; Spoelen zonder wachten; Klaar voor vanavond: ook morgen; Sortering volgt je profiel; Verbindingen afstemmen klopt nu; Seizoen klaarzetten.
+1.0.0 beta 1, update 77: the real release group on cross-posts (not -xpost); Clear resume point also works on Simkl.</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 85: Melding na een update van Lucent Video VFS; Mooiere posters, logo's en collectieplaatjes; Sortering: Remux met FLAC-geluid weer bovenaan; Nagesynchroniseerde versies onderaan; Meer opties in de bibliotheek; Statistieken: schuifbalk bij veel indexers.
+1.0.0 beta 1, update 84: Volgende aflevering start meteen; Compleet-controle bij Usenet; Lucent leert van je statistieken; Overstappen als een film halverwege stopt; Spoelen zonder wachten; Klaar voor vanavond: ook morgen; Sortering volgt je profiel; Verbindingen afstemmen klopt nu; Seizoen klaarzetten.
 1.0.0 beta 1, update 83: Zoeken weer snel: Sinds update 81 las Lucent bij elke bron opnieuw de instelling 'Taal van bronnen' (honderden keren per zoekopdracht). Op een trage box kostte dat seconden. Nu één keer per zoekopdracht.
 1.0.0 beta 1, update 82: Usenet-statistieken: Nieuwe knop bij Usenet: Statistieken. Data per dag, en per provider en indexer hoeveel erdoor ging, de snelheid, wachttijd, fouten, ontbrekende stukjes en hoe vaak een NZB echt afspeelde. Alleen tellingen, hooguit een paar MB; ouder dan een jaar gaat vanzelf weg. Met Wissen maak je het leeg. Voor de cijfers van de snelle lezer is Lucent Video VFS 0.1.2 nodig.</news>
         <assets>

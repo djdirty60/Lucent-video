@@ -1121,6 +1121,9 @@ def _run(argv):
         if action == "nzb_tune":
             from nzb import tune
             return tune.run()
+        if action == "library_ctx":            # the Lucent skin's own buttons at the top of the context menu
+            import libctx
+            return libctx.run(params.get("what", ""), libctx.from_labels())
         if action == "season_ready":
             import seasonready
             return seasonready.run(params["tmdb"], params["season"])

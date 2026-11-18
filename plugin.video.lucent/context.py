@@ -47,9 +47,9 @@ def target(item):
     tmdb_id = tag.getUniqueID("tmdb")
     if not tmdb_id:
         folder = xbmc.getInfoLabel("ListItem.Path")
-        if kind == "season":
-            folder = os.path.dirname(folder.rstrip("/\\"))
         tmdb_id = _show_id(folder)
+        if not tmdb_id and kind == "season":         # a season's path is the show's folder; older Kodi: the season folder
+            tmdb_id = _show_id(os.path.dirname(folder.rstrip("/\\")))
     if not tmdb_id:
         return None
     meta = {"type": "tvshow", "tmdb": tmdb_id}
@@ -147,6 +147,9 @@ def main(what):
             xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="library_skip", tmdb=meta["tmdb"], season=meta["season"],
                                                              episode=meta.get("episode")))
         return None
+    if what in ("tonight", "marathon", "seasonready"):
+        import libctx
+        return libctx.run(what, target(item))
     meta = target(item)
     if not meta:
         util.notify(util.T("Deze titel komt niet van Lucent Video", "This title does not come from Lucent Video"))

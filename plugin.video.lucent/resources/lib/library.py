@@ -69,24 +69,50 @@ def rating_block(meta):
             % (meta["rating"], meta.get("votes") or 0))
 
 
+def _thumbs(aspect, urls, extra=""):
+    return "".join('  <thumb aspect="%s"%s preview="%s">%s</thumb>\n' % (aspect, extra, escape(_preview(u)), escape(u)) for u in urls)
+
+
 def _preview(url):
-    return url.replace("/w1280/", "/w300/").replace("/w500/", "/w185/")
+    import artsrc
+    return artsrc.preview(url.replace("/w1280/", "/w300/").replace("/w500/", "/w185/"))
 
 
 def art_block(meta):
-    """Every picture TMDB has, so Kodi's 'Choose art' offers them all. The first of each kind is the one used."""
+    """Every picture there is, so Kodi's 'Choose art' offers them all; the first of each kind is the one used.
+    TMDB's, plus (with your own keys) MediUX's special sets and fanart.tv's logos, clearart, discs and banners.
+    A film in a collection also carries the collection's pictures (set.poster ...): Kodi gives those to the movie set."""
+    import artsrc
     gallery = meta.get("gallery") or {}
+    kind = "tv" if meta.get("kind") == "tvshow" else "movie"
+    mx = artsrc.mediux(kind, meta.get("tmdb"))
+    fa = artsrc.fanart(kind, meta.get("tvdb") if kind == "tv" else meta.get("tmdb"))
     out = ""
-    for kind, key in (("poster", "poster"), ("clearlogo", "logo"), ("landscape", None)):
-        urls = list(dict.fromkeys(([meta[key]] if key and meta.get(key) else []) + (gallery.get(kind) or [])))
-        out += "".join('  <thumb aspect="%s" preview="%s">%s</thumb>\n' % (kind, escape(_preview(u)), escape(u)) for u in urls)
+    for art, key in (("poster", "poster"), ("clearlogo", "logo"), ("landscape", None), ("clearart", None), ("discart", None), ("banner", None)):
+        tmdb_urls = ([meta[key]] if key and meta.get(key) else []) + (gallery.get(art) or [])
+        out += _thumbs(art, artsrc.order(art, tmdb_urls, mx, fa))
     for season in meta.get("seasons") or []:
-        if season.get("poster_path"):
-            url = tmdb.image(season["poster_path"], "w500")
-            out += '  <thumb aspect="poster" type="season" season="%d" preview="%s">%s</thumb>\n' % (season["season_number"], escape(_preview(url)), escape(url))
-    fanart = list(dict.fromkeys(([meta["fanart"]] if meta.get("fanart") else []) + (gallery.get("fanart") or [])))
+        number = season["season_number"]
+        tmdb_urls = [tmdb.image(season["poster_path"], "w500")] if season.get("poster_path") else []
+        urls = list(dict.fromkeys(((mx.get("season") or {}).get(str(number)) or []) + tmdb_urls + ((fa.get("season") or {}).get(str(number)) or [])))
+        out += _thumbs("poster", urls, ' type="season" season="%d"' % number)
+    fanart = artsrc.order("fanart", ([meta["fanart"]] if meta.get("fanart") else []) + (gallery.get("fanart") or []), mx, fa)
     if fanart:
         out += "  <fanart>\n%s  </fanart>\n" % "".join('    <thumb preview="%s">%s</thumb>\n' % (escape(_preview(u)), escape(u)) for u in fanart)
+    if kind == "movie" and meta.get("set_id"):
+        out += set_art_block(meta["set_id"])
+    return out
+
+
+def set_art_block(set_id):
+    """The collection's pictures, as set.poster / set.fanart / set.clearlogo ... (Kodi collects them from every film of
+    the set for 'Choose art' on the set, and uses the first)."""
+    import artsrc
+    own = tmdb.collection_art(set_id)
+    mx, fa = artsrc.mediux("set", set_id), artsrc.fanart("set", set_id)
+    out = ""
+    for art in ("poster", "fanart", "clearlogo", "landscape", "clearart", "discart", "banner"):
+        out += _thumbs("set." + art, artsrc.order(art, own.get(art), mx, fa))
     return out
 
 

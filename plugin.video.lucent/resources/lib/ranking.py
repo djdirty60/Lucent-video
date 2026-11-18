@@ -14,13 +14,13 @@ FILE = "profiles.json"
 MARKS = r"(?:^|[ ._\-\[(])%s(?=$|[ ._\-\])])"
 FROM_FLAG = {"DV": "dv", "DV2": "dv2", "HDR": "hdr", "HLG": "hlg", "SDR": "sdr", "3D": "3d", "aio_FEL": "fel", "aio_P7": "p7", "aio_IMAX": "imax", "aio_10BIT": "10bit",
              "REMUX": "remux", "BLURAY": "bluray", "WEB": "web", "HDTV": "hdtv", "DVDRIP": "dvd", "CAM": "cam", "SCR": "cam", "ATMOS": "atmos",
-             "TRUEHD": "truehd", "DTS-X": "dtsx", "DTS-HDMA": "dtsma", "DTS-HD": "dtshd", "DTS": "dts", "DD+": "ddplus", "DD": "dd", "AAC": "aac",
+             "TRUEHD": "truehd", "DTS-X": "dtsx", "DTS-HDMA": "dtsma", "DTS-HD": "dtshd", "DTS": "dts", "DD+": "ddplus", "DD": "dd", "AAC": "aac", "FLAC": "flac", "PCM": "pcm", "LPCM": "pcm",
              "OPUS": "opus", "7.1": "71", "5.1": "51", "2.0": "20", "aio_MULTI": "multi", "HEVC": "hevc",
              "AVC": "avc", "AV1": "av1"}
 BY_NAME = {"remux": "REMUX", "bluray": "(?:BLU-?RAY|BDRIP|BRRIP)", "web": "WEB(?:-?DL|-?RIP)?", "hdtv": "HDTV", "cam": "(?:CAM|HDCAM|HDTS|TS|TELESYNC|TC|SCREENER|SCR)",
            "dv": "(?:DV|DOVI|DOLBY[ ._]?VISION)", "dv2": "DV2", "fel": "FEL", "p7": "(?:DV[ ._-]?)?P7", "hdr10plus": r"HDR10(?:\+|PLUS)", "hdr": r"HDR(?:10)?", "hlg": "HLG",
            "sdr": "SDR", "3d": "3D", "imax": "IMAX", "10bit": r"(?:10[- ]?BIT|HI10P?)", "atmos": r"(?:ATMOS|DDPA(?:[257][. ]?[01])?|DD\+A(?:[257][. ]?[01])?)", "truehd": r"TRUEHD(?:[257][. ]?[01])?", "dtsx": "DTS[-.:]?X", "dtsma": "DTS[-. ]?HD[-. ]?MA", "dtshd": "DTS[-. ]?HD",
-           "dts": "DTS", "ddplus": r"(?:DDPA?|DD\+A?|EAC3)(?:[257][. ]?[01])?", "dd": r"(?:DD|AC3)(?:[257][. ]?[01])?", "aac": r"AAC(?:[257][. ]?[01])?", "opus": r"OPUS(?:[257][. ]?[01])?", "hevc": "(?:HEVC|X265|H[. ]?265)", "avc": "(?:AVC|X264|H[. ]?264)",
+           "dts": "DTS", "flac": "FLAC", "pcm": "L?PCM", "ddplus": r"(?:DDPA?|DD\+A?|EAC3)(?:[257][. ]?[01])?", "dd": r"(?:DD|AC3)(?:[257][. ]?[01])?", "aac": r"AAC(?:[257][. ]?[01])?", "opus": r"OPUS(?:[257][. ]?[01])?", "hevc": "(?:HEVC|X265|H[. ]?265)", "avc": "(?:AVC|X264|H[. ]?264)",
            "av1": "AV1", "upscale": "(?:UPSCALED?|REGRADED?|AI[. ]?UPSCALE)", "hardcoded": "(?:HC|HARDCODED|HARDSUBS?)", "71": r"7[. ]1", "51": r"5[. ]1", "20": r"2[. ]0", "multi": "MULTI"}
 COMPILED = {tag: re.compile(MARKS % pattern, re.I) for tag, pattern in BY_NAME.items()}
 # channels glued to the sound format, as in DDP5.1, DD+5.1, AAC2.0 or TrueHD7.1
@@ -176,8 +176,8 @@ RULES = {
     "remux": ("Remux", ["remux"]), "webrip": ("WEBRip", ["webrip"]), "bluray": ("Blu-ray", ["bluray"]), "web": ("WEB-DL", ["web"]), "hdtv": ("HDTV", ["hdtv"]), "dvd": ("DVD", ["dvd"]), "cam": ("CAM / TS", ["cam"]),
     "felp7": ("P7 / FEL", ["fel", "p7"]), "fel": ("FEL", ["fel"]), "p7": ("P7 (MEL)", ["p7"]), "dv2": ("Dolby Vision 2", ["dv2"]), "dvany": ("Dolby Vision", ["dv"]), "dv": ("Dolby Vision", ["dv"]),
     "hdr10plus": ("HDR10+", ["hdr10plus"]), "hdr": ("HDR10", ["hdr"]), "hlg": ("HLG", ["hlg"]), "sdr": ("SDR", ["sdr"]), "3d": ("3D", ["3d"]), "imax": ("IMAX", ["imax"]), "10bit": ("10-bit", ["10bit"]),
-    "lossless": ("TrueHD / DTS-HD", ["truehd", "dtsx", "dtsma", "dtshd"]), "atmos": ("Atmos", ["atmos"]), "truehd": ("TrueHD", ["truehd"]), "dtsx": ("DTS:X", ["dtsx"]), "dtsma": ("DTS-HD MA", ["dtsma"]),
-    "dtshd": ("DTS-HD", ["dtshd"]), "dts": ("DTS", ["dts"]), "ddplus": ("Dolby Digital Plus", ["ddplus"]), "dd": ("Dolby Digital", ["dd"]), "aac": ("AAC", ["aac"]), "opus": ("Opus", ["opus"]),
+    "lossless": ("TrueHD / DTS-HD", ["truehd", "dtsx", "dtsma", "dtshd", "flac", "pcm"]), "atmos": ("Atmos", ["atmos"]), "truehd": ("TrueHD", ["truehd"]), "dtsx": ("DTS:X", ["dtsx"]), "dtsma": ("DTS-HD MA", ["dtsma"]),
+    "dtshd": ("DTS-HD", ["dtshd"]), "flac": ("FLAC", ["flac"]), "pcm": ("PCM", ["pcm"]), "dts": ("DTS", ["dts"]), "ddplus": ("Dolby Digital Plus", ["ddplus"]), "dd": ("Dolby Digital", ["dd"]), "aac": ("AAC", ["aac"]), "opus": ("Opus", ["opus"]),
     "71": ("7.1", ["71"]), "51": ("5.1", ["51"]), "20": ("Stereo", ["20"]), "hevc": ("HEVC", ["hevc"]), "avc": ("H.264", ["avc"]), "av1": ("AV1", ["av1"]),
     "cached": (T("Direct speelbaar", "Ready to play"), ["cached"]), "uncached": (T("Niet direct speelbaar", "Not ready to play"), ["uncached"]),
     "nl": (mylang.audio_label(), ["nl"]), "nlsubs": (mylang.subs_label(), ["nlsubs"]), "multi": (T("Meerdere talen", "Multiple languages"), ["multi"]),
@@ -185,7 +185,7 @@ RULES = {
     "largest": (T("Grootste bestand", "Largest file"), []), "smallest": (T("Kleinste bestand", "Smallest file"), []),
 }
 GROUPS = [("resolution", T("Resolutie", "Resolution"), ["4k", "1440p", "1080p", "720p", "sd"]), ("source", T("Bron", "Source"), ["remux", "bluray", "web", "hdtv", "dvd", "cam"]),
-          ("visual", T("Beeld", "Picture"), ["fel", "p7", "dv2", "dv", "hdr10plus", "hdr", "hlg", "sdr", "imax", "10bit"]), ("audio", T("Geluid", "Sound"), ["atmos", "truehd", "dtsx", "dtsma", "dtshd", "dts", "ddplus", "dd", "aac", "opus"]),
+          ("visual", T("Beeld", "Picture"), ["fel", "p7", "dv2", "dv", "hdr10plus", "hdr", "hlg", "sdr", "imax", "10bit"]), ("audio", T("Geluid", "Sound"), ["atmos", "truehd", "dtsx", "dtsma", "flac", "pcm", "dtshd", "dts", "ddplus", "dd", "aac", "opus"]),
           ("speed", T("Direct speelbaar", "Ready to play"), ["cached", "uncached"]), ("language", T("Taal", "Language"), ["nl", "nlsubs", "multi"]), ("size", T("Grootte", "Size"), ["largest", "smallest"]),
           ("channels", T("Kanalen", "Channels"), ["71", "51", "20"]), ("codec", "Codec", ["hevc", "av1", "avc"]),
           ("scraper", "Scraper", [])]
@@ -236,6 +236,36 @@ def presets():
     }
 
 
+# Lossless sound added later (FLAC, PCM): in a saved profile they go right after DTS-HD MA, where TRaSH puts them
+NEXT_TO = {"flac": "dtsma", "pcm": "flac"}
+# A dub: the name says the sound is in another language than yours and than the original. Full words only, no
+# NORDIC/Nordic languages (those releases mostly keep the original sound) and not with MULTI / DL / DUAL (original kept).
+DUB_WORDS = {"de": r"(?:GERMAN|DEUTSCH)", "fr": r"(?:FRENCH|TRUEFRENCH|VFF|VFQ|VFI)", "es": r"(?:SPANISH|CASTELLANO|LATINO)",
+             "it": r"ITALIAN", "pt": r"(?:PORTUGUESE|DUBLADO)", "pl": r"(?:POLISH|LEKTOR)", "ru": r"RUSSIAN", "cs": r"CZECH",
+             "hu": r"HUNGARIAN", "tr": r"TURKISH", "ro": r"ROMANIAN", "en": r"ENGLISH", "nl": r"(?:DUTCH|FLEMISH)"}
+DUB_RE = {code: re.compile(MARKS % word, re.I) for code, word in DUB_WORDS.items()}
+KEEPS_ORIGINAL_RE = re.compile(MARKS % r"(?:MULTI|(?<!WEB-)(?<!WEB\.)DL|DUAL|DUAL[. -]?AUDIO|MULTI[. -]?AUDIO)", re.I)
+SUBS_WORD_RE = re.compile(r"[. -]?SUB(?:S|BED)?(?=$|[ ._\-\])])", re.I)
+
+
+def dub_language(source, original):
+    """The language of a dub ('de' for '...German.AC3.1080p...' of a Dutch film), or ''. Nothing when the original
+    language is not known, when the name keeps the original (MULTI, DL), or for your own language."""
+    if not original:
+        return ""
+    name = source.get("name") or ""
+    if KEEPS_ORIGINAL_RE.search(name):
+        return ""
+    mine = mylang.code()
+    for code, pattern in DUB_RE.items():
+        if code in (original, mine):
+            continue
+        hit = pattern.search(name)
+        if hit and not SUBS_WORD_RE.match(name, hit.end()):
+            return code
+    return ""
+
+
 def _store():
     return util.load_json(FILE, {"active": "aio", "profiles": {}})
 
@@ -253,7 +283,12 @@ def _complete(profile):
             continue
         order = known[group].setdefault("order", [])
         if group not in ("size", "scraper"):
-            order += [r for r in inner if r not in order]
+            for rule in [r for r in inner if r not in order]:
+                after = NEXT_TO.get(rule)
+                if after in order:
+                    order.insert(order.index(after) + 1, rule)
+                else:
+                    order.append(rule)
     return profile
 
 
@@ -357,7 +392,7 @@ def _size_key(rule_id, source):
 VALUES = {
     "visual": {"fel": 200, "p7": 0, "dv2": 1000, "dv": 1000, "hdr10plus": 100, "hdr": 500, "hlg": 0, "sdr": 0, "imax": 300, "10bit": 100},
     "source": {"remux": 1900, "bluray": 1750, "web": 1650, "hdtv": 500, "dvd": 300, "cam": 0},
-    "audio": {"atmos": 3000, "truehd": 2750, "dtsx": 4500, "dtsma": 2500, "dtshd": 2000, "dts": 1250, "ddplus": 1750, "dd": 750,
+    "audio": {"atmos": 3000, "truehd": 2750, "dtsx": 4500, "dtsma": 2500, "flac": 2250, "pcm": 2250, "dtshd": 2000, "dts": 1250, "ddplus": 1750, "dd": 750,
               "aac": 1000, "opus": 250},
     "speed": {"cached": 1000, "uncached": 0},
     "language": {"nl": 1000, "nlsubs": 800, "multi": 500},
@@ -489,7 +524,7 @@ def quality_class(source):
     tags = tags_of(source)
     picture = "dv" if tags & {"dv", "dv2", "fel", "p7"} else ("hdr" if tags & {"hdr", "hdr10plus", "hlg"} else "sdr")
     origin = "remux" if "remux" in tags else ("bluray" if "bluray" in tags else ("web" if "web" in tags else "other"))
-    return picture, origin
+    return picture, origin, bool(source.get("dub"))     # a dub never jumps over a source in the original language
 
 
 def within_class(sources, first, apart=lambda s: None):
@@ -519,8 +554,9 @@ def heavy_last(sources):
     return sorted(sources, key=lambda s: (groups[s.get("resolution")], bool(s.get("heavy")), order[id(s)]))
 
 
-def apply(sources, profile, kind="movie", scraper_order=None):
-    """The sources that stay, best first. Each gets 'why': [(what, which rule)]."""
+def apply(sources, profile, kind="movie", scraper_order=None, original=""):
+    """The sources that stay, best first. Each gets 'why': [(what, which rule)]. A dub in another language than yours
+    and the original (original: TMDB's original_language) goes to the bottom of its group (usually its resolution)."""
     scraper_order = scraper_order or []
     per = profile["scrapers"].get("per") or {}
     kept, seen = [], set()
@@ -533,7 +569,12 @@ def apply(sources, profile, kind="movie", scraper_order=None):
             continue
         seen.add(fingerprint)
         key, why = _order_key(source, tags, profile, scraper_order, kind)
-        kept.append((key, position, dict(source, why=why, trash_low=any(w[0] in LOW_LABELS for w in why))))
+        dub = dub_language(source, original) if not profile.get("as_is") else ""
+        key.insert(3 if profile.get("strict") else 2, 1 if dub else 0)
+        if dub:
+            why = why + [(T("Nagesynchroniseerd (%s)" % mylang.NL_NAMES.get(dub, dub), "Dubbed (%s)" % mylang.LANGS[dub][0]),
+                         T("Onderaan de groep", "Bottom of the group"))]
+        kept.append((key, position, dict(source, why=why, dub=dub, trash_low=any(w[0] in LOW_LABELS for w in why))))
     if profile.get("as_is"):
         kept = [([], row[1], dict(row[2], why=[])) for row in kept]
     kept.sort(key=lambda row: (row[0], row[1]))

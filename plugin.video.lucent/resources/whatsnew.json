@@ -2,6 +2,57 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+85",
+   "label": "Beta 1 · update 85",
+   "label_en": "Beta 1 · update 85",
+   "date": "2026-11-18",
+   "at": "2026-11-18T22:40Z",
+   "items": [
+    [
+     "refresh",
+     "Melding na een update van Lucent Video VFS",
+     "Kodi gebruikt een nieuwe Lucent Video VFS pas na een herstart. Lucent ziet dat nu en vraagt of Kodi opnieuw mag starten (nooit tijdens het kijken). Op Android: Kodi afsluiten en opnieuw openen.",
+     "Message after a Lucent Video VFS update",
+     "Kodi uses a new Lucent Video VFS only after a restart. Lucent now notices and asks whether Kodi may restart (never while you watch). On Android: close Kodi and open it again."
+    ],
+    [
+     "library",
+     "Mooiere posters, logo's en collectieplaatjes",
+     "In Instellingen > Algemeen > Posters kun je een eigen sleutel van MediUX en van fanart.tv invullen. Dan krijg je bij 'Afbeelding kiezen' in je bibliotheek ook de bijzondere sets van MediUX (de populairste wordt meteen gebruikt) en de logo's, clearart, discs en banners van fanart.tv. Collecties krijgen nu ook posters, achtergronden en logo's (TMDb, MediUX, fanart.tv). Zonder sleutels: alleen TMDb, zoals eerst, plus collectieplaatjes. ThePosterDB kan niet: die staat automatisch ophalen niet toe.",
+     "Nicer posters, logos and collection pictures",
+     "In Settings > General > Posters you can fill in your own MediUX and fanart.tv keys. 'Choose art' in your library then also offers MediUX's special sets (the most popular one is used straight away) and fanart.tv's logos, clearart, discs and banners. Collections now get posters, backgrounds and logos too (TMDB, MediUX, fanart.tv). Without keys: only TMDB as before, plus collection pictures. ThePosterDB is not possible: it does not allow automated fetching."
+    ],
+    [
+     "movies",
+     "Sortering: Remux met FLAC-geluid weer bovenaan",
+     "FLAC en PCM tellen nu als verliesvrij geluid (zoals TrueHD en DTS-HD MA). Een Remux met FLAC zakte eerst onder een gewone Blu-ray met AC3.",
+     "Sorting: Remux with FLAC sound on top again",
+     "FLAC and PCM now count as lossless sound (like TrueHD and DTS-HD MA). A Remux with FLAC used to drop below a plain Blu-ray with AC3."
+    ],
+    [
+     "movies",
+     "Nagesynchroniseerde versies onderaan",
+     "Een release die in de naam een andere taal noemt (bijvoorbeeld German of French) gaat onderaan zijn groep, behalve als dat je eigen taal of de originele taal is. MULTI- en DL-releases (origineel erbij) blijven gewoon staan.",
+     "Dubbed versions at the bottom",
+     "A release whose name says another language (for example German or French) goes to the bottom of its group, unless that is your own language or the original language. MULTI and DL releases (original included) stay where they are."
+    ],
+    [
+     "library",
+     "Meer opties in de bibliotheek",
+     "In het menu van je bibliotheek staan nu ook Klaarzetten voor vanavond (films en afleveringen), Marathonplanner (series) en Seizoen klaarzetten (seizoenen, met Usenet).",
+     "More options in the library",
+     "The menu of your library now also has Get ready for tonight (films and episodes), Marathon planner (series) and Get season ready (seasons, with Usenet)."
+    ],
+    [
+     "info",
+     "Statistieken: schuifbalk bij veel indexers",
+     "De lijsten met providers en indexers krijgen een schuifbalk als ze niet in één keer passen (6 rijen), en rechtsboven staat hoeveel indexers het zijn. Ga met omlaag de lijst in om verder te scrollen.",
+     "Statistics: scroll bar with many indexers",
+     "The provider and indexer lists get a scroll bar when they don't fit at once (6 rows), and the top right says how many indexers there are. Move down into the list to scroll further."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+84",
    "label": "Beta 1 · update 84",
    "label_en": "Beta 1 · update 84",

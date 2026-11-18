@@ -41,6 +41,52 @@ def available():
         return False
 
 
+LOADED = "lucent.video.vfs.loaded"      # Home property: the vfs.lucent version Kodi loaded in this run
+ASKED = "lucent.video.vfs.asked"
+
+
+def _installed():
+    try:
+        import xbmcaddon
+        return xbmcaddon.Addon(ADDON_ID).getAddonInfo("version") if available() else ""
+    except Exception:                   # noqa: BLE001 - not installed
+        return ""
+
+
+def check_restart(playing):
+    """Kodi keeps the vfs.lucent it loaded at start until it restarts: an update only counts after that. When the
+    installed version is newer than the loaded one, say so once (never while a video plays) and offer the restart."""
+    installed = _installed()
+    if not installed:
+        return
+    loaded = util.HOME.getProperty(LOADED)
+    if not loaded:
+        util.HOME.setProperty(LOADED, installed)        # the first look in this Kodi run: that is what Kodi loaded
+        return
+    if loaded == installed or playing or util.HOME.getProperty(ASKED) == installed:
+        return
+    util.HOME.setProperty(ASKED, installed)
+    util.log("usenet: vfs.lucent %s installed, Kodi still uses %s until it restarts" % (installed, loaded))
+    import threading
+    threading.Thread(target=_ask_restart, args=(installed,), daemon=True).start()     # the service keeps running
+
+
+def _ask_restart(installed):
+    import xbmc
+    import xbmcgui
+    short = installed.split("+")[0]
+    if xbmc.getCondVisibility("System.Platform.Android"):
+        xbmcgui.Dialog().ok("Lucent Video VFS", util.T(
+            "Lucent Video VFS is bijgewerkt naar %s. Kodi gebruikt de nieuwe versie pas als je Kodi helemaal afsluit en opnieuw opent." % short,
+            "Lucent Video VFS was updated to %s. Kodi uses the new version only after you close Kodi completely and open it again." % short))
+        return
+    if xbmcgui.Dialog().yesno("Lucent Video VFS", util.T(
+            "Lucent Video VFS is bijgewerkt naar %s. Kodi gebruikt de nieuwe versie pas na een herstart.[CR][CR]Kodi nu opnieuw starten?" % short,
+            "Lucent Video VFS was updated to %s. Kodi uses the new version only after a restart.[CR][CR]Restart Kodi now?" % short),
+            nolabel=util.T("Later", "Later"), yeslabel=util.T("Nu herstarten", "Restart now")):
+        xbmc.executebuiltin("RestartApp")
+
+
 def wanted():
     return util.flag("nzb_native") and available()
 

@@ -1972,3 +1972,31 @@ msgstr ""
 msgctxt "#32559"
 msgid "Data per day, and per provider and indexer how much went through it, how fast, how often something was missing and how often an NZB could really be played. Only counts are kept (no titles), at most a couple of MB; anything older than a year goes by itself. Clear empties it."
 msgstr ""
+
+msgctxt "#32560"
+msgid "Get ready for tonight"
+msgstr ""
+
+msgctxt "#32561"
+msgid "Marathon planner"
+msgstr ""
+
+msgctxt "#32562"
+msgid "Get season ready"
+msgstr ""
+
+msgctxt "#32563"
+msgid "fanart.tv key"
+msgstr ""
+
+msgctxt "#32564"
+msgid "Your own personal API key from fanart.tv (free account, fanart.tv > Profile > API). Adds logos, clearart, discs and banners to 'Choose art' in your library, also for collections. Empty: only TMDB's pictures."
+msgstr ""
+
+msgctxt "#32565"
+msgid "MediUX key"
+msgstr ""
+
+msgctxt "#32566"
+msgid "Your own MediUX API key. Adds MediUX's special fan-made poster and background sets to 'Choose art' in your library (films, series, seasons, collections) and uses the most popular one. Empty: no MediUX."
+msgstr ""

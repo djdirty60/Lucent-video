@@ -53,7 +53,7 @@ def run(tmdb_id, season):
         found = nzb_source.fetch(first) or []
         packs = [s for s in found if s.get("pack")]
         if packs:
-            packs = ranking.heavy_last(ranking.apply(packs, ranking.active(), "episode", ["Usenet"]))
+            packs = ranking.heavy_last(ranking.apply(packs, ranking.active(), "episode", ["Usenet"], first.get("lang") or ""))
         if not packs:
             util.notify(T("Geen seizoenspak gevonden voor seizoen %d", "No season pack found for season %d") % season)
             return

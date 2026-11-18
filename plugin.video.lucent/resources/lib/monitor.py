@@ -458,6 +458,11 @@ class Events(xbmc.Monitor):
     def onSettingsChanged(self):
         util.publish_lab()
         try:
+            import libctx
+            libctx.publish()                    # Usenet set up? ('Get season ready' in the library's context menu)
+        except Exception:                       # noqa: BLE001
+            pass
+        try:
             import posters
             posters.check_soon()                # a new poster pattern: is it reachable?
         except Exception:                       # noqa: BLE001
@@ -580,6 +585,9 @@ def run():
             remote.tidy()
             if seconds % 5 == 0:
                 _usenet_tick(watcher.isPlayingVideo())
+            if seconds % 30 == 10:
+                from nzb import vfs as nzb_vfs
+                nzb_vfs.check_restart(watcher.isPlaying())      # vfs.lucent updated: Kodi needs a restart to use it
             if (seconds == 20 or seconds % 3600 == 30) and not watcher.isPlaying():    # is the poster maker (if any) reachable?
                 import posters
                 posters.check_soon()
