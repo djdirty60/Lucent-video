@@ -147,10 +147,17 @@ class Sources(Base):
         """Subtitles in your language inside the file (read from its tracks), not in the release name: the same badge
         as a name with NL-SUBS / RO-SUBS gets."""
         import mylang
-        flag = mylang.subs_flag()
-        if mylang.code() not in (found.get("subs") or []) or flag in (source.get("flags") or []):
+        from nzb import source as nzb_source
+        wanted = []
+        if mylang.code() in (found.get("subs") or []):
+            wanted.append(mylang.subs_flag())
+        dovi = nzb_source.dovi_flag(found)          # Dolby Vision from the file itself: FEL, or P7 (MEL)
+        if dovi and not ({"aio_FEL", "aio_P7"} & set(source.get("flags") or []) and dovi == "aio_P7"):
+            wanted.append(dovi)
+        wanted = [f for f in wanted if f not in (source.get("flags") or [])]
+        if not wanted:
             return
-        source["flags"] = list(source.get("flags") or []) + [flag]
+        source["flags"] = list(source.get("flags") or []) + wanted
         try:
             position = next(n for n, s in enumerate(self.current) if s is source)
             item = self.rows.getListItem(position)

@@ -2028,3 +2028,11 @@ msgstr "Lucent gebruikt MDBList niet meer als je account. De sleutel blijft, dus
 msgctxt "#32573"
 msgid "Shows which MDBList account you are linked with and how much you watched."
 msgstr "Laat zien met welk MDBList-account je gekoppeld bent en hoeveel je keek."
+
+msgctxt "#32574"
+msgid "NZBIndex: free search without an account"
+msgstr "NZBIndex: gratis zoeken zonder account"
+
+msgctxt "#32575"
+msgid "Also searches NZBIndex, a free Usenet search that needs no account or key. It is asked last, after your own indexers. It searches by name only, so it finds fewer releases (not those with a scrambled name) and its titles are taken from the posts themselves. Your own Usenet provider is still needed to play."
+msgstr "Zoekt ook bij NZBIndex, een gratis Usenet-zoekmachine zonder account of sleutel. Die wordt als laatste gevraagd, na je eigen indexers. Hij zoekt alleen op naam, dus vindt minder releases (niet die met een versleutelde naam) en de titels komen uit de berichten zelf. Je eigen Usenet-provider blijft nodig om af te spelen."

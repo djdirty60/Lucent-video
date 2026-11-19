@@ -2,11 +2,11 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
-   "v": "1.0.0~rc1",
+   "v": "1.0.0~rc1.1",
    "label": "RC 1",
    "label_en": "RC 1",
    "date": "2026-11-19",
-   "at": "2026-11-19T15:00Z",
+   "at": "2026-11-19T15:30Z",
    "items": [
     [
      "star",
@@ -14,6 +14,20 @@
      "Lucent Video is nu RC 1: alles wat voor versie 1.0 gepland stond zit erin, de komende tijd gaat het om fouten oplossen en fijnafstellen.",
      "Release candidate 1",
      "Lucent Video is now RC 1: everything planned for version 1.0 is in, from here on it is about fixing bugs and fine tuning."
+    ],
+    [
+     "refresh",
+     "NZBIndex: gratis zoeken zonder account",
+     "Bij Usenet kun je NZBIndex aanzetten, een gratis zoekmachine zonder account of sleutel. Lucent vraagt hem als laatste, na je eigen indexers. Hij zoekt alleen op naam, dus vindt minder (geen releases met een versleutelde naam). Je eigen Usenet-provider blijft nodig om af te spelen.",
+     "NZBIndex: free search without an account",
+     "Under Usenet you can switch on NZBIndex, a free search without an account or key. Lucent asks it last, after your own indexers. It searches by name only, so it finds less (no releases with a scrambled name). Your own Usenet provider is still needed to play."
+    ],
+    [
+     "star",
+     "FEL of MEL uit het bestand zelf",
+     "Bij Usenet-releases met Dolby Vision van een UHD Blu-ray kijkt Lucent tijdens de controle in het bestand zelf: echte FEL krijgt het label FEL, een bijna lege laag (MEL) het label P7. Dat werkt ook als de releasenaam het niet zegt, en de volgorde van bronnen gebruikt het (bijvoorbeeld met 'FEL eerst').",
+     "FEL or MEL from the file itself",
+     "For Usenet releases with Dolby Vision from a UHD Blu-ray, Lucent looks inside the file during the check: real FEL gets the FEL label, an almost empty layer (MEL) the P7 label. This works when the release name does not say it, and the order of sources uses it (for example with 'FEL first')."
     ],
     [
      "refresh",

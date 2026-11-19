@@ -144,6 +144,7 @@ def fetch(meta):
             if not pack:
                 source = usenet._source(name, row["size"], SERVICE, resolve=job)          # noqa: SLF001 - same add-on
                 _add_info(source, row)
+                _add_dovi(source, job)
                 source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"]), _group(row["title"]), badges, warn) if p)
                 source["heavy"] = heavy
                 source["always"] = True
@@ -238,6 +239,13 @@ NZB_FRESH = 7 * 86400       # an NZB never changes: one that was fetched is used
                             # and can close an account when the same NZB is fetched over and over)
 ALIVE = "nzb_alive.json"
 ALIVE_HOURS = 24            # a release found complete is not checked (nor its NZB fetched) again for this long
+
+
+def _add_dovi(source, job):
+    """FEL or P7 (MEL) as read from the file in an earlier check: a label, and the order of sources can use it."""
+    flag = dovi_flag(util.cache_get("nzbtracks" + _dead_key(job["link"]), TRACKS_DAYS * 86400))
+    if flag and flag not in (source.get("flags") or []):
+        source["flags"] = list(source.get("flags") or []) + [flag]
 
 
 def _nzb_name(job):
@@ -506,12 +514,22 @@ def health_text(result):
 
 CHECKING = "  ·  [COLOR FF8D99AA]%s[/COLOR]"
 TRACKS_DAYS = 7
+DOLBY_BYTES = 12 * 1024 * 1024          # FEL or MEL: the first frames, when they are not in the first 3 MB
+DV_BLURAY = re.compile(r"(?i)(?:^|[ ._\-])(?:DV|DOVI|DOLBY[ ._]?VISION)(?:$|[ ._\-]).*(?:BLU-?RAY|REMUX|BDREMUX)|(?:BLU-?RAY|REMUX|BDREMUX).*(?:^|[ ._\-])(?:DV|DOVI|DOLBY[ ._]?VISION)(?:$|[ ._\-])")
 TRACKS_BYTES = 3 * 1024 * 1024          # the track list of an MKV is in its first few hundred KB; 3 MB to be safe
 
 
 def tracks_known(job):
     saved = util.cache_get("nzbtracks" + _dead_key(job["link"]), TRACKS_DAYS * 86400)
+    if saved and "dovi" not in saved and DV_BLURAY.search(job.get("name") or ""):
+        return None                             # read before Lucent looked at Dolby Vision: read once more for FEL / MEL
     return saved or None
+
+
+def dovi_flag(found):
+    """The source label for what the file itself says: FEL, or P7 for profile 7 without a real enhancement layer."""
+    kind = (found or {}).get("dovi")
+    return {"fel": "aio_FEL", "mel": "aio_P7", "p7": "aio_P7"}.get(kind, "")
 
 
 def tracks(job, stop=lambda: False):
@@ -539,7 +557,16 @@ def tracks(job, stop=lambda: False):
                                       ahead=4 * 1024 * 1024, cache=16 * 1024 * 1024)
         if not (release.name or "").lower().endswith(".mkv"):
             return None
-        found = mkv.read(release.read(0, min(TRACKS_BYTES, int(release.size))))
+        head = release.read(0, min(TRACKS_BYTES, int(release.size)))
+        found = mkv.read(head)
+        if found and found.get("dv") == 7 and found.get("video"):
+            # Dolby Vision profile 7 (UHD Blu-ray): FEL or MEL, from the size of the enhancement layer in the first frames
+            number, nal_size = found["video"]
+            kind = mkv.dolby(head, number, nal_size, found["after"])
+            if not kind and int(release.size) > len(head) and not stop():
+                head = head + release.read(len(head), min(DOLBY_BYTES, int(release.size)) - len(head))
+                kind = mkv.dolby(head, number, nal_size, found["after"])
+            found["dovi"] = kind or "p7"
     except Exception as error:                  # noqa: BLE001 - no track info, never an error on screen
         util.log("usenet: tracks not read (%s)" % type(error).__name__)
         return None
@@ -551,8 +578,10 @@ def tracks(job, stop=lambda: False):
             spare.close()
     if found is None:
         return None
-    util.log("usenet: tracks read in %.1f s: audio %s, subtitles %s" % (time.time() - started, ",".join(found["audio"]) or "-",
-                                                                         ",".join(found["subs"]) or "-"))
+    found = {"audio": found["audio"], "subs": found["subs"], "dovi": found.get("dovi") or ("dv%d" % found["dv"] if found.get("dv") else "")}
+    util.log("usenet: tracks read in %.1f s: audio %s, subtitles %s%s" % (time.time() - started, ",".join(found["audio"]) or "-",
+                                                                           ",".join(found["subs"]) or "-",
+                                                                           ", Dolby Vision %s" % found["dovi"] if found["dovi"] else ""))
     util.cache_set("nzbtracks" + _dead_key(job["link"]), found)
     return found
 
@@ -696,8 +725,11 @@ def test():
         elif not good and text == "limit reached":
             text = util.T("het daglimiet is bereikt", "the daily limit is reached")
         used = newznab.usage(base)
-        lines.append(util.T("Indexer %d (%s): %s", "Indexer %d (%s): %s") % (slot, host, (util.T("werkt", "works") if good else text)
-                                                                             + " · " + util.T("vandaag %s", "today %s") % used))
+        state = (util.T("werkt", "works") if good else text) + " · " + util.T("vandaag %s", "today %s") % used
+        if newznab.is_free(base):
+            lines.append("NZBIndex (%s): %s" % (util.T("gratis", "free"), state))
+        else:
+            lines.append(util.T("Indexer %d (%s): %s", "Indexer %d (%s): %s") % (slot, host, state))
     if ok:
         lines.append(speed_test())
     return ok, lines

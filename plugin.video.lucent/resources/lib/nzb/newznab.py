@@ -192,8 +192,19 @@ def pause_text(base):
     return "paused until %s UTC (%s)" % (time.strftime("%H:%M", time.gmtime(until)), entry.get("why") or "?")
 
 
+# NZBIndex: a free Usenet search without an account. Asked through its RSS feed (the way SABnzbd and NZBGet use it),
+# last of all, after your own indexers. Its titles are the raw post subjects; the release name is taken out of them.
+FREE_SLOT = 99
+NZBINDEX = "https://nzbindex.nl/rss/"
+
+
+def is_free(base):
+    return base == NZBINDEX
+
+
 def indexers():
-    """[(slot, base address, key)] of the filled-in indexers. The address may be the site or its /api."""
+    """[(slot, base address, key)] of the filled-in indexers. The address may be the site or its /api. The free
+    NZBIndex search comes last, with slot 99 and no key."""
     out = []
     for slot in range(1, SLOTS + 1):
         base = util.setting("nzb_ix%d_url" % slot).strip().rstrip("/")
@@ -204,6 +215,8 @@ def indexers():
             if not base.endswith("/api"):
                 base += "/api"
             out.append((slot, base, key))
+    if util.flag("nzb_free_nzbindex"):
+        out.append((FREE_SLOT, NZBINDEX, ""))
     return out
 
 
@@ -229,6 +242,8 @@ def configured():
 
 def latest(slot, base, key, count=10):
     """A few of the newest films at this indexer (one search), for the speed test."""
+    if is_free(base):
+        return _free_ask("2160p remux", count, 1000)
     if not allowed(base, "api"):
         raise IndexerError("daily limit")
     return _rows(_ask(base, key, {"t": "movie", "cat": "2000", "limit": str(count), "extended": "1"}), slot)
@@ -415,6 +430,8 @@ def _queries(meta, base=""):
 def search(slot, base, key, meta, text_titles, background=False):
     """Rows from one indexer, from the cache when it asked the same in the last three hours. Background searches (getting
     things ready beforehand) stop at half of the daily limit; normal ones at 90%."""
+    if is_free(base):
+        return _free_search(meta, text_titles, background)
     asks = _queries(meta, base)
     if meta["kind"] == "movie":
         asks += [{"t": "search", "q": "%s %s" % (t, meta.get("year") or ""), "cat": "2000"} for t in text_titles[:1]]
@@ -509,7 +526,9 @@ def nzb(row):
     if not allowed(base, "grab"):
         raise IndexerError("NZB: daily limit")
     _count(base, "grab")
-    if "[key]" in row["link"]:
+    if is_free(base):
+        url = row["link"]                       # no key: the link is the download itself
+    elif "[key]" in row["link"]:
         # the key sat somewhere _strip_key could not take it out (nZEDb-style links like .../getnzb/x.nzb&i=1&r=KEY
         # have no '?'), so the search answer has [key] there: put the real key back in that same place
         url = row["link"].replace("[key]", urllib.parse.quote(key, safe=""))
@@ -552,6 +571,12 @@ def _link_shape(link, param):
 def test(slot, base, key):
     """(ok, text) for the settings' test button. 'caps' needs no key at most indexers, so it proves nothing about the
     key: a real (tiny) search does. That costs one API hit."""
+    if is_free(base):
+        try:
+            _free_ask("test", 1, 0)
+        except IndexerError as error:
+            return False, str(error)
+        return True, "ok"
     try:
         _ask(base, key, {"t": "caps"}, timeout=15)
         _ask(base, key, {"t": "search", "q": "test", "limit": "1"}, timeout=15)
@@ -563,3 +588,79 @@ def test(slot, base, key):
         return False, text
     return True, "ok"
 
+
+
+# ------------------------------------------------------------------ NZBIndex (free, no account)
+_EXTRA = re.compile(r"(\.(part\d+|vol\d+\+\d+))*\.(rar|par2|nzb|nfo|sfv|mkv|mp4|avi|m2ts|ts|7z|zip|r\d{2,3}|\d{3})$", re.I)
+
+
+def release_name(subject):
+    """The release name in a post subject: '[01/77] - "The.Film.2020.1080p-GRP.part01.rar" yEnc (1/137)' gives
+    'The.Film.2020.1080p-GRP'."""
+    subject = (subject or "").strip()
+    quoted = re.findall(r'"([^"]{6,})"', subject)
+    name = quoted[0] if quoted else subject
+    name = re.sub(r"\s*yEnc\b.*$", "", name, flags=re.I)
+    name = re.sub(r"[\[(]\s*\d+\s*/\s*\d+\s*[\])]", " ", name)
+    name = re.sub(r"^\W+|\W+$", "", name.strip(" -"))
+    for _ in range(3):
+        trimmed = _EXTRA.sub("", name)
+        if trimmed == name:
+            break
+        name = trimmed
+    return name.strip(" -._")
+
+
+def _free_ask(query, count=100, min_mb=100):
+    params = {"q": query, "max": str(count), "complete": "1", "hidespam": "1", "sort": "agedesc"}
+    if min_mb:
+        params["minsize"] = str(min_mb)
+    from . import stats
+    _count(NZBINDEX, "api")
+    started = time.time()
+    try:
+        body = fetch(NZBINDEX + "?" + urllib.parse.urlencode(params), 20)
+    except IndexerError as error:
+        stats.indexer(name_of(NZBINDEX), s=1, se=1)
+        _limit_hit(NZBINDEX, error)
+        raise
+    stats.indexer(name_of(NZBINDEX), s=1, ss=time.time() - started)
+    root = _root(body)
+    out, seen = [], set()
+    for item in root.iter("item"):
+        enclosure = item.find("enclosure")
+        link = (enclosure.get("url") if enclosure is not None else None) or item.findtext("link") or ""
+        title = release_name(item.findtext("title") or "")
+        if not title or not link or title.lower() in seen:
+            continue
+        seen.add(title.lower())
+        try:
+            size = int(enclosure.get("length") or 0) if enclosure is not None else 0
+        except ValueError:
+            size = 0
+        out.append({"title": title, "size": size, "slot": FREE_SLOT, "link": re.sub(r"^http://(nzbindex\.)", r"https://\1", link),
+                    "param": "", "grabs": 0, "posted": item.findtext("pubDate") or "", "info": {}})
+    return out
+
+
+def _free_search(meta, text_titles, background):
+    if not text_titles:
+        return []
+    if meta["kind"] == "movie":
+        query, min_mb = "%s %s" % (text_titles[0], meta.get("year") or ""), 300
+    else:
+        query, min_mb = "%s S%02dE%02d" % (text_titles[0], int(meta["season"]), int(meta["episode"])), 50
+    query = re.sub(r"[^\w\s]", " ", query, flags=re.UNICODE)
+    query = re.sub(r"\s+", " ", query).strip()
+    cache = "nzbsearch" + hashlib.sha1((NZBINDEX + query).encode("utf-8")).hexdigest()
+    saved = util.cache_get(cache, KEEP)
+    if saved is not None:
+        return saved
+    if not allowed(NZBINDEX, "api", background):
+        raise IndexerError("daily limit")
+    rows = _free_ask(query, 100, min_mb)
+    if rows:
+        from . import stats
+        stats.indexer(name_of(NZBINDEX), r=len(rows))
+    util.cache_set(cache, rows)
+    return rows
