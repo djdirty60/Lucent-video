@@ -1326,8 +1326,8 @@ private:
     }
     EvictLocked();
     cv_.notify_all();
-    if (SideQueuedLocked())
-      job_cv_.notify_all();                     // held-back extra readers may go now
+    if (!queue_.empty())
+      job_cv_.notify_all();                     // held-back articles (extra readers, or one the player took over) may go now
   }
 
   void HandleFailure(const Job& job, int pool_index, bool missing, const std::string& reason)
@@ -2041,7 +2041,10 @@ private:
         return {slot.data, slot.zero_filled};
       }
       if (slot.state == Slot::State::Queued && !side)
+      {
         PromoteLocked(key, 0);
+        job_cv_.notify_all();                   // it may have been an extra reader's article that was held back:
+      }                                         // the workers asleep over that must look again
       pinned_.insert(key);
       if (!side)
         ++waiting_[key];

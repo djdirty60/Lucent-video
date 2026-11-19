@@ -127,6 +127,10 @@ add_executable(cues_test tools/cues_test.cpp)
 target_link_libraries(cues_test PRIVATE lucent_core)
 set_target_properties(cues_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/tools")
 
+add_executable(held_test tools/held_test.cpp)
+target_link_libraries(held_test PRIVATE lucent_core)
+set_target_properties(held_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/tools")
+
 add_executable(head_tail_test tools/head_tail_test.cpp)
 target_link_libraries(head_tail_test PRIVATE lucent_core)
 set_target_properties(head_tail_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/tools")

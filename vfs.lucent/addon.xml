@@ -18,7 +18,8 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+    <news>0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
 0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
 0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
 0.1.1: own icon (blue, with a lightning bolt).
