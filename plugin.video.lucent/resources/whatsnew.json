@@ -2,11 +2,11 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
-   "v": "1.0.0~rc1.3",
+   "v": "1.0.0~rc1.4",
    "label": "RC 1",
    "label_en": "RC 1",
    "date": "2026-11-19",
-   "at": "2026-11-19T16:00Z",
+   "at": "2026-11-19T16:30Z",
    "items": [
     [
      "star",
@@ -42,6 +42,13 @@
      "In de bronnenlijst leest Lucent bij de Usenet-releases eerst wat er in het bestand zit (ongeveer een seconde per release), zodat de labels meteen kloppen. Daarna volgt de controle van alle stukjes, nu met meer verbindingen tegelijk (er blijven er altijd 4 vrij om te spelen). Achter de regel staat alleen nog 'compleet': de rest zie je aan de labels.",
      "First what is in the file, then the check",
      "In the source list Lucent first reads what is in the file of the Usenet releases (about a second per release), so the labels are right at once. The check of every article follows, now with more connections at once (4 always stay free for playing). After the line only 'complete' is shown: the rest is in the labels."
+    ],
+    [
+     "refresh",
+     "De lijst schuift mee met de nieuwe labels",
+     "Past de controle van het bestand labels aan (bijvoorbeeld TrueHD Atmos of NL-SUBS), dan zet Lucent de bronnenlijst meteen opnieuw op volgorde volgens je profiel. De bron waar je op staat blijft geselecteerd. 'Bronnen met ondertitels eerst' werkt weer: die zag door een fout de passende ondertitels niet. De dubbele instelling 'Taal van bronnen' is weg.",
+     "The list follows the new labels",
+     "When the file check changes labels (for example TrueHD Atmos or NL-SUBS), Lucent puts the source list in order again by your profile right away. The source you stand on stays selected. 'Sources with subtitles first' works again: a bug kept it from seeing the fitting subtitles. The double 'Language of sources' setting is gone."
     ],
     [
      "refresh",

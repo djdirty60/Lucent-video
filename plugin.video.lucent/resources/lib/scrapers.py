@@ -193,4 +193,31 @@ def search(meta, again=True):
     if "Usenet" in order:
         from nzb import source as nzb_source
         ranked = nzb_source.prune(ranked, meta)         # taken-down Usenet releases never reach the list
-    return subcheck.first(ranked, fitting), None
+    # ranking.apply hands back copies: the sources that fit a subtitle are known by their mark, not by the old objects
+    return subcheck.first(ranked, {id(s) for s in ranked if s.get("subs_online")} if fitting else set()), None
+
+
+def rerank(sources, meta):
+    """The same order as a search gives, again for these sources (their labels changed after the file check). The same
+    objects come back (the list window keeps working with them), in the new order; their 'why' is brought up to date."""
+    import learn
+    import subcheck
+    profile = ranking.active()
+    per = profile["scrapers"].get("per") or {}
+    order = [n for n in names(profile) if not per.get(n, {}).get("off")]
+    marked = [dict(s, _place=n) for n, s in enumerate(sources)]
+    ranked = ranking.heavy_last(learn.adjust(ranking.apply(marked, profile, meta.get("kind") or "movie", order, meta.get("lang") or "")))
+    ranked = subcheck.first(ranked, {id(s) for s in ranked if s.get("subs_online")})
+    out, seen = [], set()
+    for copy in ranked:
+        place = copy.get("_place")
+        if place is None or place in seen:
+            continue
+        seen.add(place)
+        original = sources[place]
+        for key in ("why", "dub", "trash_low"):
+            if key in copy:
+                original[key] = copy[key]
+        out.append(original)
+    out += [s for n, s in enumerate(sources) if n not in seen]     # anything the ranking left out keeps its place at the end
+    return out

@@ -162,6 +162,8 @@ class Sources(Base):
         if flags == list(source.get("flags") or []):
             return
         source["flags"] = flags
+        if self._rerank():
+            return                              # the tab was built again in the new order, with the new labels
         try:
             position = next(n for n, s in enumerate(self.current) if s is source)
             item = self.rows.getListItem(position)
@@ -170,6 +172,33 @@ class Sources(Base):
                 item.setProperty("flag%d" % number, "lucent/flags/%s.png" % shown[number - 1] if number <= len(shown) else "")
         except (StopIteration, RuntimeError, AttributeError):
             pass                                # on another tab now: shown when that tab is opened
+
+    def _rerank(self):
+        """The labels changed: the order of sources as your profile wants it with the new labels. The tab you look at is
+        built again only when its order really changed, and the source you stand on stays selected."""
+        import scrapers
+        try:
+            ranked = scrapers.rerank(self.sources, self.meta)
+        except Exception as error:              # noqa: BLE001 - the order stays as it was
+            util.log("sources: new order not made (%s)" % type(error).__name__)
+            return False
+        if [id(s) for s in ranked] == [id(s) for s in self.sources]:
+            return False
+        self.sources[:] = ranked
+        shown = [s for s in self.visible() if s["resolution"] == self.tab]
+        if [id(s) for s in shown] == [id(s) for s in self.current]:
+            return False                        # another tab moved: shown in the new order when it is opened
+        try:
+            position = self.rows.getSelectedPosition()
+            standing = self.current[position] if 0 <= position < len(self.current) else None
+            name, self.tab = self.tab, None
+            self.show_tab(name)
+            if standing is not None:
+                self.rows.selectItem(next(n for n, s in enumerate(self.current) if s is standing))
+        except (RuntimeError, StopIteration, AttributeError):
+            pass
+        util.log("sources: order made again after the file check")
+        return True
 
     def _show_health(self, source):
         try:
