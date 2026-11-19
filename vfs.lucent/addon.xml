@@ -5,6 +5,7 @@
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so" library_android="libvfs.lucent.so" library_windows="vfs.lucent.dll"/>
   <extension point="xbmc.addon.metadata">
@@ -18,7 +19,8 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
