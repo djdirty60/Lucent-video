@@ -262,4 +262,57 @@ std::vector<NntpReply> NntpConnection::BodyMany(const std::vector<std::string>& 
   return replies;
 }
 
+std::vector<bool> NntpConnection::StatMany(const std::vector<std::string>& message_ids)
+{
+  StatSend(message_ids);
+  return StatRead(message_ids);
+}
+
+void NntpConnection::StatSend(const std::vector<std::string>& message_ids)
+{
+  if (message_ids.empty())
+    return;
+  std::string commands;
+  commands.reserve(message_ids.size() * 96);
+  for (const std::string& message_id : message_ids)
+  {
+    commands += "STAT ";
+    commands += Angle(message_id);
+    commands += "\r\n";
+  }
+  std::string error;
+  if (!transport_->SendAll(commands.data(), commands.size(), error))
+    throw NntpError("cannot send STAT: " + error);
+}
+
+std::vector<bool> NntpConnection::StatRead(const std::vector<std::string>& message_ids)
+{
+  return StatRead(message_ids, std::chrono::steady_clock::time_point::max(), nullptr);
+}
+
+std::vector<bool> NntpConnection::StatRead(const std::vector<std::string>& message_ids,
+                                           std::chrono::steady_clock::time_point until,
+                                           const std::atomic<bool>* stop)
+{
+  std::vector<bool> present;
+  present.reserve(message_ids.size());
+  for (const std::string& message_id : message_ids)
+  {
+    if (stop && stop->load())
+      throw NntpError("stopped");
+    if (std::chrono::steady_clock::now() > until)
+      throw NntpError("took too long");
+    const auto reply = Reply();
+    if (reply.first == 223)
+      present.push_back(true);
+    else if (IsMissing(reply.first))
+      present.push_back(false);
+    else
+      throw NntpError("STAT " + Angle(message_id) + " answered " + std::to_string(reply.first) + " " +
+                          reply.second.substr(0, 60),
+                      reply.first);
+  }
+  return present;
+}
+
 }  // namespace engine

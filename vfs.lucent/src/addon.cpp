@@ -1,4 +1,5 @@
 #include "engine/common.h"
+#include "engine/device.h"
 #include "engine/plan.h"
 #include "engine/stream.h"
 
@@ -418,7 +419,41 @@ std::shared_ptr<engine::Stream> AcquireStream(const std::string& token,
   }
 
   reused = false;
-  auto stream = std::make_shared<engine::Stream>(plan);
+  // A film that was stopped stays warm for a while (to continue watching), with its whole cache. When another
+  // film starts, that memory is needed now: on a box with 2 GB two caches next to Kodi's own buffers ran the
+  // memory out and the system closed Kodi. So stopped streams close before the new cache is measured and made.
+  {
+    std::vector<std::shared_ptr<engine::Stream>> closing;
+    {
+      std::lock_guard<std::mutex> lock(g_session_mutex);
+      for (auto it = g_sessions.begin(); it != g_sessions.end();)
+      {
+        if (it->first != token && it->second->refs <= 0)
+        {
+          closing.push_back(it->second->stream);
+          it = g_sessions.erase(it);
+        }
+        else
+          ++it;
+      }
+    }
+    for (auto& old : closing)
+      old->Close();
+    if (!closing.empty())
+      kodi::Log(ADDON_LOG_INFO, "%d stopped stream(s) closed first: their memory is free for this one",
+                static_cast<int>(closing.size()));
+  }
+  std::shared_ptr<const engine::Plan> used = plan;
+  engine::DeviceInfo device;                    // the cache fitted to what this box has free right now
+  if (engine::ReadDevice(device))
+  {
+    auto fitted = std::make_shared<engine::Plan>(*plan);
+    const std::string note = engine::FitToDevice(*fitted, device);
+    if (!note.empty())
+      kodi::Log(ADDON_LOG_INFO, "%s", note.c_str());
+    used = fitted;
+  }
+  auto stream = std::make_shared<engine::Stream>(used);
   std::vector<uint8_t> first;
   if (LoadFirstArticle(token, *plan, first))
   {

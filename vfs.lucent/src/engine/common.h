@@ -17,7 +17,11 @@ enum class LogLevel
 using LogFn = void (*)(LogLevel level, const char* message);
 
 void SetLog(LogFn fn);
+#if defined(__GNUC__)
+void Log(LogLevel level, const char* fmt, ...) __attribute__((format(printf, 2, 3)));  // the compiler checks every log line
+#else
 void Log(LogLevel level, const char* fmt, ...);
+#endif
 void Trace(const char* fmt, ...);
 
 bool Base64Decode(const std::string& text, std::string& out);

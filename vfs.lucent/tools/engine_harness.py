@@ -56,9 +56,11 @@ class FakeNntp(socketserver.ThreadingTCPServer):
         self.batches = []
         self.batch_ids = []
         self.requests = []
+        self.stats = []
         self.lock = threading.Lock()
         self.delay = 0.0
         self.drop_after = drop_after
+        self.stat_drop = 0
         socketserver.ThreadingTCPServer.__init__(self, ('127.0.0.1', 0), Handler)
 
     def handle_error(self, request, client_address):
@@ -68,6 +70,8 @@ class FakeNntp(socketserver.ThreadingTCPServer):
 class Handler(socketserver.BaseRequestHandler):
     def handle(self):
         try:
+            if getattr(self.server, 'greet_delay', 0):
+                time.sleep(self.server.greet_delay)          # TLS and sign-in at a real provider
             self.request.sendall(b'200 fake ready\r\n')
             buffer = b''
             served = 0
@@ -131,6 +135,19 @@ class Handler(socketserver.BaseRequestHandler):
                                                  + b' article follows\r\n' + article + b'\r\n.\r\n')
                         served += 1
                         if self.server.drop_after and served >= self.server.drop_after:
+                            return
+                    elif upper.startswith('STAT '):
+                        if self.server.silent:
+                            continue
+                        mid = line[5:].strip().strip('<>')
+                        if getattr(self.server, 'stat_delay', 0):
+                            time.sleep(self.server.stat_delay)       # the provider looks the article up
+                        with self.server.lock:
+                            self.server.stats.append(mid)
+                            known = self.server.articles.get(mid) is not None
+                        self.request.sendall((b'223 0 <%s>\r\n' % mid.encode('latin-1')) if known else b'430 no such article\r\n')
+                        served += 1
+                        if self.server.stat_drop and served >= self.server.stat_drop:
                             return
                     elif upper == 'QUIT':
                         return
@@ -563,6 +580,189 @@ def test_jump_prefetch():
         server.server_close()
 
 
+def test_check():
+    print('native, the article check of the controle add-on (STAT only)')
+    import json
+    exe = os.path.join(os.path.dirname(EXE), 'check_test')
+    holes = {5, 77, 300}
+    main = FakeNntp(articles_for(COUNT, skip=holes))
+    spare = FakeNntp(articles_for(COUNT, skip={300}))
+    serve(main)
+    serve(spare)
+    try:
+        folder = tempfile.mkdtemp()
+        path = os.path.join(folder, 'check.plan')
+        plan = write_plan([(main.server_address[1], False, 'fake', 6)], ids_for(COUNT), COUNT)
+        open(path, 'w').write(plan)
+        result = subprocess.run([exe, path, '6'], capture_output=True, text=True, timeout=60)
+        answer = json.loads(result.stdout)
+        check('check exit code', result.returncode == 0, result.stderr[-300:])
+        check('check counts every article', answer['total'] == COUNT, answer)
+        check('check finds the holes', answer['present'] == COUNT - len(holes), answer)
+        check('check downloads nothing', not main.requests, len(main.requests))
+        check('check asks every article once', sorted(main.stats) == sorted(ids_for(COUNT)), len(main.stats))
+        plan = write_plan([(main.server_address[1], False, 'fake', 6), (spare.server_address[1], True, 'spare', 2)],
+                          ids_for(COUNT), COUNT)
+        open(path, 'w').write(plan)
+        spare.stats.clear()
+        main.stats.clear()
+        answer = json.loads(subprocess.run([exe, path, '6'], capture_output=True, text=True, timeout=60).stdout)
+        check('check: right count with a backup', answer['present'] == COUNT - 1, answer)
+        asked = main.stats + spare.stats
+        check('check: every article asked', set(asked) >= set(ids_for(COUNT)), len(set(asked)))
+        twice = [i for i in set(asked) if asked.count(i) > 1]
+        check('check: only the missing ones asked twice', set(twice) <= {ids_for(COUNT)[i] for i in holes} | {ids_for(COUNT)[300]}, twice)
+    finally:
+        for server in (main, spare):
+            server.shutdown()
+            server.server_close()
+
+
+def test_check_many():
+    print('native, the article check over many connections, with dropped connections')
+    import json
+    exe = os.path.join(os.path.dirname(EXE), 'check_test')
+    many = 12000
+    holes = set(range(0, many, 997))
+    main = FakeNntp({'a%04d@fake' % i: b'x' for i in range(many) if i not in holes})
+    main.stat_drop = 1500                   # every connection is cut after 1500 answers
+    spare = FakeNntp({'a%04d@fake' % i: b'x' for i in holes if i % 2})
+    serve(main)
+    serve(spare)
+    try:
+        folder = tempfile.mkdtemp()
+        path = os.path.join(folder, 'check.plan')
+        plan = write_plan([(main.server_address[1], False, 'fake', 8), (spare.server_address[1], True, 'spare', 2)],
+                          ['a%04d@fake' % i for i in range(many)], many)
+        open(path, 'w').write(plan)
+        result = subprocess.run([exe, path, '8'], capture_output=True, text=True, timeout=120)
+        check('many: exit code', result.returncode == 0, result.stderr[-600:])
+        answer = json.loads(result.stdout)
+        found_spare = len([i for i in holes if i % 2])
+        check('many: all counted', answer['total'] == many, answer)
+        check('many: right result', answer['present'] == many - len(holes) + found_spare, answer)
+        check('many: the backup asked only what the main provider lacks', sorted(set(spare.stats)) == sorted('a%04d@fake' % i for i in holes), len(spare.stats))
+        main.stat_drop = 0
+        main.delay = 0
+        spare.shutdown()
+        spare.server_close()
+        plan = write_plan([(main.server_address[1], False, 'fake', 8), (spare.server_address[1], True, 'spare', 2)],
+                          ['a%04d@fake' % i for i in range(many)], many)
+        open(path, 'w').write(plan)
+        result = subprocess.run([exe, path, '8'], capture_output=True, text=True, timeout=120)
+        answer = json.loads(result.stdout)
+        check('many: a dead backup gives an error, no wrong answer', answer['error'] != '', answer)
+    finally:
+        main.shutdown()
+        main.server_close()
+
+
+def test_check_kept():
+    print('native, the article check: a dead backup, and a slow one')
+    import json
+    exe = os.path.join(os.path.dirname(EXE), 'check_test')
+    many = 6000
+    ids = ['a%04d@fake' % i for i in range(many)]
+    main = FakeNntp({i: b'x' for i in ids})
+    serve(main)
+    try:
+        folder = tempfile.mkdtemp()
+        path = os.path.join(folder, 'check.plan')
+        dead = 1                                # nothing listens on port 1
+        plan = write_plan([(main.server_address[1], False, 'fake', 8), (dead, True, 'spare', 6)], ids, many)
+        open(path, 'w').write(plan)
+        result = subprocess.run([exe, path, '8'], capture_output=True, text=True, timeout=120)
+        answer = json.loads(result.stdout)
+        check('dead backup: the main provider does it all', answer['present'] == many and not answer['error'], answer)
+        slow = FakeNntp({i: b'x' for i in ids})
+        slow.stat_delay = 0.01                  # a backup ten times slower than the main one
+        serve(slow)
+        plan = write_plan([(main.server_address[1], False, 'fake', 8), (slow.server_address[1], True, 'spare', 6)], ids, many)
+        open(path, 'w').write(plan)
+        result = subprocess.run([exe, path, '8'], capture_output=True, text=True, timeout=120)
+        answer = json.loads(result.stdout)
+        check('slow backup: right count', answer['present'] == many and not answer['error'], answer)
+        slow.shutdown()
+        slow.server_close()
+    finally:
+        main.shutdown()
+        main.server_close()
+
+
+def test_check_trickle():
+    print('native, the article check: a provider that trickles its answers never holds it for long')
+    import json
+    exe = os.path.join(os.path.dirname(EXE), 'check_test')
+    ids = ['a%04d@fake' % i for i in range(4000)]
+    slow = FakeNntp({i: b'x' for i in ids})
+    slow.stat_delay = 0.2                       # 200 questions would take 40 s
+    serve(slow)
+    try:
+        folder = tempfile.mkdtemp()
+        path = os.path.join(folder, 'check.plan')
+        open(path, 'w').write(write_plan([(slow.server_address[1], False, 'slow', 8)], ids, len(ids)))
+        started = time.time()
+        result = subprocess.run([exe, path, '8', '30'], capture_output=True, text=True, timeout=120)
+        took = time.time() - started
+        answer = json.loads(result.stdout)
+        check('trickle: gives up with an error', answer['error'] != '', answer)
+        check('trickle: within the time limit (not minutes)', took < 40, round(took, 1))
+        fast = FakeNntp({i: b'x' for i in ids})
+        serve(fast)
+        open(path, 'w').write(write_plan([(fast.server_address[1], False, 'fast', 8), (slow.server_address[1], True, 'slow', 6)], ids, len(ids)))
+        started = time.time()
+        answer = json.loads(subprocess.run([exe, path, '8', '30'], capture_output=True, text=True, timeout=120).stdout)
+        took = time.time() - started
+        check('trickling backup: the main provider takes over, right count', answer['present'] == len(ids) and not answer['error'], answer)
+        check('trickling backup: not needed, so no wait for it', took < 16, round(took, 1))
+        fast.shutdown()
+        fast.server_close()
+    finally:
+        slow.shutdown()
+        slow.server_close()
+
+
+def test_check_cold():
+    print('native, the article check: old articles the provider looks up slowly are still checked (no packet deadline)')
+    import json
+    exe = os.path.join(os.path.dirname(EXE), 'check_test')
+    ids = ['a%04d@fake' % i for i in range(3000)]
+    cold = FakeNntp({i: b'x' for i in ids})
+    cold.stat_delay = 0.06                     # a packet of 200 takes 12 s: more than the old 10 s guard
+    serve(cold)
+    try:
+        folder = tempfile.mkdtemp()
+        path = os.path.join(folder, 'check.plan')
+        open(path, 'w').write(write_plan([(cold.server_address[1], False, 'cold', 15)], ids, len(ids)))
+        answer = json.loads(subprocess.run([exe, path, '15', '60'], capture_output=True, text=True, timeout=120).stdout)
+        check('cold: every article counted, no error', answer['present'] == len(ids) and not answer['error'], answer)
+    finally:
+        cold.shutdown()
+        cold.server_close()
+
+
+def test_check_silent():
+    print('native, the article check: a provider that never answers for this release ends quickly, and says which article')
+    import json
+    exe = os.path.join(os.path.dirname(EXE), 'check_test')
+    ids = ['a%04d@fake' % i for i in range(3000)]
+    mute = FakeNntp({i: b'x' for i in ids}, silent=True)
+    serve(mute)
+    try:
+        folder = tempfile.mkdtemp()
+        path = os.path.join(folder, 'check.plan')
+        open(path, 'w').write(write_plan([(mute.server_address[1], False, 'mute', 8)], ids, len(ids), timeout=5))
+        started = time.time()
+        answer = json.loads(subprocess.run([exe, path, '8', '60'], capture_output=True, text=True, timeout=120).stdout)
+        took = time.time() - started
+        check('silent: an error, no count', answer['error'] != '' and answer['present'] == 0, answer)
+        check('silent: names the first article asked', 'a0000@fake' in answer['error'] or '@fake' in answer['error'], answer['error'])
+        check('silent: over after one timeout, no reconnecting for a minute', took < 15, round(took, 1))
+    finally:
+        mute.shutdown()
+        mute.server_close()
+
+
 def main():
     if not os.path.exists(EXE):
         raise SystemExit('build the project first: %s is missing' % EXE)
@@ -571,6 +771,12 @@ def main():
     test_part_crc()
     test_seek()
     test_jump_prefetch()
+    test_check()
+    test_check_many()
+    test_check_kept()
+    test_check_trickle()
+    test_check_cold()
+    test_check_silent()
     test_missing()
     test_backup()
     test_hedge()

@@ -6,9 +6,9 @@ import os, re, subprocess, sys, tempfile, time, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import engine_harness as h
 
-SEG = 700 * 1024
-COUNT = 6000
-RATE = 12 * SEG
+SEG = int(os.environ.get('SEGKB', '700')) * 1024
+COUNT = int(os.environ.get('COUNT', '6000'))
+RATE = float(os.environ.get('RATE', 12 * SEG))
 ESCAPE = re.compile(rb'[\x00\x0a\x0d\x3d]')
 LINE = re.compile(rb'(?:=.|[^=]){1,128}', re.S)
 SHIFT = bytes((v + 42) & 0xFF for v in range(256))
@@ -68,7 +68,7 @@ class Lazy(dict):
     def get(self, mid, default=None):
         if not mid.startswith('a') or not mid.endswith('@fake'):
             return default
-        index = int(mid[1:5])
+        index = int(mid[1:-5])
         if index >= COUNT:
             return default
         if mid not in self:
@@ -91,11 +91,13 @@ def main():
     h.serve(server)
     begin = time.time()
     try:
-        plan = h.write_plan([(server.server_address[1], False, 'fake', 12)], h.ids_for(COUNT), COUNT,
-                            workers=12, total=COUNT * SEG, seconds=COUNT // 12)
+        workers = int(os.environ.get('WORKERS', '12'))
+        ids = ['a%04d@fake' % i for i in range(COUNT)]
+        plan = h.write_plan([(server.server_address[1], False, 'fake', workers)], ids, COUNT,
+                            workers=workers, total=COUNT * SEG, seconds=int(COUNT * SEG / RATE))
         plan = plan.replace('part 0 0 %d %d' % (COUNT * SEG, h.SEG), 'part 0 0 %d %d' % (COUNT * SEG, SEG))
-        plan = plan.replace('prefetch %d' % (256 * 1024), 'prefetch %d' % (96 << 20))
-        plan = plan.replace('cache %d' % (8 * 1024 * 1024), 'cache %d' % (204 << 20))
+        plan = plan.replace('prefetch %d' % (256 * 1024), 'prefetch %d' % (int(os.environ.get('PREFETCHMB', '96')) << 20))
+        plan = plan.replace('cache %d' % (8 * 1024 * 1024), 'cache %d' % (int(os.environ.get('CACHEMB', '204')) << 20))
         folder = tempfile.mkdtemp()
         path = os.path.join(folder, 'mile.plan')
         open(path, 'w').write(plan)
@@ -109,7 +111,7 @@ def main():
             seen = {}
             again = []
             for mid, at in zip(server.requests, stamps):
-                k = int(mid[1:5])
+                k = int(mid[1:-5])
                 if k in seen:
                     again.append((round(seen[k] - begin, 1), round(at - begin, 1), k))
                 seen.setdefault(k, at)

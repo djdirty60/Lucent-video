@@ -1,4 +1,5 @@
-"""Writes addon.xml for one Kodi version and one platform: make_addon_xml.py <21|22> <platform> <out>
+"""Writes addon.xml for one Kodi version and one platform: make_addon_xml.py <21|22> <platform> <out> [folder]
+(folder: where addon.xml and VERSION are, the repository root for vfs.lucent, 'check' for vfs.lucentcheck)
 
 Every build gets its own version (0.1.0+android.armv7.k21): the Kodi repository holds them all side by side, and
 each Kodi only sees the one for its own platform and Kodi version (Kodi skips the others)."""
@@ -8,14 +9,19 @@ KODI = {  # (main, general, filesystem, vfs) as (minversion, version)
     "21": (("2.0.0", "2.0.2"), ("1.0.4", "1.0.5"), ("1.1.7", "1.1.9"), ("3.0.1", "3.0.1")),
     "22": (("2.0.3", "2.0.4"), ("1.0.4", "1.0.6"), ("1.1.11", "1.1.11"), ("3.0.1", "3.0.1")),
 }
-LIB = {"android": 'library_android="libvfs.lucent.so"', "linux": 'library_linux="libvfs.lucent.so"',
-       "windows": 'library_windows="vfs.lucent.dll"'}
+import os
+import re
 
 kodi, platform, out = sys.argv[1], sys.argv[2], sys.argv[3]
-version = open(__file__.rsplit("/", 2)[0] + "/VERSION").read().strip()
+root = __file__.rsplit("/", 2)[0]
+folder = os.path.join(root, sys.argv[4]) if len(sys.argv) > 4 else root
+addon_id = re.search(r'<addon id="([^"]+)"', open(os.path.join(folder, "addon.xml")).read()).group(1)
+LIB = {"android": 'library_android="lib%s.so"' % addon_id, "linux": 'library_linux="lib%s.so"' % addon_id,
+       "windows": 'library_windows="%s.dll"' % addon_id}
+version = open(os.path.join(folder, "VERSION")).read().strip()
 version += "+%s.k%s" % (platform.replace("-", ".").replace("_", ""), kodi)      # '-' would start a Kodi revision
 (main, general, fs, vfs) = KODI[kodi]
-text = open(__file__.rsplit("/", 2)[0] + "/addon.xml").read()
+text = open(os.path.join(folder, "addon.xml")).read()
 for name, (low, high) in (("main", main), ("general", general), ("filesystem", fs)):
     start = text.index('<import addon="kodi.binary.global.%s"' % name)
     end = text.index("/>", start) + 2

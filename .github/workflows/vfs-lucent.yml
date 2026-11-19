@@ -1,4 +1,4 @@
-# Builds vfs.lucent (GPL-2.0-or-later) for the systems Kodi runs on, for Kodi 21 (Omega) and Kodi 22 (Piers).
+# Builds vfs.lucent and vfs.lucentcheck (GPL-2.0-or-later) for the systems Kodi runs on, for Kodi 21 (Omega) and Kodi 22 (Piers).
 # Every build gets its own version (0.1.0+android.armv7.k21, see tools/make_addon_xml.py), so the Kodi repository
 # can hold them side by side: each Kodi only takes the one for its own platform and Kodi version.
 # The zips are committed to this branch (vfs.lucent-out/); nothing goes to the Kodi repository from here.
@@ -42,9 +42,11 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
             -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-21 -DANDROID_STL=c++_shared \
             -DKODI_DEVKIT=$PWD/${{ matrix.devkit }}
-          cmake --build build --target vfs_lucent
+          cmake --build build --target vfs_lucent vfs_lucentcheck
           python3 tools/make_addon_xml.py ${{ matrix.kodi }} ${{ matrix.platform }} build/dist/vfs.lucent/addon.xml
+          python3 tools/make_addon_xml.py ${{ matrix.kodi }} ${{ matrix.platform }} build/dist/vfs.lucentcheck/addon.xml check
           python3 tools/zip_build.py build/dist
+          python3 tools/zip_build.py build/dist vfs.lucentcheck
       - uses: actions/upload-artifact@v4
         with:
           name: vfs.lucent-k${{ matrix.kodi }}-${{ matrix.platform }}
@@ -78,9 +80,11 @@ jobs:
           sudo apt-get update -q && sudo apt-get install -y ninja-build ${{ matrix.packages }}
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ${{ matrix.toolchain }} -DKODI_DEVKIT=$PWD/${{ matrix.devkit }}
-          cmake --build build --target vfs_lucent
+          cmake --build build --target vfs_lucent vfs_lucentcheck
           python3 tools/make_addon_xml.py ${{ matrix.kodi }} linux-${{ matrix.arch }} build/dist/vfs.lucent/addon.xml
+          python3 tools/make_addon_xml.py ${{ matrix.kodi }} linux-${{ matrix.arch }} build/dist/vfs.lucentcheck/addon.xml check
           python3 tools/zip_build.py build/dist
+          python3 tools/zip_build.py build/dist vfs.lucentcheck
       - uses: actions/upload-artifact@v4
         with:
           name: vfs.lucent-k${{ matrix.kodi }}-linux-${{ matrix.arch }}
@@ -113,10 +117,13 @@ jobs:
         working-directory: vfs.lucent
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DKODI_DEVKIT=$PWD/${{ matrix.devkit }}
-          cmake --build build --target vfs_lucent
+          cmake --build build --target vfs_lucent vfs_lucentcheck
           python tools/make_addon_xml.py ${{ matrix.kodi }} windows-x86_64 build/dist/vfs.lucent/addon.xml
+          python tools/make_addon_xml.py ${{ matrix.kodi }} windows-x86_64 build/dist/vfs.lucentcheck/addon.xml check
           objdump -p build/dist/vfs.lucent/vfs.lucent.dll | grep "DLL Name"
+          objdump -p build/dist/vfs.lucentcheck/vfs.lucentcheck.dll | grep "DLL Name"
           python tools/zip_build.py build/dist
+          python tools/zip_build.py build/dist vfs.lucentcheck
       - uses: actions/upload-artifact@v4
         with:
           name: vfs.lucent-k${{ matrix.kodi }}-windows-x86_64

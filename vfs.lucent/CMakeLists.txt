@@ -17,13 +17,20 @@ set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "" FORCE)
 set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "" FORCE)
 add_subdirectory(vendor/mbedtls EXCLUDE_FROM_ALL)
 
+# A log line whose values do not fit its text stops the build (0.1.6 of the check shipped one).
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Werror=format>)
+endif()
+
 add_library(lucent_core STATIC
   src/engine/common.cpp
   src/engine/plan.cpp
   src/engine/yenc.cpp
   src/engine/transport.cpp
   src/engine/nntp.cpp
-  src/engine/stream.cpp)
+  src/engine/stream.cpp
+  src/engine/checker.cpp
+  src/engine/device.cpp)
 target_include_directories(lucent_core PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/src"
   "${CMAKE_CURRENT_SOURCE_DIR}/vendor/mbedtls/include")
@@ -34,74 +41,54 @@ elseif(ANDROID)
   target_link_libraries(lucent_core PUBLIC log)
 endif()
 
-add_library(vfs_lucent SHARED src/addon.cpp)
-target_include_directories(vfs_lucent PRIVATE "${KODI_DEVKIT}")
-if(ANDROID)
-  target_compile_definitions(vfs_lucent PRIVATE
-    BUILD_KODI_ADDON
-    TARGET_ANDROID
-    TARGET_POSIX
-    ADDON_GLOBAL_VERSION_MAIN_USED
-    ADDON_GLOBAL_VERSION_GENERAL_USED
-    ADDON_GLOBAL_VERSION_FILESYSTEM_USED
-    ADDON_INSTANCE_VERSION_VFS_USED)
-  set(ADDON_PREFIX "lib")
-  set(ADDON_SUFFIX ".so")
-elseif(UNIX)
-  target_compile_definitions(vfs_lucent PRIVATE
-    BUILD_KODI_ADDON
-    TARGET_POSIX
-    TARGET_LINUX
-    ADDON_GLOBAL_VERSION_MAIN_USED
-    ADDON_GLOBAL_VERSION_GENERAL_USED
-    ADDON_GLOBAL_VERSION_FILESYSTEM_USED
-    ADDON_INSTANCE_VERSION_VFS_USED)
-  set(ADDON_PREFIX "lib")
-  set(ADDON_SUFFIX ".so")
-else()
-  target_compile_definitions(vfs_lucent PRIVATE
-    BUILD_KODI_ADDON
-    TARGET_WINDOWS
-    ADDON_GLOBAL_VERSION_MAIN_USED
-    ADDON_GLOBAL_VERSION_GENERAL_USED
-    ADDON_GLOBAL_VERSION_FILESYSTEM_USED
-    ADDON_INSTANCE_VERSION_VFS_USED)
-  set(ADDON_PREFIX "")
-  set(ADDON_SUFFIX ".dll")
-endif()
-set_target_properties(vfs_lucent PROPERTIES
-  PREFIX "${ADDON_PREFIX}"
-  OUTPUT_NAME "vfs.lucent"
-  SUFFIX "${ADDON_SUFFIX}"
-  CXX_VISIBILITY_PRESET hidden
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/vfs.lucent"
-  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/vfs.lucent")
-target_link_libraries(vfs_lucent PRIVATE lucent_core)
-if(WIN32)
-  target_link_options(vfs_lucent PRIVATE -static -static-libgcc -static-libstdc++ -s)
-elseif(ANDROID)
-  target_link_options(vfs_lucent PRIVATE -Wl,-s)
-else()
-  # Linux (CoreELEC, LibreELEC, desktop): the C++ runtime inside the add-on, so it loads next to any Kodi build
-  target_link_options(vfs_lucent PRIVATE -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL -Wl,-s -Wl,--no-undefined)
-endif()
+# Two Kodi add-ons from one engine: vfs.lucent (plays) and vfs.lucentcheck (checks a release before you pick it).
+function(lucent_addon target id source folder)
+  add_library(${target} SHARED ${source})
+  target_include_directories(${target} PRIVATE "${KODI_DEVKIT}")
+  set(defines BUILD_KODI_ADDON ADDON_GLOBAL_VERSION_MAIN_USED ADDON_GLOBAL_VERSION_GENERAL_USED
+      ADDON_GLOBAL_VERSION_FILESYSTEM_USED ADDON_INSTANCE_VERSION_VFS_USED)
+  if(ANDROID)
+    target_compile_definitions(${target} PRIVATE ${defines} TARGET_ANDROID TARGET_POSIX)
+    set(prefix "lib")
+    set(suffix ".so")
+  elseif(UNIX)
+    target_compile_definitions(${target} PRIVATE ${defines} TARGET_POSIX TARGET_LINUX)
+    set(prefix "lib")
+    set(suffix ".so")
+  else()
+    target_compile_definitions(${target} PRIVATE ${defines} TARGET_WINDOWS)
+    set(prefix "")
+    set(suffix ".dll")
+  endif()
+  set_target_properties(${target} PROPERTIES
+    PREFIX "${prefix}"
+    OUTPUT_NAME "${id}"
+    SUFFIX "${suffix}"
+    CXX_VISIBILITY_PRESET hidden
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/${id}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/${id}")
+  target_link_libraries(${target} PRIVATE lucent_core)
+  if(WIN32)
+    target_link_options(${target} PRIVATE -static -static-libgcc -static-libstdc++ -s)
+  elseif(ANDROID)
+    target_link_options(${target} PRIVATE -Wl,-s)
+  else()
+    # Linux (CoreELEC, LibreELEC, desktop): the C++ runtime inside the add-on, so it loads next to any Kodi build
+    target_link_options(${target} PRIVATE -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL -Wl,-s -Wl,--no-undefined)
+  endif()
+  add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${folder}/addon.xml" "$<TARGET_FILE_DIR:${target}>/addon.xml"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${folder}/icon.png" "$<TARGET_FILE_DIR:${target}>/icon.png"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt" "$<TARGET_FILE_DIR:${target}>/LICENSE.txt"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/THIRD-PARTY-NOTICES.txt" "$<TARGET_FILE_DIR:${target}>/THIRD-PARTY-NOTICES.txt"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/licenses" "$<TARGET_FILE_DIR:${target}>/licenses")
+endfunction()
 
-add_custom_command(TARGET vfs_lucent POST_BUILD
-  COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-          "${CMAKE_CURRENT_SOURCE_DIR}/addon.xml"
-          "$<TARGET_FILE_DIR:vfs_lucent>/addon.xml"
-  COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-          "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt"
-          "$<TARGET_FILE_DIR:vfs_lucent>/LICENSE.txt"
-  COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-          "${CMAKE_CURRENT_SOURCE_DIR}/THIRD-PARTY-NOTICES.txt"
-          "$<TARGET_FILE_DIR:vfs_lucent>/THIRD-PARTY-NOTICES.txt"
-  COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-          "${CMAKE_CURRENT_SOURCE_DIR}/icon.png"
-          "$<TARGET_FILE_DIR:vfs_lucent>/icon.png"
-  COMMAND "${CMAKE_COMMAND}" -E copy_directory
-          "${CMAKE_CURRENT_SOURCE_DIR}/licenses"
-          "$<TARGET_FILE_DIR:vfs_lucent>/licenses")
+lucent_addon(vfs_lucent vfs.lucent src/addon.cpp "${CMAKE_CURRENT_SOURCE_DIR}")
+lucent_addon(vfs_lucentcheck vfs.lucentcheck src/check_addon.cpp "${CMAKE_CURRENT_SOURCE_DIR}/check")
 
 add_executable(stream_test tools/stream_test.cpp)
 target_link_libraries(stream_test PRIVATE lucent_core)
@@ -130,6 +117,14 @@ set_target_properties(cues_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BIN
 add_executable(held_test tools/held_test.cpp)
 target_link_libraries(held_test PRIVATE lucent_core)
 set_target_properties(held_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/tools")
+
+add_executable(device_test tools/device_test.cpp)
+target_link_libraries(device_test PRIVATE lucent_core)
+set_target_properties(device_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/tools")
+
+add_executable(check_test tools/check_test.cpp)
+target_link_libraries(check_test PRIVATE lucent_core)
+set_target_properties(check_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dist/tools")
 
 add_executable(head_tail_test tools/head_tail_test.cpp)
 target_link_libraries(head_tail_test PRIVATE lucent_core)

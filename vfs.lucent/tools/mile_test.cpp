@@ -26,7 +26,7 @@ int main(int argc, char** argv)
   int64_t pos = 0; int waits = 0; double waited = 0;
   const auto t0 = Clock::now();
   auto play = [&](double seconds) {
-    std::printf("%.1f s: play from article %lld\n", Since(t0), (long long)(pos / (700 * 1024))); std::fflush(stdout);
+    std::printf("%.1f s: play from article %lld\n", Since(t0), (long long)(pos / (std::getenv("SEGKB") ? std::atoi(std::getenv("SEGKB")) * 1024 : 700 * 1024))); std::fflush(stdout);
     auto start = Clock::now(); const int steps = int(seconds * 10);
     for (int s = 0; s < steps; ++s) {
       auto t = Clock::now(); int64_t want = int64_t(rate / 10), got = 0;
@@ -38,6 +38,7 @@ int main(int argc, char** argv)
   };
   std::atomic<bool> stop{false}; int side_reads = 0;
   std::thread side([&]() {
+    if (std::getenv("NOSIDE")) return;
     std::this_thread::sleep_for(std::chrono::seconds(2));
     std::vector<uint8_t> b(64 * 1024);
     for (int k = 0; !stop.load() && k < 12; ++k) {
@@ -49,7 +50,8 @@ int main(int argc, char** argv)
     }
   });
   const auto begin = Clock::now();
-  if (std::getenv("PLAIN")) { play(40); goto done; }
+  if (std::getenv("START")) pos = int64_t(size * std::atof(std::getenv("START")));
+  if (std::getenv("PLAIN")) { play(std::getenv("SECONDS") ? std::atof(std::getenv("SECONDS")) : 40); goto done; }
   play(6);
   pos = int64_t(size * 0.09); play(4);                              // a skip far ahead
   pos = int64_t(size * 0.13); play(4);

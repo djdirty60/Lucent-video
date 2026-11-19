@@ -1988,6 +1988,28 @@ private:
     job_cv_.notify_all();
   }
 
+  // Bytes the cache holds that eviction keeps before the read-ahead: pinned articles, the film's start and skip
+  // targets, apart from those that lie in the read-ahead itself.
+  int64_t KeptBytes(int64_t part_size) const
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    const int64_t read = read_offset_.load();
+    const int64_t head = HeadKeep();
+    int64_t kept = 0;
+    for (const auto& entry : slots_)
+    {
+      const Slot& slot = entry.second;
+      if (slot.state == Slot::State::Empty)
+        continue;
+      const int64_t start = SlotStart(entry.first);
+      if (start >= read && start < read + plan_->prefetch)
+        continue;
+      if (slot.jump || start < head || pinned_.count(entry.first) != 0)
+        kept += slot.bytes > 0 ? slot.bytes : part_size;
+    }
+    return kept;
+  }
+
   int Lookahead(int part_index, int64_t remaining) const
   {
     const PlanPart& part = plan_->parts[part_index];
@@ -2003,6 +2025,10 @@ private:
       wanted = needed + kWorkerMargin;
     wanted = std::min<int64_t>(wanted, std::max<int64_t>(2, kHardPrefetchBytes / part_size));
     wanted = std::min<int64_t>(wanted, std::max<int64_t>(2, CacheLimit() / part_size - 1));
+    // What the cache keeps besides the read-ahead (the film's start, the tail, skip targets) is not room for it:
+    // a window larger than what is left gets its far end thrown out and fetched again, over and over.
+    const int64_t room = (CacheLimit() - KeptBytes(part_size)) * 9 / 10;   // and a margin for articles on their way
+    wanted = std::min<int64_t>(wanted, std::max<int64_t>(2, room / part_size - 1));
     return static_cast<int>(std::max<int64_t>(
         2, std::min<int64_t>(wanted, static_cast<int64_t>(part.articles.size()))));
   }

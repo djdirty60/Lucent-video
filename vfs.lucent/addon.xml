@@ -18,7 +18,10 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
 0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
 0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
 0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
