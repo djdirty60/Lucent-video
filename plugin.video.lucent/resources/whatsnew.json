@@ -2,7 +2,7 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
-   "v": "1.0.0~rc1.2",
+   "v": "1.0.0~rc1.3",
    "label": "RC 1",
    "label_en": "RC 1",
    "date": "2026-11-19",
@@ -32,9 +32,16 @@
     [
      "info",
      "De labels kloppen met het bestand zelf",
-     "Bij de controle van een Usenet-release leest Lucent nu ook het geluid per spoor (TrueHD, DD+, DTS, kanalen, Atmos als het spoor dat zegt), of het beeld echt HDR is, de echte resolutie, de speelduur en of de ondertitels in jouw taal alleen geforceerd zijn. Labels die niet kloppen met het bestand worden aangepast; wijkt de speelduur flink af van TMDb (een andere versie, of een sample) of is het beeld anders dan de naam zegt, dan staat dat in oranje achter de regel. Een release die op slot zit met een wachtwoord of ingepakt is, krijgt dat te zien en komt bij de volgende keer zoeken niet meer in de lijst.",
+     "Bij de controle van een Usenet-release leest Lucent ook het geluid per spoor (TrueHD, DD+, DTS, kanalen, Atmos als het spoor dat zegt), of het beeld echt HDR is, de echte resolutie en of de ondertitels in jouw taal alleen geforceerd zijn. Labels die niet kloppen met het bestand worden aangepast; achter de regel blijft alleen 'compleet' staan. Een release die op slot zit met een wachtwoord of ingepakt is, krijgt dat te zien en komt bij de volgende keer zoeken niet meer in de lijst.",
      "The labels match the file itself",
-     "When checking a Usenet release Lucent now also reads the sound per track (TrueHD, DD+, DTS, channels, Atmos when the track says so), whether the picture is really HDR, the real resolution, the running time and whether the subtitles in your language are forced only. Labels the file contradicts are set right; a running time far from TMDb's (another cut, or a sample) or a picture other than the name says is shown in orange after the line. A release locked with a password or packed says so and is left out of the list the next time you search."
+     "When checking a Usenet release Lucent also reads the sound per track (TrueHD, DD+, DTS, channels, Atmos when the track says so), whether the picture is really HDR, the real resolution and whether the subtitles in your language are forced only. Labels the file contradicts are set right; after the line only 'complete' stays. A release locked with a password or packed says so and is left out of the list the next time you search."
+    ],
+    [
+     "refresh",
+     "Eerst wat er in het bestand zit, dan de controle",
+     "In de bronnenlijst leest Lucent bij de Usenet-releases eerst wat er in het bestand zit (ongeveer een seconde per release), zodat de labels meteen kloppen. Daarna volgt de controle van alle stukjes, nu met meer verbindingen tegelijk (er blijven er altijd 4 vrij om te spelen). Achter de regel staat alleen nog 'compleet': de rest zie je aan de labels.",
+     "First what is in the file, then the check",
+     "In the source list Lucent first reads what is in the file of the Usenet releases (about a second per release), so the labels are right at once. The check of every article follows, now with more connections at once (4 always stay free for playing). After the line only 'complete' is shown: the rest is in the labels."
     ],
     [
      "refresh",

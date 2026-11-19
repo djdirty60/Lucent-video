@@ -127,21 +127,32 @@ class Sources(Base):
                     source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
                     self._show_health(source)
                     todo.insert(0, source)
-        for source in todo:                     # per release: the full check, and right after it the tracks in the file
+        heard = {}
+        for source in todo:                     # first what the file itself says (about a second each): labels at once
             if self.done:
                 return
-            result = nzb_source.health(source["resolve"], stop=lambda: self.done)
-            if self.done:
-                return
-            source["health"] = nzb_source.health_text(result)
-            self._show_health(source)
-            found = nzb_source.tracks(source["resolve"], stop=lambda: self.done)     # audio languages: a few articles
+            found = nzb_source.tracks(source["resolve"], stop=lambda: self.done)
             if self.done:
                 return
             if found:
-                source["health"] = (source.get("health") or "") + nzb_source.tracks_text(found, source["resolve"], source)
+                heard[id(source)] = found
+                source["health"] = (nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
+                                    + nzb_source.tracks_text(found, source["resolve"], source))
                 self._show_health(source)
                 self._subs_badge(source, found)
+        for source in todo:                     # then the full check of every article (the longer part)
+            if self.done:
+                return
+            found = heard.get(id(source))
+            if found and found.get("locked"):
+                source["health"] = nzb_source.tracks_text(found)
+                self._show_health(source)
+                continue                        # never playable: no need to count its articles
+            result = nzb_source.health(source["resolve"], stop=lambda: self.done)
+            if self.done:
+                return
+            source["health"] = nzb_source.health_text(result) + nzb_source.tracks_text(found, source["resolve"], source)
+            self._show_health(source)
 
     def _subs_badge(self, source, found):
         """The labels set right by what the file itself says (sound, HDR, your language, FEL / P7): changed in place, the

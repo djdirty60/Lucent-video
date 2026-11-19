@@ -445,7 +445,7 @@ def warm(job):
 
 HEALTH_HOURS = 6                # a full check is remembered this long
 HEALTH_PART = 400               # articles per STAT batch over one connection
-HEALTH_CONNS = 8                # connections the full check uses at most
+HEALTH_CONNS = 16               # connections the full check uses at most (4 always stay free for playing)
 
 
 def health_known(job):
@@ -476,7 +476,8 @@ def health(job, stop=lambda: False):
     if not ids:
         return None
     provider = server.provider()
-    pool = nntp.Pool(provider, limit=min(HEALTH_CONNS, int(provider.get("connections") or 8)))
+    allowed = int(provider.get("connections") or 8)
+    pool = nntp.Pool(provider, limit=max(4, min(HEALTH_CONNS, allowed - 4)))
     spare_settings = server.provider(backup=True)
     spare = nntp.Pool(spare_settings, limit=min(4, int(spare_settings.get("connections") or 4))) if spare_settings else None
     parts = [ids[at:at + HEALTH_PART] for at in range(0, len(ids), HEALTH_PART)]
@@ -622,7 +623,6 @@ def tracks(job, stop=lambda: False):
 SOUND_FLAGS = ("TRUEHD", "DD+", "DD", "AAC", "OPUS")
 DTS_FLAGS = ("DTS-X", "DTS-HDMA", "DTS-HD", "DTS")
 CHANNEL_FLAGS = {8: "7.1", 7: "5.1", 6: "5.1", 2: "2.0"}
-SOUND_NAMES = {"TRUEHD": "TrueHD", "DTS-HDMA": "DTS-HD MA", "DTS-X": "DTS:X", "OPUS": "Opus", "MP3": "MP3"}
 
 
 def _real_resolution(found):
@@ -692,50 +692,13 @@ def file_flags(source, found):
     return flags
 
 
-def _minutes(seconds):
-    hours, minutes = divmod(int(seconds) // 60, 60)
-    return util.T("%d u %02d", "%d h %02d") % (hours, minutes) if hours else "%d min" % minutes
-
-
 def tracks_text(found, job=None, source=None):
-    """'  ·  audio EN TrueHD 7.1 · NL DD 5.1 · subs NL', what does not match the name or TMDb in orange; '' when unknown."""
-    if not found:
+    """Only for a release that can never play (locked or packed): what the file says otherwise shows in its labels."""
+    if not found or not found.get("locked"):
         return ""
-    if found.get("locked"):
-        return "  ·  [COLOR FFE5A15A]%s[/COLOR]" % (util.T("op slot met een wachtwoord, speelt niet", "locked with a password, cannot play")
-                                                    if found["locked"] == "encrypted" else
-                                                    util.T("ingepakt, kan niet gestreamd worden", "packed, cannot be streamed"))
-    import mylang
-    mine = mylang.code()
-    green, grey, orange = "[COLOR FF4CC38A]%s[/COLOR]", "[COLOR FF8D99AA]%s[/COLOR]", "[COLOR FFE5A15A]%s[/COLOR]"
-    parts = []
-    sound = found.get("sound") or []
-    if found.get("audio"):
-        best = {}
-        for lang, kind, channels, atmos in sound:     # per language its best track, as the file lists it first
-            best.setdefault(lang, (kind, channels, atmos))
-        shown = []
-        for code in found["audio"][:4]:
-            label = green % code.upper() if code == mine else code.upper()
-            kind, channels, atmos = best.get(code, ("", 0, False))
-            detail = " ".join(p for p in (SOUND_NAMES.get(kind, kind or ""), "Atmos" if atmos else "",
-                                          CHANNEL_FLAGS.get(channels, "%d.0" % channels if channels else "")) if p)
-            shown.append(label + (" " + detail if detail and len(found["audio"]) <= 3 else ""))
-        parts.append(util.T("audio ", "audio ") + ", ".join(shown))
-    if mine in (found.get("subs") or []):
-        parts.append("subs " + green % mine.upper())
-    elif mine in (found.get("forced") or []):
-        parts.append(orange % util.T("subs %s alleen geforceerd", "subs %s forced only") % mine.upper())
-    if job and found.get("seconds") and job.get("minutes"):
-        real, tmdb = found["seconds"] / 60.0, float(job["minutes"])
-        if abs(real - tmdb) > max(8.0, tmdb * 0.1):
-            parts.append(orange % (util.T("%s (TMDb %s)", "%s (TMDb %s)") % (_minutes(found["seconds"]), _minutes(tmdb * 60))))
-    real = _real_resolution(found)
-    if source and real and source.get("resolution") and real != source["resolution"]:
-        parts.append(orange % (util.T("beeld is %s", "picture is %s") % real))
-    if not parts:
-        return ""
-    return "  ·  " + grey % " · ".join(parts)
+    return "  ·  [COLOR FFE5A15A]%s[/COLOR]" % (util.T("op slot met een wachtwoord, speelt niet", "locked with a password, cannot play")
+                                                if found["locked"] == "encrypted" else
+                                                util.T("ingepakt, kan niet gestreamd worden", "packed, cannot be streamed"))
 
 
 def _port():

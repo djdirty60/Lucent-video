@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.2" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.3" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -95,7 +95,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.2: what the file itself says, checked before you play: real sound and channels, HDR, running time against TMDb, forced-only subtitles, locked or packed archives left out.
+        <news>1.0.0~rc1.3: what the file says is read first and shows in the labels (only 'complete' after the line); the full check of every article after it, with more connections.
+1.0.0~rc1.2: what the file itself says, checked before you play: real sound and channels, HDR, running time against TMDb, forced-only subtitles, locked or packed archives left out.
 1.0.0~rc1.1: NZBIndex as a free Usenet search without an account (Settings > Usenet); Dolby Vision FEL or MEL read from the file itself (FEL / P7 label).
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
@@ -104,7 +105,7 @@
 1.0.0 beta 1, update 88: provider names in the statistics; subtitle badge from the subtitles inside the file.
 1.0.0 beta 1, update 87: all Lucent options can be at the top of the library menu with the Lucent skin.
 1.0.0 beta 1, update 86: faster source list (the Usenet check before it waits at most 3 s, skipped for a day when it keeps failing).</news>
-        <news lang="nl_NL">1.0.0~rc1.2: Release candidate 1; NZBIndex: gratis zoeken zonder account; FEL of MEL uit het bestand zelf; De labels kloppen met het bestand zelf; Minder zinloos zoeken op de achtergrond; NZB al opgehaald terwijl je kiest; Audiotalen sneller in beeld; Snelle lezer 0.1.4: precies vooruitspoelen; Hoofdstukplaatjes wachten op de film.
+        <news lang="nl_NL">1.0.0~rc1.3: Release candidate 1; NZBIndex: gratis zoeken zonder account; FEL of MEL uit het bestand zelf; De labels kloppen met het bestand zelf; Eerst wat er in het bestand zit, dan de controle; Minder zinloos zoeken op de achtergrond; NZB al opgehaald terwijl je kiest; Audiotalen sneller in beeld; Snelle lezer 0.1.4: precies vooruitspoelen; Hoofdstukplaatjes wachten op de film.
 1.0.0 beta 1, update 91: Zoeken wacht niet meer op een trage ondertitelbron: De ondertitelcontrole bij het zoeken wacht nog hooguit 2 seconden na de bronnen en gebruikt dan wat de ondertitelbronnen die wel antwoordden gaven. Eerst wachtte de bronnenlijst tot 8 seconden op de traagste (bij jou Podnapisi, dat niet gevonden kon worden). Een ondertitelbron waarvan het adres niet te vinden is, wordt een uur overgeslagen. Podnapisi eruit: Lucent Video zoekt ondertitels nu alleen nog bij OpenSubtitles en SubDL. Podnapisi is eruit: het was vaak niet bereikbaar en hield het zoeken op.
 1.0.0 beta 1, update 90: Menu op een aflevering in het serie-overzicht: De Lucent-skin kan nu bij een aflevering in het serie-overzicht (de rij onder de seizoenen) zijn eigen menu tonen met Klaarzetten voor vanavond, Bron kiezen, Markeer als (niet) bekeken, Hervatpunt wissen en Uit de bibliotheek houden. Eerst kreeg je daar de opties van het seizoen.</news>
         <assets>
