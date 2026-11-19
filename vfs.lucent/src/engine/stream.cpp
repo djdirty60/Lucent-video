@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <cstring>
 #include <deque>
+#include <iterator>
 #include <list>
 #include <mutex>
 #include <set>
@@ -44,6 +45,11 @@ constexpr int kJumpSeconds[] = {30, 60, 600};
 constexpr int kJumpArticles = 2;
 constexpr int64_t kJumpRefreshSeconds = 10;     // planned again after the film moved on this far
 constexpr double kHedgeAcquireSeconds = 2.0;
+// Extra readers (chapter pictures) on a heavy film: they never start a fetch while the player waits, nor while
+// less than half of its read-ahead is ready, and at most kSideInFlight of their articles are fetched at once.
+constexpr int64_t kHeavyRate = 5 * 1024 * 1024;   // 40 Mbit/s and up: a UHD remux
+constexpr int kSideInFlight = 2;
+constexpr double kSideGraceSeconds = 5.0;       // an extra reader's article stays this long after its last read
 
 using ChunkPtr = std::shared_ptr<const std::vector<uint8_t>>;
 
@@ -260,10 +266,201 @@ struct Slot
   double fetch_started = 0;
   bool hedged = false;
   bool side_only = false;        // fetched for an extra reader (chapter pictures), not for the player
+  bool jump = false;             // a skip target of the current jump plan: kept until the plan moves on
+  double touched = 0;            // last read by an extra reader
   std::vector<int> missing_pools;
   int64_t queue_distance = 0;
   std::list<uint64_t>::iterator lru;
 };
+
+// Matroska (EBML) reading, just enough for the index (Cues): where each key frame starts.
+constexpr uint32_t kEbmlHeader = 0x1A45DFA3;
+constexpr uint32_t kSegment = 0x18538067;
+constexpr uint32_t kSeekHead = 0x114D9B74;
+constexpr uint32_t kSeek = 0x4DBB;
+constexpr uint32_t kSeekId = 0x53AB;
+constexpr uint32_t kSeekPosition = 0x53AC;
+constexpr uint32_t kInfo = 0x1549A966;
+constexpr uint32_t kTimecodeScale = 0x2AD7B1;
+constexpr uint32_t kCluster = 0x1F43B675;
+constexpr uint32_t kCues = 0x1C53BB6B;
+constexpr uint32_t kCuePoint = 0xBB;
+constexpr uint32_t kCueTime = 0xB3;
+constexpr uint32_t kCueTrackPositions = 0xB7;
+constexpr uint32_t kCueClusterPosition = 0xF1;
+constexpr uint64_t kUnknownSize = ~0ULL;
+
+// One element header at data[at]: its id, the size of its body, and where the body starts. False: cut off.
+bool EbmlElement(const uint8_t* data, size_t length, size_t at, uint32_t& id, uint64_t& size, size_t& body)
+{
+  if (at >= length)
+    return false;
+  int id_bytes = 1;
+  while (id_bytes <= 4 && !(data[at] & (0x80 >> (id_bytes - 1))))
+    ++id_bytes;
+  if (id_bytes > 4 || at + id_bytes > length)
+    return false;
+  id = 0;
+  for (int index = 0; index < id_bytes; ++index)
+    id = (id << 8) | data[at + index];
+  size_t position = at + id_bytes;
+  if (position >= length)
+    return false;
+  int size_bytes = 1;
+  while (size_bytes <= 8 && !(data[position] & (0x80 >> (size_bytes - 1))))
+    ++size_bytes;
+  if (size_bytes > 8 || position + size_bytes > length)
+    return false;
+  uint64_t value = data[position] & (0xFF >> size_bytes);
+  bool all_ones = value == static_cast<uint64_t>(0xFF >> size_bytes);
+  for (int index = 1; index < size_bytes; ++index)
+  {
+    value = (value << 8) | data[position + index];
+    all_ones = all_ones && data[position + index] == 0xFF;
+  }
+  size = all_ones ? kUnknownSize : value;
+  body = position + size_bytes;
+  return true;
+}
+
+uint64_t EbmlUnsigned(const uint8_t* data, uint64_t size)
+{
+  uint64_t value = 0;
+  for (uint64_t index = 0; index < size && index < 8; ++index)
+    value = (value << 8) | data[index];
+  return value;
+}
+
+// From the first bytes of the file: where the segment's data starts, where the index is (-1: not said),
+// and the time scale (nanoseconds per tick).
+bool MatroskaHead(const uint8_t* data, size_t length, int64_t& segment, int64_t& cues, uint64_t& scale)
+{
+  uint32_t id = 0;
+  uint64_t size = 0;
+  size_t body = 0;
+  if (!EbmlElement(data, length, 0, id, size, body) || id != kEbmlHeader || size == kUnknownSize)
+    return false;
+  const size_t after_header = body + size;
+  if (!EbmlElement(data, length, after_header, id, size, body) || id != kSegment)
+    return false;
+  segment = static_cast<int64_t>(body);
+  cues = -1;
+  scale = 1000000;
+  size_t at = body;
+  while (EbmlElement(data, length, at, id, size, body))
+  {
+    if (id == kCluster || size == kUnknownSize)
+      break;
+    if (body + size > length)
+      break;
+    if (id == kSeekHead)
+    {
+      size_t seek = body;
+      uint32_t seek_id = 0;
+      uint64_t seek_size = 0;
+      size_t seek_body = 0;
+      while (seek < body + size && EbmlElement(data, body + size, seek, seek_id, seek_size, seek_body))
+      {
+        if (seek_id == kSeek && seek_size != kUnknownSize)
+        {
+          uint32_t target = 0;
+          int64_t position = -1;
+          size_t inner = seek_body;
+          uint32_t inner_id = 0;
+          uint64_t inner_size = 0;
+          size_t inner_body = 0;
+          while (inner < seek_body + seek_size &&
+                 EbmlElement(data, seek_body + seek_size, inner, inner_id, inner_size, inner_body))
+          {
+            if (inner_id == kSeekId)
+              target = static_cast<uint32_t>(EbmlUnsigned(data + inner_body, inner_size));
+            else if (inner_id == kSeekPosition)
+              position = static_cast<int64_t>(EbmlUnsigned(data + inner_body, inner_size));
+            inner = inner_body + inner_size;
+          }
+          if (target == kCues && position >= 0)
+            cues = segment + position;
+        }
+        if (seek_size == kUnknownSize)
+          break;
+        seek = seek_body + seek_size;
+      }
+    }
+    else if (id == kInfo)
+    {
+      size_t inner = body;
+      uint32_t inner_id = 0;
+      uint64_t inner_size = 0;
+      size_t inner_body = 0;
+      while (inner < body + size && EbmlElement(data, body + size, inner, inner_id, inner_size, inner_body))
+      {
+        if (inner_id == kTimecodeScale && inner_size <= 8)
+        {
+          const uint64_t value = EbmlUnsigned(data + inner_body, inner_size);
+          if (value > 0)
+            scale = value;
+        }
+        inner = inner_body + inner_size;
+      }
+    }
+    at = body + size;
+  }
+  return true;
+}
+
+// The index body: (time in ms, file offset) for each point, sorted by time.
+std::vector<std::pair<int64_t, int64_t>> MatroskaCues(const uint8_t* data, size_t length, int64_t segment,
+                                                      uint64_t scale)
+{
+  std::vector<std::pair<int64_t, int64_t>> points;
+  size_t at = 0;
+  uint32_t id = 0;
+  uint64_t size = 0;
+  size_t body = 0;
+  while (EbmlElement(data, length, at, id, size, body) && size != kUnknownSize && body + size <= length)
+  {
+    if (id == kCuePoint)
+    {
+      int64_t time = -1;
+      int64_t cluster = -1;
+      size_t inner = body;
+      uint32_t inner_id = 0;
+      uint64_t inner_size = 0;
+      size_t inner_body = 0;
+      while (inner < body + size && EbmlElement(data, body + size, inner, inner_id, inner_size, inner_body) &&
+             inner_size != kUnknownSize)
+      {
+        if (inner_id == kCueTime)
+          time = static_cast<int64_t>(EbmlUnsigned(data + inner_body, inner_size));
+        else if (inner_id == kCueTrackPositions && cluster < 0)
+        {
+          size_t deep = inner_body;
+          uint32_t deep_id = 0;
+          uint64_t deep_size = 0;
+          size_t deep_body = 0;
+          while (deep < inner_body + inner_size &&
+                 EbmlElement(data, inner_body + inner_size, deep, deep_id, deep_size, deep_body) &&
+                 deep_size != kUnknownSize)
+          {
+            if (deep_id == kCueClusterPosition)
+              cluster = static_cast<int64_t>(EbmlUnsigned(data + deep_body, deep_size));
+            deep = deep_body + deep_size;
+          }
+        }
+        inner = inner_body + inner_size;
+      }
+      if (time >= 0 && cluster >= 0)
+        points.emplace_back(static_cast<int64_t>(static_cast<double>(time) * scale / 1e6), segment + cluster);
+    }
+    at = body + size;
+  }
+  std::sort(points.begin(), points.end());
+  points.erase(std::unique(points.begin(), points.end(),
+                           [](const std::pair<int64_t, int64_t>& a, const std::pair<int64_t, int64_t>& b)
+                           { return a.second == b.second; }),
+               points.end());
+  return points;
+}
 }  // namespace
 
 class Stream::Impl : public std::enable_shared_from_this<Stream::Impl>
@@ -703,8 +900,8 @@ private:
           job_cv_.wait(lock,
                        [this]()
                        {
-                         return closing_.load() || fatal_.load() || !queue_.empty() ||
-                                !hedges_.empty();
+                         return closing_.load() || fatal_.load() || !hedges_.empty() ||
+                                RunnableLocked();
                        });
           if (closing_.load() || fatal_.load())
             break;
@@ -748,6 +945,7 @@ private:
     if (queue_.empty())
       return jobs;
     int avoid = -2;
+    int side_room = -1;                         // worked out at the first extra reader's article
     auto entry = queue_.begin();
     while (entry != queue_.end() && static_cast<int>(jobs.size()) < pipeline_)
     {
@@ -758,6 +956,17 @@ private:
         continue;
       }
       Slot& slot = found->second;
+      if (slot.side_only)
+      {
+        if (side_room < 0)
+          side_room = SideRoomLocked();
+        if (side_room <= 0)
+        {
+          ++entry;
+          continue;
+        }
+        --side_room;
+      }
       if (avoid == -2)
         avoid = slot.avoid_pool;
       if (slot.avoid_pool != avoid)
@@ -1117,6 +1326,8 @@ private:
     }
     EvictLocked();
     cv_.notify_all();
+    if (SideQueuedLocked())
+      job_cv_.notify_all();                     // held-back extra readers may go now
   }
 
   void HandleFailure(const Job& job, int pool_index, bool missing, const std::string& reason)
@@ -1270,6 +1481,94 @@ private:
     return cache_limit_ > 0 ? cache_limit_ : plan_->cache;
   }
 
+  bool SideQueuedLocked() const
+  {
+    return !queue_.empty() && queue_.rbegin()->distance >= kSideDistance;
+  }
+
+  // Bytes of the player's read-ahead that are ready, from its read position on (stops at the first gap).
+  int64_t ReadyAheadLocked(int64_t limit) const
+  {
+    int64_t position = read_offset_.load();
+    const int64_t start = position;
+    while (position < plan_->length && position - start < limit)
+    {
+      int64_t local = 0;
+      const int part_index = Locate(position, local);
+      if (part_index < 0)
+        break;
+      const PlanPart& part = plan_->parts[part_index];
+      const int64_t part_size = part_sizes_[part_index].load();
+      if (part_size <= 0)
+        break;
+      const int64_t index = (part.skip + local) / part_size;
+      if (index >= static_cast<int64_t>(part.articles.size()))
+      {
+        position = part.media_start + part.length;
+        continue;
+      }
+      const auto found = slots_.find(MakeKey(part_index, static_cast<int>(index)));
+      if (found == slots_.end() || found->second.state != Slot::State::Ready)
+        break;
+      position = std::min(part.media_start + part.length,
+                          part.media_start + (index + 1) * part_size - part.skip);
+    }
+    return position - start;
+  }
+
+  // How many more articles of extra readers may start now (0: they wait for the player).
+  int SideRoomLocked()
+  {
+    if (!waiting_.empty())
+      return HoldSide();
+    int fetching = 0;
+    for (const auto& item : slots_)
+      if (item.second.state == Slot::State::Fetching && item.second.side_only)
+        ++fetching;
+    const int room = kSideInFlight - fetching;
+    if (room <= 0)
+      return 0;
+    if (Heavy() && read_offset_.load() >= 0)
+    {
+      const int64_t want = std::min<int64_t>(plan_->prefetch, CacheLimit() / 3) / 2;
+      if (ReadyAheadLocked(want) < want)
+        return HoldSide();
+    }
+    side_holding_ = false;
+    return room;
+  }
+
+  int HoldSide()
+  {
+    if (!side_holding_)
+    {
+      side_holding_ = true;
+      ++side_held_;
+    }
+    return 0;
+  }
+
+  bool Heavy() const
+  {
+    return plan_->seconds > 0 && plan_->length / plan_->seconds >= kHeavyRate;
+  }
+
+  // Is there a job a worker may take now? Extra readers' articles can be held back (SideRoomLocked).
+  bool RunnableLocked()
+  {
+    bool side = false;
+    for (const QueueEntry& entry : queue_)
+    {
+      const auto found = slots_.find(entry.key);
+      if (found == slots_.end() || found->second.state != Slot::State::Queued)
+        return true;                            // TakeBatchLocked clears it out
+      if (!found->second.side_only)
+        return true;
+      side = true;
+    }
+    return side && SideRoomLocked() > 0;
+  }
+
   // Articles fetched only for an extra reader go first, once read: they never cost the player its
   // read-ahead. One in the player's window ahead stays, the player will want it soon.
   bool EvictSideLocked(int64_t read)
@@ -1282,8 +1581,10 @@ private:
         continue;
       const auto found = slots_.find(key);
       if (found == slots_.end() || found->second.state != Slot::State::Ready ||
-          !found->second.side_only)
+          !found->second.side_only || found->second.jump)
         continue;
+      if (found->second.touched > 0 && Now() - found->second.touched < kSideGraceSeconds)
+        continue;                               // the decoder often reads the same spot again (key frame)
       const int64_t start = SlotStart(key);
       if (start < HeadKeep() || (start + found->second.bytes > read && start < read + kHardPrefetchBytes))
         continue;
@@ -1332,6 +1633,7 @@ private:
       {
         auto victim = lru_.end();
         int64_t farthest = -1;
+        for (int round = 0; round < 2 && victim == lru_.end(); ++round)
         for (auto candidate = lru_.begin(); candidate != lru_.end(); ++candidate)
         {
           const uint64_t key = *candidate;
@@ -1340,6 +1642,8 @@ private:
           const auto found = slots_.find(key);
           if (found == slots_.end() || found->second.state != Slot::State::Ready)
             continue;
+          if (round == 0 && found->second.jump)
+            continue;                           // skip targets go last: they were fetched on purpose
           const int64_t start = SlotStart(key);
           if (start < HeadKeep())
             continue;
@@ -1446,36 +1750,191 @@ private:
     std::lock_guard<std::mutex> lock(mutex_);
     if (closing_.load() || fatal_.load())
       return;
+    for (const uint64_t old : jump_keys_)
+    {
+      const auto found = slots_.find(old);
+      if (found != slots_.end())
+        found->second.jump = false;           // the previous plan: an ordinary extra article now
+    }
+    jump_keys_.clear();
     bool queued = false;
+    const bool indexed = LoadCuesLocked();
     for (const int seconds : kJumpSeconds)
     {
-      const int64_t target = position + rate * seconds;
+      int64_t target = position + rate * seconds;
+      int64_t before = -1;                      // with the index: the key frame before that one as well
+      if (indexed)
+      {
+        const int64_t now = CueTimeAtLocked(position);
+        if (!CueTargetLocked(now + seconds * 1000LL, target, before))
+          break;
+      }
       if (target >= plan_->length - kIndexTailBytes)
         break;
+      if (before >= 0 && before != target)
+      {
+        QueueJumpLocked(before, 1, queued);
+        QueueJumpLocked(target, 1, queued);
+        continue;
+      }
+      QueueJumpLocked(target, kJumpArticles, queued);
+    }
+    if (queued)
+      job_cv_.notify_all();
+  }
+
+  void QueueJumpLocked(int64_t target, int count, bool& queued)
+  {
+    {
       int64_t local = 0;
       const int part_index = Locate(target, local);
       if (part_index < 0)
-        continue;
+        return;
       const PlanPart& part = plan_->parts[part_index];
       const int64_t part_size = part_sizes_[part_index].load();
       if (part_size <= 0)
-        continue;                               // that part's article size is not known yet: no extra fetch for it
+        return;                                 // that part's article size is not known yet: no extra fetch for it
       const int64_t first = (part.skip + (target - part.media_start)) / part_size;
-      for (int64_t index = first; index < first + kJumpArticles; ++index)
+      for (int64_t index = first; index < first + count; ++index)
       {
         if (index < 0 || index >= static_cast<int64_t>(part.articles.size()))
           break;
         const uint64_t key = MakeKey(part_index, static_cast<int>(index));
-        if (slots_.find(key) != slots_.end())
+        const auto existing = slots_.find(key);
+        if (existing != slots_.end())
+        {
+          if (existing->second.side_only)
+          {
+            existing->second.jump = true;       // already here: keep it for this plan too
+            jump_keys_.push_back(key);
+          }
           continue;
+        }
         EnqueueLocked(key, kSideDistance);
-        slots_.find(key)->second.side_only = true;
+        Slot& slot = slots_.find(key)->second;
+        slot.side_only = true;
+        slot.jump = true;
+        jump_keys_.push_back(key);
         queued = true;
         ++jump_articles_;
       }
     }
-    if (queued)
-      job_cv_.notify_all();
+  }
+
+  // Bytes from articles that are here already (nothing is fetched for it). False: not all here.
+  bool ReadCachedLocked(int64_t offset, size_t size, std::vector<uint8_t>& out) const
+  {
+    out.resize(size);
+    size_t done = 0;
+    int64_t position = offset;
+    while (done < size)
+    {
+      int64_t local = 0;
+      const int part_index = Locate(position, local);
+      if (part_index < 0)
+        return false;
+      const PlanPart& part = plan_->parts[part_index];
+      const int64_t part_size = part_sizes_[part_index].load();
+      if (part_size <= 0)
+        return false;
+      const int64_t volume_position = part.skip + local;
+      const int64_t index = volume_position / part_size;
+      if (index >= static_cast<int64_t>(part.articles.size()))
+        return false;
+      const auto found = slots_.find(MakeKey(part_index, static_cast<int>(index)));
+      if (found == slots_.end() || found->second.state != Slot::State::Ready || found->second.zero_filled ||
+          !found->second.data)
+        return false;
+      const int64_t inside = volume_position - index * part_size;
+      const int64_t have = static_cast<int64_t>(found->second.data->size()) - inside;
+      const int64_t in_part = part.media_start + part.length - position;
+      const int64_t take = std::min<int64_t>(static_cast<int64_t>(size - done), std::min(have, in_part));
+      if (take <= 0)
+        return false;
+      std::memcpy(out.data() + done, found->second.data->data() + inside, static_cast<size_t>(take));
+      done += static_cast<size_t>(take);
+      position += take;
+    }
+    return true;
+  }
+
+  // The Matroska index, once Kodi has read it (it sits in the warm tail): skip targets on key frames then.
+  bool LoadCuesLocked()
+  {
+    if (cues_state_ == 1)
+      return true;
+    if (cues_state_ < 0 || plan_->container != "mkv")
+      return false;
+    if (++cues_tries_ > 12)
+    {
+      cues_state_ = -1;
+      Log(LogLevel::Info, "skip targets estimated from the running time (no Matroska index here)");
+      return false;
+    }
+    std::vector<uint8_t> head;
+    const size_t head_size = static_cast<size_t>(std::min<int64_t>(256 * 1024, plan_->length));
+    if (!ReadCachedLocked(0, head_size, head))
+      return false;
+    int64_t segment = 0;
+    int64_t cues = -1;
+    uint64_t scale = 0;
+    if (!MatroskaHead(head.data(), head.size(), segment, cues, scale) || cues < 0 || cues >= plan_->length)
+    {
+      cues_tries_ = 99;                         // not there and it will not come: say so once
+      return LoadCuesLocked();
+    }
+    std::vector<uint8_t> header;
+    if (!ReadCachedLocked(cues, static_cast<size_t>(std::min<int64_t>(16, plan_->length - cues)), header))
+      return false;
+    uint32_t id = 0;
+    uint64_t size = 0;
+    size_t body = 0;
+    if (!EbmlElement(header.data(), header.size(), 0, id, size, body) || id != kCues ||
+        size == kUnknownSize || size > 64ULL * 1024 * 1024 || cues + static_cast<int64_t>(body + size) > plan_->length)
+    {
+      cues_tries_ = 99;
+      return LoadCuesLocked();
+    }
+    std::vector<uint8_t> index;
+    if (!ReadCachedLocked(cues + static_cast<int64_t>(body), static_cast<size_t>(size), index))
+      return false;                             // not read yet: again at the next plan
+    cue_points_ = MatroskaCues(index.data(), index.size(), segment, scale);
+    if (cue_points_.size() < 2)
+    {
+      cue_points_.clear();
+      cues_tries_ = 99;
+      return LoadCuesLocked();
+    }
+    cues_state_ = 1;
+    Log(LogLevel::Info, "skip targets from the Matroska index: %zu key frames", cue_points_.size());
+    return true;
+  }
+
+  // The film time (ms) of the key frame at or before this byte.
+  int64_t CueTimeAtLocked(int64_t position) const
+  {
+    const auto after = std::upper_bound(cue_points_.begin(), cue_points_.end(), position,
+                                        [](int64_t value, const std::pair<int64_t, int64_t>& point)
+                                        { return value < point.second; });
+    if (after == cue_points_.begin())
+      return cue_points_.front().first;
+    return std::prev(after)->first;
+  }
+
+  // The key frame at or before this film time, and the one before it. False: past the end.
+  bool CueTargetLocked(int64_t time, int64_t& target, int64_t& before) const
+  {
+    if (time > cue_points_.back().first)
+      return false;
+    auto after = std::upper_bound(cue_points_.begin(), cue_points_.end(), time,
+                                  [](int64_t value, const std::pair<int64_t, int64_t>& point)
+                                  { return value < point.first; });
+    if (after == cue_points_.begin())
+      ++after;
+    const auto at = std::prev(after);
+    target = at->second;
+    before = at == cue_points_.begin() ? -1 : std::prev(at)->second;
+    return true;
   }
 
   void ScheduleNextPart(int part_index, int64_t remaining)
@@ -1568,10 +2027,15 @@ private:
       }
       Slot& slot = found->second;
       if (!side)
+      {
         slot.side_only = false;
+        slot.jump = false;
+      }
       if (slot.state == Slot::State::Ready)
       {
         TouchLocked(key, slot);
+        if (side)
+          slot.touched = Now();
         if (!waited_once)
           ++cache_hits_;
         return {slot.data, slot.zero_filled};
@@ -1595,6 +2059,14 @@ private:
         const auto waiting = waiting_.find(key);
         if (waiting != waiting_.end() && --waiting->second <= 0)
           waiting_.erase(waiting);
+        if (waiting_.empty() && SideQueuedLocked())
+          job_cv_.notify_all();             // extra readers held back while the player waited
+      }
+      else
+      {
+        const auto current = slots_.find(key);
+        if (current != slots_.end())
+          current->second.touched = Now();
       }
       if (key != tail_key_)
         pinned_.erase(key);
@@ -1747,6 +2219,7 @@ private:
     int64_t hedges_waited = 0;
     double hedge_limit = 0;
     int64_t jumps = 0;
+    int64_t held = 0;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       read_bytes = read_bytes_.load();
@@ -1762,6 +2235,7 @@ private:
       hedges_waited = hedges_waited_;
       hedge_limit = WaitedHedgeLimitLocked();
       jumps = jump_articles_;
+      held = side_held_;
     }
     const double served = wall > 0.1 ? read_bytes / 1048576.0 / wall : 0.0;
     const double decode_average =
@@ -1787,13 +2261,13 @@ private:
         "%s, details: %.1f MB served in %.1f s (%.1f MB/s), first byte %.1f s, %lld waits "
         "%.1f s (max %.1f s), %lld evictions, %lld refetches, %lld cache hits, decode %.1f "
         "ms/article, cache %.0f MB, %.1f MB to extra readers, %lld asked at the other provider "
-        "too (%lld the player waited for, after %.1f s), %lld ready for skips",
+        "too (%lld the player waited for, after %.1f s), %lld ready for skips, extra readers held back %lld time(s) for the player",
         when, read_bytes / 1048576.0, wall, served, first_read_cs_.load() / 100.0,
         static_cast<long long>(waits), wait_seconds, wait_max,
         static_cast<long long>(evictions), static_cast<long long>(refetches),
         static_cast<long long>(hits), decode_average, CacheLimit() / 1048576.0,
         side_bytes_.load() / 1048576.0, static_cast<long long>(hedges), static_cast<long long>(hedges_waited),
-        hedge_limit, static_cast<long long>(jumps));
+        hedge_limit, static_cast<long long>(jumps), static_cast<long long>(held));
   }
 
   void DoClose()
@@ -1851,6 +2325,12 @@ private:
   std::atomic<int64_t> side_bytes_{0};
   std::atomic<int64_t> jump_mark_{-1};
   int64_t jump_articles_ = 0;     // articles fetched in advance for skips forward
+  std::vector<uint64_t> jump_keys_;  // the skip targets of the current plan
+  std::vector<std::pair<int64_t, int64_t>> cue_points_;  // Matroska index: (ms, file offset)
+  int cues_state_ = 0;            // 0 not read yet, 1 read, -1 none
+  int cues_tries_ = 0;
+  int64_t side_held_ = 0;         // times extra readers were held back for the player
+  bool side_holding_ = false;
   std::atomic<int64_t> last_read_{-1};
   std::atomic<int64_t> articles_attempted_{0};
   std::atomic<int> active_workers_{0};
