@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.5" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.7" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -95,7 +95,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.5: a release found locked or packed moves to the bottom of the list at once; fast reader 0.1.5 (a piece prepared in advance can no longer keep the film waiting).
+        <news>1.0.0~rc1.7: the source list follows your ranking groups in order (the first group decides, then the next); learned choices and subtitles-first only move releases that are equal there; a release that was taken down shows "gone" at once; next episodes from MDBList leave out shows you dropped; the full article check can use the new add-on Lucent Video Check (Virtual filesystems), much faster.
+1.0.0~rc1.5: a release found locked or packed moves to the bottom of the list at once; fast reader 0.1.5 (a piece prepared in advance can no longer keep the film waiting).
 1.0.0~rc1.4: the source list orders itself again when the file check changes labels; 'Sources with subtitles first' works again; the second 'Language of sources' setting is gone.
 1.0.0~rc1.3: what the file says is read first and shows in the labels (only 'complete' after the line); the full check of every article after it, with more connections.
 1.0.0~rc1.2: what the file itself says, checked before you play: real sound and channels, HDR, running time against TMDb, forced-only subtitles, locked or packed archives left out.
@@ -103,325 +104,14 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.5: Release candidate 1; NZBIndex: gratis zoeken zonder account; FEL of MEL uit het bestand zelf; De labels kloppen met het bestand zelf; Eerst wat er in het bestand zit, dan de controle; De lijst schuift mee met de nieuwe labels; Snelle lezer 0.1.5: kan niet meer vastlopen op een vooraf klaargezet stukje; Minder zinloos zoeken op de achtergrond; NZB al opgehaald terwijl je kiest; Audiotalen sneller in beeld; Snelle lezer 0.1.4: precies vooruitspoelen; Hoofdstukplaatjes wachten op de film.
+        <news lang="nl_NL">1.0.0~rc1.7: De bronnenlijst volgt je rangschikgroepen op volgorde (de eerste groep beslist, dan de volgende); geleerde keuzes en ondertitels-eerst verschuiven alleen releases die daar gelijk staan; een weggehaalde release toont meteen "weg"; volgende afleveringen van MDBList laten gedropte series weg; de volledige controle kan de nieuwe add-on Lucent Video Check gebruiken (Virtuele bestandssystemen), veel sneller.
+1.0.0~rc1.5: Release candidate 1; NZBIndex: gratis zoeken zonder account; FEL of MEL uit het bestand zelf; De labels kloppen met het bestand zelf; Eerst wat er in het bestand zit, dan de controle; De lijst schuift mee met de nieuwe labels; Snelle lezer 0.1.5: kan niet meer vastlopen op een vooraf klaargezet stukje; Minder zinloos zoeken op de achtergrond; NZB al opgehaald terwijl je kiest; Audiotalen sneller in beeld; Snelle lezer 0.1.4: precies vooruitspoelen; Hoofdstukplaatjes wachten op de film.
 1.0.0 beta 1, update 91: Zoeken wacht niet meer op een trage ondertitelbron: De ondertitelcontrole bij het zoeken wacht nog hooguit 2 seconden na de bronnen en gebruikt dan wat de ondertitelbronnen die wel antwoordden gaven. Eerst wachtte de bronnenlijst tot 8 seconden op de traagste (bij jou Podnapisi, dat niet gevonden kon worden). Een ondertitelbron waarvan het adres niet te vinden is, wordt een uur overgeslagen. Podnapisi eruit: Lucent Video zoekt ondertitels nu alleen nog bij OpenSubtitles en SubDL. Podnapisi is eruit: het was vaak niet bereikbaar en hield het zoeken op.
 1.0.0 beta 1, update 90: Menu op een aflevering in het serie-overzicht: De Lucent-skin kan nu bij een aflevering in het serie-overzicht (de rij onder de seizoenen) zijn eigen menu tonen met Klaarzetten voor vanavond, Bron kiezen, Markeer als (niet) bekeken, Hervatpunt wissen en Uit de bibliotheek houden. Eerst kreeg je daar de opties van het seizoen.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>
     </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+android.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>android-aarch64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+android.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>android-aarch64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+android.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>android-armv7</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+android.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>android-armv7</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+linux.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-aarch64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+linux.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-aarch64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+linux.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-armv7</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+linux.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-armv7</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+linux.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-x86_64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+linux.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-x86_64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+windows.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>windows-x86_64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.4+windows.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>windows-x86_64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
-0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
-0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
 </addon>
 <addon id="vfs.lucent" version="0.1.5+android.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
@@ -745,6 +435,726 @@
 0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
 0.1.1: own icon (blue, with a lightning bolt).
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+android.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-aarch64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+android.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-aarch64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+android.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-armv7</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+android.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-armv7</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+linux.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-aarch64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+linux.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-aarch64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+linux.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-armv7</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+linux.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-armv7</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+linux.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-x86_64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+linux.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-x86_64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+windows.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>windows-x86_64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.8+windows.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>windows-x86_64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
+0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
+0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
+0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+android.aarch64.k21" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_android="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-aarch64</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+android.aarch64.k22" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_android="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-aarch64</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+android.armv7.k21" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_android="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-armv7</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+android.armv7.k22" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_android="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-armv7</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+linux.aarch64.k21" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_linux="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-aarch64</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+linux.aarch64.k22" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_linux="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-aarch64</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+linux.armv7.k21" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_linux="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-armv7</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+linux.armv7.k22" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_linux="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-armv7</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+linux.x8664.k21" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_linux="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-x86_64</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+linux.x8664.k22" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_linux="libvfs.lucentcheck.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-x86_64</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+windows.x8664.k21" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_windows="vfs.lucentcheck.dll"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>windows-x86_64</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
+  </extension>
+</addon>
+<addon id="vfs.lucentcheck" version="0.1.8+windows.x8664.k22" name="Lucent Video Check" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentc" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video Check" library_windows="vfs.lucentcheck.dll"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>windows-x86_64</platform>
+    <summary lang="en_GB">Fast Usenet release check for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle controle van Usenet-releases voor Lucent Video (test)</summary>
+    <description lang="en_GB">Checks in C++, over many connections at once, whether every article of a Usenet release is still at your provider, before you pick it in Lucent Video's source list. Nothing is downloaded. Lucent Video uses it on its own when it is installed and stops it the moment a film starts. GPL-2.0-or-later.</description>
+    <description lang="nl_NL">Controleert in C++, over veel verbindingen tegelijk, of elk artikel van een Usenet-release nog bij je provider staat, voordat je hem kiest in de bronnenlijst van Lucent Video. Er wordt niets gedownload. Lucent Video gebruikt hem vanzelf als hij geïnstalleerd is en stopt hem zodra een film begint. GPL-2.0-or-later.</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.8: when the provider gives no answer at all for a release, the check stops after one wait instead of reconnecting until the time limit, and the log says which article it asked first; the measurement with 4 packets is gone (it gave nothing).
+0.1.7: works as 0.1.6; measures on your own provider the sign-in time and whether 4 packets of questions on their way per connection answer faster than 2 (in the log); a wrong log line fixed.
+0.1.6: no time limit per packet of questions any more: releases whose old articles the provider looks up slowly are checked again (0.1.3-0.1.5 broke them off).
+0.1.5: back to the way of 0.1.1 (the main provider first, the backup only for what is missing, at most 4 connections there), with the 10 s guard per packet; a provider that refuses is not asked again.
+0.1.4: measures on your own provider whether 4 packets of questions on their way per connection answer faster than 2 (in the log).
+0.1.3: connections are no longer kept between checks (with Lucent's own connections they could push the account over its limit); a provider that answers too slowly can no longer hold a check: each packet of questions must be answered within 10 s.
+0.1.2: the backup provider takes part of the work from the start.
+0.1.1: two packets of questions on their way per connection: the provider never waits between them.
+0.1.0: first release: the full article check of Lucent Video's source list in C++ (STAT only, nothing downloaded).</news>
   </extension>
 </addon>
 </addons>

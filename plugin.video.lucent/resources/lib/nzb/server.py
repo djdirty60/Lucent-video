@@ -386,13 +386,20 @@ def _remember_speed(per_second, waits):
     if waits < 10 or per_second <= 0:
         return
     saved = util.load_json(SPEED_FILE, {})
+    if saved.get("reader", "python") != "python":
+        saved = {}
     if per_second > float(saved.get("max") or 0):
-        util.save_json(SPEED_FILE, {"max": round(per_second), "at": int(time.time())})
+        util.save_json(SPEED_FILE, {"max": round(per_second), "at": int(time.time()), "reader": "python"})
 
 
-def most_per_second():
-    """Bytes per second this box got from Usenet at most, or 0 when never measured."""
-    return float(util.load_json(SPEED_FILE, {}).get("max") or 0)
+def most_per_second(reader="python"):
+    """Bytes per second this box got from Usenet at most with this reader ('python': Lucent's own web server, 'vfs':
+    vfs.lucent), or 0 when never measured with it. A speed measured with the slower Python reader says nothing about
+    vfs.lucent, which fetches several times as fast: then nothing counts as too heavy."""
+    saved = util.load_json(SPEED_FILE, {})
+    if saved.get("reader", "python") != reader:
+        return 0.0
+    return float(saved.get("max") or 0)
 _speed = {"at": 0.0, "cpu": 0.0, "stats": None}
 
 

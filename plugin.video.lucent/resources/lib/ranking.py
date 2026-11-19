@@ -432,6 +432,17 @@ def _points(group_id, order, tags):
     return 10.0 * total / SCALE[group_id], best[1]
 
 
+def _place(group_id, order, tags):
+    """Where the best choice this source has stands in your order of the group (0 = your first choice); a source
+    with none of them comes after all that have one."""
+    for position, rule in enumerate(order):
+        if group_id == "visual" and rule == "hdr10plus" and "dv" in tags:
+            continue                                        # with Dolby Vision the player uses that: HDR10+ adds nothing
+        if _match(rule, tags):
+            return position
+    return len(order)
+
+
 def red_flag(source, tags, kind="movie"):
     """True for what is never the better choice: CAM/TS, upscales, 3D, burned-in subtitles, home-made Dolby Vision or
     HDR10+, H.264 10-bit, and a 4K or 1080p file far too small for what it says it is."""
@@ -474,6 +485,7 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
         tier, tier_label = 1, rgroup                # your own preferred groups count as the best tier
     groups = profile["groups"]
     scored = [g for g in groups[1:] if g["id"] not in ("size", "scraper")]
+    ladder, extras = [], []
     for number, group in enumerate(groups, 1):
         if group["id"] == "scraper":
             tie.append(scraper_order.index(source.get("scraper")) if source.get("scraper") in scraper_order else 99)
@@ -497,6 +509,16 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
             points += 10.0 * TIER_BONUS[tier] / SCALE["source"]     # same scale as _points: a top group's WEB-DL
             #                                                           beats an unknown group's WEB-DL
         total += weight * points
+        # Your order decides: a group higher in your list wins before a lower one is even looked at, and inside a
+        # group the choice of yours that stands highest decides. The research points only part what all your groups
+        # left equal (Dolby Vision + HDR above Dolby Vision alone, 10-bit, IMAX); in Sound they part one place at once
+        # (TrueHD Atmos above DD+ Atmos).
+        ladder.append(_place(group["id"], group["order"], tags))
+        group_points = -round(_points(group["id"], group["order"], tags)[0], 3)
+        if group["id"] == "audio":
+            ladder.append(group_points)         # one place ('Atmos') holds TrueHD Atmos and DD+ Atmos: the better track first
+        else:
+            extras.append(group_points)         # extras (10-bit, IMAX next to Dolby Vision) only once all groups are equal
         if best:
             why.append((RULES[best][0], T("Regel %d", "Rule %d") % number))
     if tier_label:
@@ -508,10 +530,15 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
         key = key[:2] + [0 if "uncached" not in tags else 1, SOURCE_RANK.get(source_class(tags), 9), tier or 9, -round(language, 3), -round(total, 3)]
         key[2], key[1] = key[1], key[2]         # ready to play before resolution
     else:
-        key.append(-round(total, 3))
+        key += ladder
+    equal = list(key)                           # what your own groups decide: extras such as 'played well' may only
+    #                                             change the order among sources that are equal here
+    if not profile.get("strict"):
+        key += extras
+        key.append(-(TIER_BONUS.get(tier, 0)))  # a TRaSH tier group only parts what your groups left equal
     key += tie
     key.append(0 if rgroup and rgroup.lower() in wanted else 1)
-    return key, why
+    return key, why, equal
 
 
 def _is_plain(profile):
@@ -529,9 +556,11 @@ def quality_class(source):
 
 def within_class(sources, first, apart=lambda s: None):
     """Moves the sources for which first(source) is True to the front, but only among sources of the same resolution
-    and quality_class (and the same apart(source)): the order between those groups stays as it is."""
+    and quality_class (and the same apart(source)): the order between those groups stays as it is. Sources ranked by
+    your profile also carry what your groups decided (_equal): they only move among sources your groups left equal,
+    so 'played well before' or 'a subtitle fits' never beats a choice of yours (Taal, Bron, Beeld ...)."""
     def group(s):
-        return s.get("resolution"), quality_class(s), apart(s)
+        return s.get("resolution"), quality_class(s), apart(s), s.get("_equal")
     anchor = {}
     for number, source in enumerate(sources):
         anchor.setdefault(group(source), number)
@@ -568,13 +597,15 @@ def apply(sources, profile, kind="movie", scraper_order=None, original=""):
         if profile["scrapers"].get("dedupe", True) and fingerprint in seen:
             continue
         seen.add(fingerprint)
-        key, why = _order_key(source, tags, profile, scraper_order, kind)
+        key, why, equal = _order_key(source, tags, profile, scraper_order, kind)
         dub = dub_language(source, original) if not profile.get("as_is") else ""
         key.insert(3 if profile.get("strict") else 2, 1 if dub else 0)
+        equal.insert(3 if profile.get("strict") else 2, 1 if dub else 0)
         if dub:
             why = why + [(T("Nagesynchroniseerd (%s)" % mylang.NL_NAMES.get(dub, dub), "Dubbed (%s)" % mylang.LANGS[dub][0]),
                          T("Onderaan de groep", "Bottom of the group"))]
-        kept.append((key, position, dict(source, why=why, dub=dub, trash_low=any(w[0] in LOW_LABELS for w in why))))
+        kept.append((key, position, dict(source, why=why, dub=dub, trash_low=any(w[0] in LOW_LABELS for w in why),
+                                         _equal=None if profile.get("as_is") else tuple(equal))))
     if profile.get("as_is"):
         kept = [([], row[1], dict(row[2], why=[])) for row in kept]
     kept.sort(key=lambda row: (row[0], row[1]))

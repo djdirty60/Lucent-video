@@ -114,7 +114,8 @@ def fetch(meta):
     if all(a is None for a in answers):
         raise util.HttpError("indexers")
     names = {slot: _indexer_name(base) for slot, base, _key in ixs}
-    most = server.most_per_second()
+    from . import vfs
+    most = server.most_per_second("vfs" if vfs.wanted() else "python")
     show_badges = util.flag("nzb_badges")
     seconds = int(meta.get("runtime") or 0) * 60
     out, seen = [], set()
@@ -443,14 +444,21 @@ def warm(job):
     return server.warm(name, season, episode, bool(job.get("pack")), int(job.get("minutes") or 0))
 
 
-HEALTH_HOURS = 6                # a full check is remembered this long
+HEALTH_HOURS = 6                # a full check that found articles missing is remembered this long
+HEALTH_HOURS_COMPLETE = 24      # one that found everything there: this long (a takedown shows when it plays)
 HEALTH_PART = 400               # articles per STAT batch over one connection
 HEALTH_CONNS = 16               # connections the full check uses at most (4 always stay free for playing)
+HEALTH_CONNS_LIST = 18          # in the source list nothing plays: the 4 that read the files beside it and 2 for the
+#                                 rest of Lucent stay free (over the provider's limit it refuses or slows down everything)
+HEALTH_SECONDS = 90             # vfs.lucentcheck stops a full check after this long (no badge then)
 
 
 def health_known(job):
     """The remembered full check of this release: (present, total) or None."""
-    saved = util.cache_get("nzbhealth" + _dead_key(job["link"]), HEALTH_HOURS * 3600)
+    key = "nzbhealth" + _dead_key(job["link"])
+    saved = util.cache_get(key, HEALTH_HOURS_COMPLETE * 3600)
+    if saved and saved[0] < saved[1]:                  # articles missing: asked again sooner
+        saved = util.cache_get(key, HEALTH_HOURS * 3600)
     return tuple(saved) if saved else None
 
 
@@ -459,10 +467,11 @@ def can_check(job):
     return bool(_saved_nzb(_nzb_name(job)))
 
 
-def health(job, stop=lambda: False):
+def health(job, stop=lambda: False, beside=False):
     """(present, total) articles of the files that would be played, over the provider and the backup provider; or
-    None when it cannot be told. Only STAT questions: no data is downloaded and nothing is fetched at the indexer."""
-    from . import nntp, nzbfile
+    None when it cannot be told. beside: in the source list, where nothing plays and the file of another release is
+    read at the same time over 4 connections: the check takes the rest but 2, up to HEALTH_CONNS_LIST. Only STAT questions: no data is downloaded and nothing is fetched at the indexer."""
+    from . import nntp, nzbfile, vfs
     known = health_known(job)
     if known:
         return known
@@ -477,8 +486,18 @@ def health(job, stop=lambda: False):
         return None
     provider = server.provider()
     allowed = int(provider.get("connections") or 8)
-    pool = nntp.Pool(provider, limit=max(4, min(HEALTH_CONNS, allowed - 4)))
+    most = HEALTH_CONNS_LIST if beside else HEALTH_CONNS
     spare_settings = server.provider(backup=True)
+    if vfs.check_available():                   # the separate C++ add-on: faster, Python stays free for the list
+        try:
+            native = vfs.check_articles(ids, provider, spare_settings, max(4, min(most, allowed - (6 if beside else 4))),
+                                        HEALTH_SECONDS, stop)
+        except (InterruptedError, TimeoutError):   # a film started, or far too slow: no badge, no second try
+            return None
+        if native:
+            util.cache_set("nzbhealth" + _dead_key(job["link"]), list(native))
+            return native
+    pool = nntp.Pool(provider, limit=max(4, min(most, allowed - (6 if beside else 4))))
     spare = nntp.Pool(spare_settings, limit=min(4, int(spare_settings.get("connections") or 4))) if spare_settings else None
     parts = [ids[at:at + HEALTH_PART] for at in range(0, len(ids), HEALTH_PART)]
 
@@ -592,7 +611,15 @@ def tracks(job, stop=lambda: False):
             found = {"f": FILE_FORMAT, "locked": locked}
             util.cache_set("nzbtracks" + _dead_key(job["link"]), found)
             return found
-        util.log("usenet: tracks not read (%s)" % type(error).__name__)
+        from .stream import StreamError
+        # a StreamError says why (never with a login in it): which article or file could not be read
+        util.log("usenet: tracks not read (%s%s)" % (type(error).__name__,
+                                                    ": %s" % str(error)[:200] if isinstance(error, StreamError) else ""))
+        sample = re.match(r"(\d+) of (\d+) checked articles are gone$", str(error)) if isinstance(error, StreamError) else None
+        if sample:
+            # the sample over the release (and the backup) already says far too much is gone, mostly a release that was
+            # taken down: the full check is not needed. It would wait on the provider, which answers a gone article slowly.
+            return {"gone": (int(sample.group(1)), int(sample.group(2)))}
         return None
     finally:
         if release:
@@ -693,7 +720,10 @@ def file_flags(source, found):
 
 
 def tracks_text(found, job=None, source=None):
-    """Only for a release that can never play (locked or packed): what the file says otherwise shows in its labels."""
+    """Only for a release that can never play (locked, packed or gone): what the file says otherwise shows in its labels."""
+    if found and found.get("gone"):
+        lost, asked = found["gone"]
+        return "  ·  [COLOR FFE5534B]✗ %s[/COLOR]" % (util.T("weg: %d van %d geteste stukjes", "gone: %d of %d tested pieces") % (lost, asked))
     if not found or not found.get("locked"):
         return ""
     return "  ·  [COLOR FFE5A15A]%s[/COLOR]" % (util.T("op slot met een wachtwoord, speelt niet", "locked with a password, cannot play")

@@ -22,6 +22,8 @@ import util
 
 ADDON_ID = "vfs.lucent"
 SCHEME = "lucentv"
+CHECK_ID = "vfs.lucentcheck"            # the separate add-on for the full article check of the source list (C++)
+CHECK_SCHEME = "lucentc"
 FOLDER = "usenet-vfs"
 HARD_PREFETCH = 96 * 1024 * 1024        # vfs.lucent reads at most this far ahead
 PER_SLOT = 1536 * 1024                  # read-ahead per connection (two articles in flight each)
@@ -260,6 +262,78 @@ def plan_text(release, provider, backup, token, name, fill=True):
         lines.append(block)
     return "\n".join(lines) + "\n"
 
+
+
+def check_available():
+    try:
+        import xbmc
+        return bool(xbmc.getCondVisibility("System.AddonIsEnabled(%s)" % CHECK_ID))
+    except Exception:                   # noqa: BLE001 - outside Kodi: never
+        return False
+
+
+def check_articles(ids, provider, backup, connections, seconds, stop):
+    """The full check done by vfs.lucentcheck: (present, total), or None when it could not answer (then Lucent checks
+    in Python as before). Raises InterruptedError when it was stopped (a film started), TimeoutError when the provider
+    did not answer in time (no second try in Python then). The job holds the sign-in, as
+    a plan does: it lives only in Lucent's own profile folder and is removed straight after."""
+    import json
+    import threading
+    servers = _servers(provider, backup)
+    if not ids or not servers:
+        return None
+    token = secrets.token_hex(16)
+    base = os.path.join(folder(), token)
+    lines = ["lucent-plan 1", "token " + token, "name check", "container mkv", "length %d" % len(ids), "timeout 20",
+             "workers %d" % max(1, int(connections)), "seconds %d" % max(10, int(seconds))]
+    if _cacert():
+        lines.append("cacert " + _cacert())
+    lines += servers
+    lines.append("part 0 0 %d 0" % len(ids))
+    lines += ["a 0 " + str(message_id).strip().strip("<>") for message_id in ids]
+    finished = threading.Event()
+
+    def watch():                        # a film starts: vfs.lucentcheck stops within a moment and frees the line
+        while not finished.wait(0.15):
+            if stop():
+                try:
+                    _write(base + ".stop", b"stop\n")
+                except OSError:
+                    pass
+                return
+
+    watcher = threading.Thread(target=watch, daemon=True)
+    try:
+        _write(base + ".check", ("\n".join(lines) + "\n").encode("utf-8"))
+        watcher.start()
+        import xbmcvfs
+        handle = xbmcvfs.File("%s://%s/check.json" % (CHECK_SCHEME, token))
+        try:
+            text = handle.read()
+        finally:
+            handle.close()
+        answer = json.loads(text or "{}")
+    except InterruptedError:
+        raise
+    except Exception as error:          # noqa: BLE001 - not installed, an old Kodi, an odd answer: Python checks
+        util.log("usenet: vfs.lucentcheck gave no answer (%s)" % type(error).__name__)
+        return None
+    finally:
+        finished.set()
+        for end in (".check", ".stop"):
+            try:
+                os.remove(base + end)
+            except OSError:
+                pass
+    if stop() or answer.get("error") == "stopped":
+        raise InterruptedError
+    if answer.get("error") or int(answer.get("total") or 0) != len(ids):
+        # the provider did not answer in time or refused: Python would only ask the same provider again
+        util.log("usenet: vfs.lucentcheck could not finish (%s)" % str(answer.get("error"))[:300])
+        raise TimeoutError
+    util.log("usenet: full check (vfs.lucentcheck): %d of %d articles there, %d at the backup (%.1f s)"
+             % (int(answer["present"]), len(ids), int(answer.get("backup") or 0), float(answer.get("seconds") or 0)))
+    return int(answer["present"]), len(ids)
 
 def _write(path, data):
     temp = path + ".tmp"

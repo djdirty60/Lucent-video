@@ -69,7 +69,7 @@ def logout():
 
 
 def forget_lists():
-    for key in ("mdbtrackchecked", "mdbtrackwatchlist", "mdbtrackplayback", "nextup"):
+    for key in ("mdbtrackchecked", "mdbtrackwatchlist", "mdbtrackplayback", "mdbtrackdropped", "mdbtracknextup", "nextup"):
         util.cache_drop(key)
 
 
@@ -238,8 +238,33 @@ def scrobble(state, meta, percent):
         util.cache_drop("nextup")
 
 
+def dropped_shows():
+    """{show tmdb id} you dropped on MDBList (GET /sync/dropped, offset-paged). Empty when MDBList does not answer."""
+    saved = util.cache_get("mdbtrackdropped", 300)
+    if saved is not None:
+        return set(saved)
+    out, offset = set(), 0
+    try:
+        for _ in range(20):
+            data = call("sync/dropped", offset=offset, limit=1000) or {}
+            for entry in data.get("shows") or []:
+                tmdb_id = _tmdb((entry.get("show") or entry).get("ids"))
+                if tmdb_id:
+                    out.add(tmdb_id)
+            paging = data.get("pagination") or {}
+            if not paging.get("has_more"):
+                break
+            offset += int(paging.get("limit") or 1000)
+    except util.HttpError as error:
+        util.log("MDBList dropped: %s" % error)
+        return out
+    util.cache_set("mdbtrackdropped", sorted(out))
+    return out
+
+
 def next_up():
-    """[(show tmdb id, season, episode)], most recent first: the episode after the last one you saw, when it is out."""
+    """[(show tmdb id, season, episode)], most recent first: the episode after the last one you saw, when it is out.
+    Shows you dropped on MDBList are left out."""
     saved = util.cache_get("mdbtracknextup", 300)
     if saved is not None:
         return [tuple(r) for r in saved]
@@ -252,7 +277,9 @@ def next_up():
         except util.HttpError:
             return None
         return (show, following["season"], following["episode"]) if following else None
-    recent = sorted(watched_episodes().items(), key=lambda s: max(s[1].values()) if s[1] else "", reverse=True)[:40]
+    dropped = dropped_shows()
+    recent = sorted([s for s in watched_episodes().items() if s[0] not in dropped],
+                    key=lambda s: max(s[1].values()) if s[1] else "", reverse=True)[:40]
     with ThreadPoolExecutor(max_workers=6) as pool:
         out = [r for r in pool.map(step, recent) if r]
     util.cache_set("mdbtracknextup", out)

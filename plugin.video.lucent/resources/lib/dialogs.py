@@ -85,7 +85,37 @@ class Sources(Base):
         self.setFocusId(200)
         if SEARCH_DONE.get("at"):
             util.log("sources: list shown %.1f s after the search" % (time.time() - SEARCH_DONE.pop("at")))
+        self._log_order("list")
         self._start_checks()                    # after the list is up: looking up what is known costs time on slow boxes
+
+    _rows_lock = threading.RLock()
+
+    def _log_order(self, when):
+        """For the report: your ranking profile and why the first releases of the tab stand where they stand."""
+        try:
+            import ranking
+            profile = ranking.active()
+            groups = " > ".join("%s(%s)" % (g["id"], ",".join(g.get("order", [])[:6])) for g in profile.get("groups", []))
+            util.log("sources: order (%s, ranking test10), profile '%s', tab %s: %s"
+                     % (when, profile.get("name", "?"), self.tab, groups))
+            import learn
+            learned = util.load_json(learn.FILE, {})
+            for number, source in enumerate(self.current[:40], 1):
+                why = "; ".join("%s (%s)" % (what, rule) for what, rule in source.get("why") or [])
+                after = []                      # what can move a source after the ranking itself
+                if util.flag("learn") and learn.score(learn.key(source), learned):
+                    after.append("learned %+d" % learn.score(learn.key(source), learned))
+                if source.get("subs_online"):
+                    after.append("online subtitle fits" + (" (subtitles first on)" if util.flag("subs_first") else ""))
+                if source.get("heavy"):
+                    after.append("too heavy")
+                if source.get("locked"):
+                    after.append("locked")
+                util.log("sources: %d. %s | %s | %s | after: %s" % (number, source.get("name", "")[:90],
+                                                                    ",".join(source.get("flags") or []), why or "-",
+                                                                    ", ".join(after) or "-"))
+        except Exception as error:              # noqa: BLE001 - only for the log
+            util.log("sources: order not logged (%s)" % type(error).__name__)
 
     def _start_checks(self):
         """Usenet releases whose NZB Lucent already has: a full check (every article) in the background, shown as
@@ -127,32 +157,43 @@ class Sources(Base):
                     source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
                     self._show_health(source)
                     todo.insert(0, source)
-        heard = {}
-        for source in todo:                     # first what the file itself says (about a second each): labels at once
-            if self.done:
-                return
-            found = nzb_source.tracks(source["resolve"], stop=lambda: self.done)
-            if self.done:
-                return
-            if found:
-                heard[id(source)] = found
-                source["health"] = (nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
-                                    + nzb_source.tracks_text(found, source["resolve"], source))
+        import queue
+        ready = queue.Queue()                   # releases whose file was read: their full check starts at once
+
+        def full_checks():                      # beside the reading of the next files, not after all of them
+            while True:
+                item = ready.get()
+                if item is None or self.done:
+                    return
+                source, found = item
+                if found and (found.get("locked") or found.get("gone")):
+                    source["health"] = nzb_source.tracks_text(found)
+                    self._show_health(source)
+                    continue                    # never playable, or the sample says it is gone: no need to count
+                result = nzb_source.health(source["resolve"], stop=lambda: self.done, beside=True)
+                if self.done:
+                    return
+                source["health"] = nzb_source.health_text(result) + nzb_source.tracks_text(found, source["resolve"], source)
                 self._show_health(source)
-                self._subs_badge(source, found)
-        for source in todo:                     # then the full check of every article (the longer part)
-            if self.done:
-                return
-            found = heard.get(id(source))
-            if found and found.get("locked"):
-                source["health"] = nzb_source.tracks_text(found)
-                self._show_health(source)
-                continue                        # never playable: no need to count its articles
-            result = nzb_source.health(source["resolve"], stop=lambda: self.done)
-            if self.done:
-                return
-            source["health"] = nzb_source.health_text(result) + nzb_source.tracks_text(found, source["resolve"], source)
-            self._show_health(source)
+
+        checker = threading.Thread(target=full_checks, daemon=True)
+        checker.start()
+        try:
+            for source in todo:                 # first what the file itself says (about a second each): labels at once
+                if self.done:
+                    return
+                found = nzb_source.tracks(source["resolve"], stop=lambda: self.done)
+                if self.done:
+                    return
+                if found and not found.get("gone"):
+                    source["health"] = (nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
+                                        + nzb_source.tracks_text(found, source["resolve"], source))
+                    self._show_health(source)
+                    self._subs_badge(source, found)
+                ready.put((source, found))
+        finally:
+            ready.put(None)
+        checker.join()
 
     def _subs_badge(self, source, found):
         """The labels set right by what the file itself says (sound, HDR, your language, FEL / P7): changed in place, the
@@ -180,6 +221,10 @@ class Sources(Base):
     def _rerank(self):
         """The labels changed: the order of sources as your profile wants it with the new labels. The tab you look at is
         built again only when its order really changed, and the source you stand on stays selected."""
+        with self._rows_lock:
+            return self._rerank_locked()
+
+    def _rerank_locked(self):
         import scrapers
         try:
             ranked = scrapers.rerank(self.sources, self.meta)
@@ -204,14 +249,16 @@ class Sources(Base):
         except (RuntimeError, StopIteration, AttributeError):
             pass
         util.log("sources: order made again after the file check")
+        self._log_order("after the file check")
         return True
 
     def _show_health(self, source):
-        try:
-            position = next(n for n, s in enumerate(self.current) if s is source)
-            self.rows.getListItem(position).setProperty("health", source.get("health") or "")
-        except (StopIteration, RuntimeError, AttributeError):
-            pass                                # on another tab now: shown when that tab is opened
+        with self._rows_lock:                   # two checks run side by side: one of them may be building the tab again
+            try:
+                position = next(n for n, s in enumerate(self.current) if s is source)
+                self.rows.getListItem(position).setProperty("health", source.get("health") or "")
+            except (StopIteration, RuntimeError, AttributeError):
+                pass                            # on another tab now: shown when that tab is opened
 
     def close(self):
         self.done = True
