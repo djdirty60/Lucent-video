@@ -105,6 +105,7 @@ class Sources(Base):
             heard = nzb_source.tracks_known(job)
             if known and heard:
                 source["health"] = nzb_source.health_text(known) + nzb_source.tracks_text(heard)
+                self._subs_badge(source, heard)
             elif nzb_source.can_check(job):
                 source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
                 todo.append(source)
@@ -128,6 +129,24 @@ class Sources(Base):
             if found:
                 source["health"] = (source.get("health") or "") + nzb_source.tracks_text(found)
                 self._show_health(source)
+                self._subs_badge(source, found)
+
+    def _subs_badge(self, source, found):
+        """Subtitles in your language inside the file (read from its tracks), not in the release name: the same badge
+        as a name with NL-SUBS / RO-SUBS gets."""
+        import mylang
+        flag = mylang.subs_flag()
+        if mylang.code() not in (found.get("subs") or []) or flag in (source.get("flags") or []):
+            return
+        source["flags"] = list(source.get("flags") or []) + [flag]
+        try:
+            position = next(n for n, s in enumerate(self.current) if s is source)
+            item = self.rows.getListItem(position)
+            flags = streams.tidy_flags(source["flags"])[:12]
+            for number in range(1, 13):
+                item.setProperty("flag%d" % number, "lucent/flags/%s.png" % flags[number - 1] if number <= len(flags) else "")
+        except (StopIteration, RuntimeError, AttributeError):
+            pass                                # on another tab now: shown when that tab is opened
 
     def _show_health(self, source):
         try:

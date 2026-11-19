@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+87" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~beta1+88" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -95,19 +95,19 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 87: all Lucent options can be at the top of the library menu with the Lucent skin.
+        <news>1.0.0 beta 1, update 88: provider names in the statistics; subtitle badge from the subtitles inside the file.
+1.0.0 beta 1, update 87: all Lucent options can be at the top of the library menu with the Lucent skin.
 1.0.0 beta 1, update 86: faster source list (the Usenet check before it waits at most 3 s, skipped for a day when it keeps failing).
 1.0.0 beta 1, update 85: MediUX and fanart.tv pictures (own keys) and collection art in the library; asks for a Kodi restart after a VFS update; FLAC/PCM count as lossless sound; dubbed versions go to the bottom of their group; Get ready for tonight, Marathon planner and Get season ready in the library menu; scroll bar in the statistics.
 1.0.0 beta 1, update 84: next episode starts at once; Usenet completeness and audio check; learns from statistics; switching when a film stops; skipping without waiting; ready for tomorrow; season ready; sorting follows your profile; Tune connections fixed.
 1.0.0 beta 1, update 83: searching is fast again (the language setting was read for every source).
 1.0.0 beta 1, update 82: Usenet statistics (data per day, providers, indexers; Clear button).
 1.0.0 beta 1, update 81: Language of sources (your own language, its own coloured labels); Tune connections for Usenet.
-1.0.0 beta 1, update 80: GearsScrapers is used as a source when installed (like CocoScrapers).
-1.0.0 beta 1, update 79: Usenet for everyone (no test code needed); fast reader Lucent Video VFS in the Lucent repository for Android, CoreELEC/LibreELEC, Linux and Windows.</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 87: Alle Lucent-opties bovenaan in de bibliotheek: Met de Lucent-skin kunnen nu alle opties van Lucent Video in het menu van je bibliotheek bovenaan staan (Bron kiezen, kijklijst, trailer, acteurs, vergelijkbare titels, beoordelen, uit je bibliotheek halen …), boven die van Kodi. Zodra de skin dat doet, verdwijnen de oude onderaan vanzelf.
+1.0.0 beta 1, update 80: GearsScrapers is used as a source when installed (like CocoScrapers).</news>
+        <news lang="nl_NL">1.0.0 beta 1, update 88: Providernamen in de statistieken: In de statistieken staat nu de naam van je provider (Easynews, ThunderNews, NewsDemon …) in plaats van het serveradres. Idee van Guguloi. Ondertitel-label uit het bestand zelf: Zitten er ondertitels in jouw taal in het bestand, maar staat dat niet in de releasenaam, dan krijgt de bron na de controle toch het label (bijvoorbeeld NL-SUBS of RO-SUBS). Idee van Guguloi.
+1.0.0 beta 1, update 87: Alle Lucent-opties bovenaan in de bibliotheek: Met de Lucent-skin kunnen nu alle opties van Lucent Video in het menu van je bibliotheek bovenaan staan (Bron kiezen, kijklijst, trailer, acteurs, vergelijkbare titels, beoordelen, uit je bibliotheek halen …), boven die van Kodi. Zodra de skin dat doet, verdwijnen de oude onderaan vanzelf.
 1.0.0 beta 1, update 86: Bronnenlijst sneller: De controle van de beste Usenet-releases vóór de lijst wacht nu hooguit 3 seconden (was 8, en liep soms uit tot 13). Lukt die controle 3 keer achter elkaar niet (trage NZB's bij je indexers), dan slaat Lucent hem een dag over. De lijst verschijnt meteen; 'compleet' en de audiotalen worden daarna ingevuld.
-1.0.0 beta 1, update 85: Melding na een update van Lucent Video VFS; Mooiere posters, logo's en collectieplaatjes; Sortering: Remux met FLAC-geluid weer bovenaan; Nagesynchroniseerde versies onderaan; Meer opties in de bibliotheek; Statistieken: schuifbalk bij veel indexers.
-1.0.0 beta 1, update 84: Volgende aflevering start meteen; Compleet-controle bij Usenet; Lucent leert van je statistieken; Overstappen als een film halverwege stopt; Spoelen zonder wachten; Klaar voor vanavond: ook morgen; Sortering volgt je profiel; Verbindingen afstemmen klopt nu; Seizoen klaarzetten.</news>
+1.0.0 beta 1, update 85: Melding na een update van Lucent Video VFS; Mooiere posters, logo's en collectieplaatjes; Sortering: Remux met FLAC-geluid weer bovenaan; Nagesynchroniseerde versies onderaan; Meer opties in de bibliotheek; Statistieken: schuifbalk bij veel indexers.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>

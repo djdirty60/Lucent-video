@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+88",
+   "label": "Beta 1 · update 88",
+   "label_en": "Beta 1 · update 88",
+   "date": "2026-11-19",
+   "at": "2026-11-19T08:45Z",
+   "items": [
+    [
+     "info",
+     "Providernamen in de statistieken",
+     "In de statistieken staat nu de naam van je provider (Easynews, ThunderNews, NewsDemon …) in plaats van het serveradres. Idee van Guguloi.",
+     "Provider names in the statistics",
+     "The statistics now show your provider's name (Easynews, ThunderNews, NewsDemon …) instead of its server address. Idea from Guguloi."
+    ],
+    [
+     "subtitles",
+     "Ondertitel-label uit het bestand zelf",
+     "Zitten er ondertitels in jouw taal in het bestand, maar staat dat niet in de releasenaam, dan krijgt de bron na de controle toch het label (bijvoorbeeld NL-SUBS of RO-SUBS). Idee van Guguloi.",
+     "Subtitle badge from the file itself",
+     "When the file holds subtitles in your language but the release name doesn't say so, the source still gets the badge after the check (for example NL-SUBS or RO-SUBS). Idea from Guguloi."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+87",
    "label": "Beta 1 · update 87",
    "label_en": "Beta 1 · update 87",

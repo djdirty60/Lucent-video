@@ -76,6 +76,34 @@ def _buckets(days, most=30):
     return out
 
 
+# the usual spelling of well-known Usenet providers, by a word in their server address
+PROVIDERS = {"easynews": "Easynews", "newsdemon": "NewsDemon", "thundernews": "ThunderNews", "eweka": "Eweka",
+             "newshosting": "Newshosting", "usenetserver": "UsenetServer", "frugalusenet": "Frugal Usenet",
+             "giganews": "Giganews", "tweaknews": "Tweaknews", "pureusenet": "Pure Usenet", "farm": "Usenet.Farm",
+             "newsgroupninja": "Newsgroup Ninja", "xsnews": "XS News", "blocknews": "Blocknews",
+             "usenetexpress": "UsenetExpress", "vipernews": "ViperNews", "bulknews": "BulkNews",
+             "newsgroupdirect": "Newsgroup Direct", "supernews": "Supernews", "astraweb": "Astraweb",
+             "hitnews": "Hitnews", "cheapnews": "Cheapnews", "torbox": "TorBox", "elbracht": "Elbracht",
+             "abavia": "Abavia", "newsoo": "Newsoo", "sunnyusenet": "Sunny Usenet", "usenetfire": "UsenetFire",
+             "newsfire": "UsenetFire", "ngd": "Newsgroup Direct", "fastusenet": "FastUsenet", "usenet-farm": "Usenet.Farm"}
+
+
+def provider_name(host):
+    """'Easynews' for secure-eu.news.easynews.com: the provider's name, not its server address. An unknown provider:
+    the main part of the address with a capital (news.example.net -> Example)."""
+    host = (host or "").lower().strip()
+    if not host or host.replace(".", "").replace(":", "").isdigit():
+        return host                               # an address of your own
+    parts = [p for p in host.split(".") if p]
+    for part in parts:
+        if part in PROVIDERS:
+            return PROVIDERS[part]
+    main = parts[-2] if len(parts) >= 2 else host
+    if len(parts) >= 3 and main in ("co", "com", "net", "org"):
+        main = parts[-3]
+    return main[:1].upper() + main[1:]
+
+
 class Screen(dialogs.Base):
 
     def onInit(self):
@@ -136,7 +164,7 @@ class Screen(dialogs.Base):
         total = sum(v.get("b", 0) for v in providers.values())
         items = []
         for number, (host, v) in enumerate(sorted(providers.items(), key=lambda kv: -kv[1].get("b", 0))):
-            item = xbmcgui.ListItem(host + (T(" (reserve)", " (backup)") if host == backup else ""))
+            item = xbmcgui.ListItem(provider_name(host) + (T(" (reserve)", " (backup)") if host == backup else ""))
             asked = v.get("a", 0) + v.get("m", 0)
             item.setProperty("color", COLORS[number % len(COLORS)])
             item.setProperty("sbar", _bar(v.get("b", 0) / total if total else 0))
