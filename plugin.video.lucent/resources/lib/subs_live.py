@@ -107,7 +107,7 @@ def search_languages():
 
 
 def subtitle_addons():
-    """Lucent Video itself first (built in: OpenSubtitles, SubDL and Podnapisi at once), then other subtitle add-ons
+    """Lucent Video itself first (built in: OpenSubtitles and SubDL at once), then other subtitle add-ons
     you installed. The separate Lucent Subtitles add-on is left out: Lucent Video does the same now."""
     import subs_builtin
     try:

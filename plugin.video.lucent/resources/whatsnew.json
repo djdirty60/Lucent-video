@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+91",
+   "label": "Beta 1 · update 91",
+   "label_en": "Beta 1 · update 91",
+   "date": "2026-11-19",
+   "at": "2026-11-19T13:05Z",
+   "items": [
+    [
+     "subtitles",
+     "Zoeken wacht niet meer op een trage ondertitelbron",
+     "De ondertitelcontrole bij het zoeken wacht nog hooguit 2 seconden na de bronnen en gebruikt dan wat de ondertitelbronnen die wel antwoordden gaven. Eerst wachtte de bronnenlijst tot 8 seconden op de traagste (bij jou Podnapisi, dat niet gevonden kon worden). Een ondertitelbron waarvan het adres niet te vinden is, wordt een uur overgeslagen.",
+     "Searching no longer waits for a slow subtitle source",
+     "The subtitle check while searching now waits at most 2 seconds after the sources and then uses what the subtitle sources that did answer gave. Before, the source list waited up to 8 seconds for the slowest one. A subtitle source whose address cannot be found is skipped for an hour."
+    ],
+    [
+     "subtitles",
+     "Podnapisi eruit",
+     "Lucent Video zoekt ondertitels nu alleen nog bij OpenSubtitles en SubDL. Podnapisi is eruit: het was vaak niet bereikbaar en hield het zoeken op.",
+     "Podnapisi removed",
+     "Lucent Video now only searches subtitles at OpenSubtitles and SubDL. Podnapisi is gone: it was often unreachable and held up searching."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+90",
    "label": "Beta 1 · update 90",
    "label_en": "Beta 1 · update 90",

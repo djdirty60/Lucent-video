@@ -107,7 +107,7 @@ def take_over_once():
     except Exception:  # noqa: BLE001
         return
     own = xbmcaddon.Addon(ID)
-    for key in ("os_on", "os_key", "os_user", "os_pass", "subdl_on", "subdl_key", "podnapisi_on", "timeout", "hi_last"):
+    for key in ("os_on", "os_key", "os_user", "os_pass", "subdl_on", "subdl_key", "timeout", "hi_last"):
         value = old.getSetting(key)
         if value and not own.getSetting("subsrc_" + key):
             own.setSetting("subsrc_" + key, value)

@@ -34,11 +34,11 @@ def start(meta):
              "episode": str(meta.get("episode") or "") if episode else "", "imdb": "" if episode else meta.get("imdb") or "",
              "tmdb": "" if episode else str(meta.get("tmdb") or ""), "show_imdb": meta.get("imdb") or "" if episode else "",
              "show_tmdb": str(meta.get("tmdb") or "") if episode else "", "file": "", "release": "", "other": True}
-    holder = {"rows": None}
+    holder = {"rows": None, "live": {}, "langs": langs}
 
     def run():
         try:
-            holder["rows"] = [r for r in _core().search(video, langs) if r.get("lang") in langs]
+            holder["rows"] = [r for r in _core().search(video, langs, live=holder["live"]) if r.get("lang") in langs]
         except Exception as error:          # never let subtitles stop the search for sources
             util.log("subtitle check: %s" % type(error).__name__)
             holder["rows"] = []
@@ -47,12 +47,19 @@ def start(meta):
     return holder
 
 
-def mark(holder, sources, wait=8):
-    """Marks the sources that have a fitting subtitle. Returns the ids of those sources."""
+def mark(holder, sources, wait=2):
+    """Marks the sources that have a fitting subtitle. Returns the ids of those sources. It ran next to the scrapers;
+    after they are done it waits at most `wait` seconds more, then uses what the subtitle sources that answered gave
+    (one slow or unreachable source no longer holds up the list)."""
     if not holder or not sources:
         return set()
     holder["thread"].join(wait)
-    rows = holder.get("rows") or []
+    rows = holder.get("rows")
+    if rows is None:
+        langs = holder.get("langs") or []
+        rows = [r for found in list(holder.get("live", {}).values()) for r in found or [] if r.get("lang") in langs]
+        util.log("subtitle check: not every subtitle source answered in time; %d subtitles from the others" % len(rows))
+    rows = rows or []
     if not rows:
         return set()
     core = _core()

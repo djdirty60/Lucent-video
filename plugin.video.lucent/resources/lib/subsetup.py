@@ -37,7 +37,7 @@ def subs_state():
     os_ok, subdl_ok = subs_keys()
     parts = [T("Ingebouwd in Lucent Video", "Built into Lucent Video"),
              "OpenSubtitles ✓" if os_ok else T("OpenSubtitles: geen account", "OpenSubtitles: no account"),
-             "SubDL ✓" if subdl_ok else T("SubDL: geen sleutel", "SubDL: no key"), "Podnapisi ✓"]
+             "SubDL ✓" if subdl_ok else T("SubDL: geen sleutel", "SubDL: no key")]
     parts.append(util.HOME.getProperty("lucent.video.subs.state") or "")
     return "  ·  ".join(p for p in parts if p)
 
@@ -53,13 +53,13 @@ def subs_actions():
     return out
 
 
-INTRO_SUBS = T("Lucent Video zoekt zelf ondertitels: het vraagt OpenSubtitles, SubDL en Podnapisi tegelijk en zet de ondertitels die precies bij je video "
-               "passen bovenaan. Podnapisi werkt meteen. Voor meer en betere ondertitels maak je twee gratis accounts en vul je ze in bij 'Accounts en sleutels':[CR]"
+INTRO_SUBS = T("Lucent Video zoekt zelf ondertitels: het vraagt OpenSubtitles en SubDL tegelijk en zet de ondertitels die precies bij je video "
+               "passen bovenaan. Daarvoor maak je twee gratis accounts en vul je ze in bij 'Accounts en sleutels':[CR]"
                "1. opensubtitles.com: aanmelden, dan Profiel › API consumers › New consumer (de API-sleutel), plus je gebruikersnaam en wachtwoord.[CR]"
                "2. subdl.com: aanmelden, dan Account › API-sleutel.[CR]Optioneel: een AI-sleutel (Gemini is gratis, of OpenRouter of Claude) "
                "vertaalt Engelse ondertitels. Bij 'Gesproken taal' kies je met welk geluid een film start.",
-               "Lucent Video finds subtitles itself: it asks OpenSubtitles, SubDL and Podnapisi at the same time and puts the subtitles that fit your video "
-               "exactly first. Podnapisi works right away. For more and better subtitles make two free accounts and fill them in under 'Accounts and keys':[CR]"
+               "Lucent Video finds subtitles itself: it asks OpenSubtitles and SubDL at the same time and puts the subtitles that fit your video "
+               "exactly first. For that you make two free accounts and fill them in under 'Accounts and keys':[CR]"
                "1. opensubtitles.com: sign up, then Profile › API consumers › New consumer (the API key), plus your user name and password.[CR]"
                "2. subdl.com: sign up, then Account › API key.[CR]Optional: an AI key (Gemini is free, or OpenRouter or Claude) translates "
                "English subtitles. Under 'Spoken language' you choose which sound a film starts with.")

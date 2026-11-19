@@ -1454,8 +1454,8 @@ msgid "API key"
 msgstr "API-sleutel"
 
 msgctxt "#32294"
-msgid "Podnapisi and search"
-msgstr "Podnapisi en zoeken"
+msgid "Search"
+msgstr "Zoeken"
 
 msgctxt "#32295"
 msgid "Use Podnapisi"

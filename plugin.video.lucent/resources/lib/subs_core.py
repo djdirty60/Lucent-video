@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """Subtitles, built into Lucent Video (taken over from the Lucent Subtitles add-on, which is not needed any more):
-OpenSubtitles, SubDL and Podnapisi asked at the same time, the subtitles that fit this exact video first.
+OpenSubtitles and SubDL asked at the same time, the subtitles that fit this exact video first.
 
 Every source gets the same 'video' (what is playing) and answers a list of dicts:
     {"src", "id", "lang" (ISO 639-1), "release", "sync" (fits this exact video), "hi", "score" (0-5), "extra"}
 They run at the same time, each with a time limit, so one slow site never holds the list up.
-Settings are Lucent Video's own, under 'subsrc_' (OpenSubtitles key and login, SubDL key, Podnapisi on/off)."""
+Settings are Lucent Video's own, under 'subsrc_' (OpenSubtitles key and login, SubDL key)."""
 import io
 import json
 import os
@@ -32,10 +32,9 @@ CACHE_TTL = 30 * 60
 OS_API = "https://api.opensubtitles.com/api/v1"
 SUBDL_API = "https://api.subdl.com/api/v1/subtitles"
 SUBDL_DL = "https://dl.subdl.com"
-PODNAPISI = "https://www.podnapisi.net"
 
 SUB_EXT = (".srt", ".ass", ".ssa", ".sub", ".vtt", ".smi")
-DEFAULTS = {"os_on": "true", "subdl_on": "true", "podnapisi_on": "true", "timeout": "10", "hi_last": "true"}
+DEFAULTS = {"os_on": "true", "subdl_on": "true", "timeout": "10", "hi_last": "true"}
 
 
 def log(text):
@@ -418,42 +417,7 @@ def subdl_download(item):
     return request(SUBDL_DL + item["id"], headers={"Accept": "*/*"}, timeout=20), "subtitle.zip"
 
 
-# ----------------------------------------------------------------------------- Podnapisi
-def podnapisi_search(video, langs, timeout):
-    if not on("podnapisi_on"):
-        return []
-    out = []
-    for lang in langs:
-        params = {"language": "pt-br" if lang == "pb" else lang}
-        if video.get("query"):
-            params["keywords"] = video["query"]
-        elif video["show"]:
-            params.update({"keywords": video["show"], "movie_type": "tv-series", "seasons": video["season"],
-                           "episodes": video["episode"]})
-        else:
-            params.update({"keywords": video["title"], "movie_type": "movie"})
-            if video["year"]:
-                params["year"] = video["year"]
-        data = get_json(f"{PODNAPISI}/subtitles/search/advanced?{urllib.parse.urlencode(params)}", timeout=timeout)
-        for row in data.get("data") or []:
-            link = row.get("download") or (f"/subtitles/{row['id']}/download" if row.get("id") else "")
-            if not link:
-                continue
-            releases = row.get("custom_releases") or row.get("releases") or []
-            flags = row.get("flags") or []
-            downloads = int((row.get("stats") or {}).get("downloads") or 0)
-            out.append({"src": "podnapisi", "id": link, "lang": (row.get("language") or lang).lower()[:2] if lang != "pb" else "pb",
-                        "release": releases[0] if releases else (row.get("title") or ""), "sync": False,
-                        "hi": "hearing_impaired" in flags, "score": 1 + min(3, downloads // 1000), "others": releases})
-    return out
-
-
-def podnapisi_download(item):
-    return request(PODNAPISI + item["id"], headers={"Accept": "*/*"}, timeout=20), "subtitle.zip"
-
-
-SOURCES = {"os": (os_search, os_download, "OpenSubtitles"), "subdl": (subdl_search, subdl_download, "SubDL"),
-           "podnapisi": (podnapisi_search, podnapisi_download, "Podnapisi")}
+SOURCES = {"os": (os_search, os_download, "OpenSubtitles"), "subdl": (subdl_search, subdl_download, "SubDL")}
 
 
 # ----------------------------------------------------------------------------- search all
@@ -461,8 +425,33 @@ def cache_path():
     return os.path.join(DATA, "search_cache.json")
 
 
-def search(video, langs):
-    """All sources at once; whatever is not back within the time limit is left out. Results ranked."""
+DOWN = "subs_down.json"          # a source whose name could not be looked up (DNS): skipped for an hour
+DOWN_KEEP = 3600
+
+
+def _down():
+    try:
+        with open(os.path.join(DATA, DOWN), encoding="utf-8") as fh:
+            saved = json.load(fh)
+        return {name: at for name, at in saved.items() if time.time() - at < DOWN_KEEP}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _mark_down(name):
+    saved = _down()
+    saved[name] = time.time()
+    try:
+        os.makedirs(DATA, exist_ok=True)
+        with open(os.path.join(DATA, DOWN), "w", encoding="utf-8") as fh:
+            json.dump(saved, fh)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def search(video, langs, live=None):
+    """All sources at once; whatever is not back within the time limit is left out. Results ranked.
+    live: a dict that gets each source's rows as soon as they are in (for a caller that cannot wait for the slowest)."""
     key = json.dumps([video.get("query") or video.get("release") or video.get("title"), video["show"], video["season"],
                       video["episode"], video["imdb"], sorted(langs), bool(video.get("other"))])
     try:
@@ -476,7 +465,8 @@ def search(video, langs):
     timeout = max(4, int(setting("timeout") or 10))
     if not video.get("query") and not video.get("other"):
         video["hash"], video["size"] = os_hash(video.get("file"))
-    results, threads = {}, []
+    results, threads = ({} if live is None else live), []
+    down = _down()
 
     def run(name, fn):
         started = time.time()
@@ -485,9 +475,14 @@ def search(video, langs):
             log(f"{name}: {len(results[name])} in {time.time() - started:.1f}s")
         except Exception as error:  # noqa: BLE001
             log(f"{name}: {error}")
+            if "Name or service not known" in str(error) or "name resolution" in str(error).lower():
+                _mark_down(name)                     # the address cannot be found here: skip it for an hour
+                log(f"{name}: skipped for an hour (its address cannot be found)")
             results[name] = []
 
     for name, (fn, _dl, _label) in SOURCES.items():
+        if name in down:
+            continue
         thread = threading.Thread(target=run, args=(name, fn), daemon=True)
         thread.start()
         threads.append(thread)
