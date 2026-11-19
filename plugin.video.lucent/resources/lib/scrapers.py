@@ -220,4 +220,4 @@ def rerank(sources, meta):
                 original[key] = copy[key]
         out.append(original)
     out += [s for n, s in enumerate(sources) if n not in seen]     # anything the ranking left out keeps its place at the end
-    return out
+    return [s for s in out if not s.get("locked")] + [s for s in out if s.get("locked")]    # never playable: last of all

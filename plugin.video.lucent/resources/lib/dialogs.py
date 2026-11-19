@@ -158,6 +158,10 @@ class Sources(Base):
         """The labels set right by what the file itself says (sound, HDR, your language, FEL / P7): changed in place, the
         order of the list stays as it is while you look at it."""
         from nzb import source as nzb_source
+        if found.get("locked") and not source.get("locked"):
+            source["locked"] = True             # locked with a password or packed: to the very end of the list
+            self._rerank()
+            return
         flags = nzb_source.file_flags(source, found)
         if flags == list(source.get("flags") or []):
             return
@@ -193,7 +197,9 @@ class Sources(Base):
             standing = self.current[position] if 0 <= position < len(self.current) else None
             name, self.tab = self.tab, None
             self.show_tab(name)
-            if standing is not None:
+            if standing is not None and standing.get("locked"):
+                self.rows.selectItem(min(position, len(self.current) - 1))     # stay on the same row, not with it down
+            elif standing is not None:
                 self.rows.selectItem(next(n for n, s in enumerate(self.current) if s is standing))
         except (RuntimeError, StopIteration, AttributeError):
             pass
