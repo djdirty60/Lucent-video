@@ -2000,3 +2000,31 @@ msgstr ""
 msgctxt "#32566"
 msgid "Your own MediUX API key. Adds MediUX's special fan-made poster and background sets to 'Choose art' in your library (films, series, seasons, collections) and uses the most popular one. Empty: no MediUX."
 msgstr ""
+
+msgctxt "#32567"
+msgid "MDBList"
+msgstr ""
+
+msgctxt "#32568"
+msgid "Link MDBList as your account"
+msgstr ""
+
+msgctxt "#32569"
+msgid "Unlink MDBList as your account"
+msgstr ""
+
+msgctxt "#32570"
+msgid "The MDBList account Lucent uses to remember what you watched."
+msgstr ""
+
+msgctxt "#32571"
+msgid "Use MDBList to remember what you watched, where you stopped, your watchlist and ratings. Uses your MDBList API key (Services > MDBList); without one Lucent asks for it."
+msgstr ""
+
+msgctxt "#32572"
+msgid "Stops using MDBList as your account. The key stays, so scores and lists keep working."
+msgstr ""
+
+msgctxt "#32573"
+msgid "Shows which MDBList account you are linked with and how much you watched."
+msgstr ""

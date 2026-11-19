@@ -144,6 +144,12 @@ def rate(kind, tmdb_id, value, send=True):
                 punchplay.rate(kind, tmdb_id, {2: 9, 1: 7, -1: 3}[value])
             except util.HttpError as error:
                 util.log("rating to PunchPlay: %s" % error)
+        import mdbtrack
+        if mdbtrack.logged_in() and (tracker.name() == "MDBList" or "mdbtrack" in [m.__name__ for m in tracker.mirrors()]):
+            try:
+                mdbtrack.rate(kind, tmdb_id, {2: 9, 1: 7, -1: 3}[value])
+            except util.HttpError as error:
+                util.log("rating to MDBList: %s" % error)
 
 
 def history():

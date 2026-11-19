@@ -204,7 +204,7 @@ def trakt_menu(handle, _params):
     import prefetch
     entries = [(T("Klaar voor vanavond", "Ready for tonight"), "tonight")] if prefetch.tonight() else []
     entries += [(T("Komt binnenkort uit", "Coming soon"), "coming_watchlist"), (T("Kijklijst films", "Watchlist movies"), "watchlist_movie"), (T("Kijklijst series", "Watchlist shows"), "watchlist_tv")]
-    if tracker.logged_in() and tracker.name() != "PunchPlay":        # PunchPlay: no collection in Lucent
+    if tracker.logged_in() and tracker.name() not in ("PunchPlay", "MDBList"):        # PunchPlay, MDBList: no collection in Lucent
         entries += [(T("Collectie films", "Collection movies"), "collection_movie"), (T("Collectie series", "Collection shows"), "collection_tv")]
     rows = [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
     if tracker.has_lists():
@@ -972,6 +972,15 @@ def _run(argv):
             linked = punchplay.login()
             trakt_status()
             return linked
+        if action == "auth_mdbtrack":
+            import mdbtrack
+            linked = mdbtrack.login()
+            trakt_status()
+            return linked
+        if action == "logout_mdbtrack":
+            import mdbtrack
+            mdbtrack.logout()
+            return trakt_status()
         if action == "logout_punchplay":
             import punchplay
             punchplay.logout()

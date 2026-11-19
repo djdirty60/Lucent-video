@@ -97,6 +97,21 @@ def punchplay():
     return lines
 
 
+def mdbtrack():
+    import mdbtrack as service
+    if not service.logged_in():
+        return [T("Niet gekoppeld.", "Not linked.")]
+    lines = [T("Gekoppeld als %s", "Linked as %s") % (service.account().get("user") or "?")]
+    try:
+        movies = len(service.watched_movies())
+        episodes = sum(len(v) for v in service.watched_episodes().values())
+        lines.append(T("Bekeken: %d %s, %d %s", "Watched: %d %s, %d %s") % (movies, T("film" if movies == 1 else "films", "film" if movies == 1 else "films"),
+                     episodes, T("aflevering" if episodes == 1 else "afleveringen", "episode" if episodes == 1 else "episodes")))
+    except util.HttpError:
+        pass
+    return lines
+
+
 def easynews():
     import usenet
     ok, text = usenet.check_easynews()
@@ -170,7 +185,7 @@ def mdblist():
     return [text]
 
 
-SERVICES = {"trakt": ("Trakt", trakt), "simkl": ("Simkl", simkl), "punchplay": ("PunchPlay", punchplay), "easynews": ("Easynews", easynews), "torbox": ("TorBox", torbox),
+SERVICES = {"trakt": ("Trakt", trakt), "simkl": ("Simkl", simkl), "punchplay": ("PunchPlay", punchplay), "mdbtrack": ("MDBList", mdbtrack), "easynews": ("Easynews", easynews), "torbox": ("TorBox", torbox),
             "realdebrid": ("Real-Debrid", realdebrid), "alldebrid": ("AllDebrid", alldebrid), "premiumize": ("Premiumize", premiumize),
             "mdblist": ("MDBList", mdblist)}
 
@@ -191,7 +206,7 @@ def publish_names():
     import users
     if users.current_id() != users.MAIN:
         return
-    for setting, module in (("trakt_user", "trakt"), ("simkl_user", "simkl"), ("punchplay_user", "punchplay")):
+    for setting, module in (("trakt_user", "trakt"), ("simkl_user", "simkl"), ("punchplay_user", "punchplay"), ("mdbtrack_user", "mdbtrack")):
         account = __import__(module)
         name = account.account().get("user", "") if account.logged_in() else ""
         if not name and account.logged_in():

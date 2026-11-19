@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+89",
+   "label": "Beta 1 · update 89",
+   "label_en": "Beta 1 · update 89",
+   "date": "2026-11-19",
+   "at": "2026-11-19T09:15Z",
+   "items": [
+    [
+     "trakt",
+     "MDBList als je account",
+     "Naast Trakt, Simkl en PunchPlay kun je nu ook MDBList kiezen om te onthouden wat je keek: bekeken films en afleveringen, waar je stopte, je kijklijst en je beoordelingen. Instellingen > Account > MDBList koppelen; Lucent gebruikt je MDBList API-sleutel (Diensten > MDBList). 'Je bibliotheek kopiëren' werkt ook naar en van MDBList. Idee van Guguloi.",
+     "MDBList as your account",
+     "Next to Trakt, Simkl and PunchPlay you can now pick MDBList to remember what you watched: watched films and episodes, where you stopped, your watchlist and your ratings. Settings > Account > Link MDBList; Lucent uses your MDBList API key (Services > MDBList). 'Copy your library' works to and from MDBList too. Idea from Guguloi."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+88",
    "label": "Beta 1 · update 88",
    "label_en": "Beta 1 · update 88",

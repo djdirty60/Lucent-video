@@ -297,7 +297,7 @@ def cache_clear():
 
 
 USERS = "users.json"
-PER_USER = {"punchplay_history.lock", "kompas_profile.json", "kompas_ratings.json", "kompas_rows.json", "kompas_shown.json", "kompas_saved.json", "search_history.json", "trakt.json", "simkl.json", "wetrakr.json", "simkl_state.json", "punchplay.json", "punchplay_state.json", "punchplay.lock", "watched.json", "watchlist.json", "progress.json", "last_release.json"}
+PER_USER = {"punchplay_history.lock", "kompas_profile.json", "kompas_ratings.json", "kompas_rows.json", "kompas_shown.json", "kompas_saved.json", "search_history.json", "trakt.json", "simkl.json", "wetrakr.json", "simkl_state.json", "punchplay.json", "punchplay_state.json", "punchplay.lock", "mdbtrack.json", "mdbtrack_state.json", "watched.json", "watchlist.json", "progress.json", "last_release.json"}
 
 
 OVERRIDE_USER = None      # set for a moment while marking a title for someone who watched along
@@ -324,7 +324,7 @@ def _path(name):
 def _user_key(key):
     """Account answers are cached per person; TMDB answers are shared."""
     user = current_user()
-    return "%s|%s" % (user, key) if user != "main" and key.startswith(("trakt", "simkl", "punchplay", "nextup")) \
+    return "%s|%s" % (user, key) if user != "main" and key.startswith(("trakt", "simkl", "punchplay", "mdbtrack", "nextup")) \
         and not key.startswith("traktsearch/") else key
 
 

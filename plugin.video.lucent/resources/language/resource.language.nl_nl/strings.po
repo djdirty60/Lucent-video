@@ -2000,3 +2000,31 @@ msgstr "MediUX-sleutel"
 msgctxt "#32566"
 msgid "Your own MediUX API key. Adds MediUX's special fan-made poster and background sets to 'Choose art' in your library (films, series, seasons, collections) and uses the most popular one. Empty: no MediUX."
 msgstr "Je eigen MediUX API-sleutel. Voegt de bijzondere, zelfgemaakte poster- en achtergrondsets van MediUX toe aan 'Afbeelding kiezen' in je bibliotheek (films, series, seizoenen, collecties) en gebruikt de populairste. Leeg: geen MediUX."
+
+msgctxt "#32567"
+msgid "MDBList"
+msgstr "MDBList"
+
+msgctxt "#32568"
+msgid "Link MDBList as your account"
+msgstr "MDBList koppelen als je account"
+
+msgctxt "#32569"
+msgid "Unlink MDBList as your account"
+msgstr "MDBList ontkoppelen als je account"
+
+msgctxt "#32570"
+msgid "The MDBList account Lucent uses to remember what you watched."
+msgstr "Het MDBList-account waarmee Lucent onthoudt wat je keek."
+
+msgctxt "#32571"
+msgid "Use MDBList to remember what you watched, where you stopped, your watchlist and ratings. Uses your MDBList API key (Services > MDBList); without one Lucent asks for it."
+msgstr "Gebruik MDBList om te onthouden wat je keek, waar je stopte, je kijklijst en beoordelingen. Gebruikt je MDBList API-sleutel (Diensten > MDBList); is die er nog niet, dan vraagt Lucent erom."
+
+msgctxt "#32572"
+msgid "Stops using MDBList as your account. The key stays, so scores and lists keep working."
+msgstr "Lucent gebruikt MDBList niet meer als je account. De sleutel blijft, dus scores en lijsten blijven werken."
+
+msgctxt "#32573"
+msgid "Shows which MDBList account you are linked with and how much you watched."
+msgstr "Laat zien met welk MDBList-account je gekoppeld bent en hoeveel je keek."

@@ -13,6 +13,7 @@ import library
 import mdblist
 import ranking
 import ranking_ui
+import mdbtrack
 import punchplay
 import simkl
 import streams
@@ -64,7 +65,7 @@ TEXT = {
 
 
 # the order on screen; the number is what is saved (2 stays 'only this device' for everyone who chose it before)
-ACCOUNTS = [(0, "Trakt", trakt), (1, "Simkl", simkl), (3, "PunchPlay", punchplay), (2, T("Alleen dit apparaat", "Only this device"), None)]
+ACCOUNTS = [(0, "Trakt", trakt), (1, "Simkl", simkl), (3, "PunchPlay", punchplay), (4, "MDBList", mdbtrack), (2, T("Alleen dit apparaat", "Only this device"), None)]
 
 
 class Setup(dialogs.Base):

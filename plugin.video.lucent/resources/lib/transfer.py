@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""'Copy your library': your watchlist and what you watched, from one account to another (Trakt, Simkl, PunchPlay)
+"""'Copy your library': your watchlist and what you watched, from one account to another (Trakt, Simkl, PunchPlay, MDBList)
 (action=transfer, a button under Settings > Account). Only copies: nothing is removed anywhere, and what the other
 account already has is left out. Sent in parts, so a large history does not hit a service's limits."""
 import time
@@ -7,6 +7,7 @@ import time
 import xbmc
 import xbmcgui
 
+import mdbtrack
 import punchplay
 import simkl
 import trakt
@@ -21,11 +22,11 @@ def _count(n, one_nl, many_nl, one_en, many_en):
     return "%d %s" % (n, T(one_nl if n == 1 else many_nl, one_en if n == 1 else many_en))
 
 
-ACCOUNTS = (trakt, simkl, punchplay)
+ACCOUNTS = (trakt, simkl, punchplay, mdbtrack)
 
 
 def _name(account):
-    return {trakt: "Trakt", simkl: "Simkl", punchplay: "PunchPlay"}[account]
+    return {trakt: "Trakt", simkl: "Simkl", punchplay: "PunchPlay", mdbtrack: "MDBList"}[account]
 
 
 def _when(stamp):
@@ -55,7 +56,7 @@ def missing(source, target):
 
 
 def _ids(account, tmdb_id):
-    return {"tmdb": int(tmdb_id)} if account is trakt else {"tmdb": str(tmdb_id)}
+    return {"tmdb": int(tmdb_id)} if account in (trakt, mdbtrack) else {"tmdb": str(tmdb_id)}
 
 
 def watchlist_bodies(account, pairs):
@@ -114,18 +115,34 @@ def punchplay_jobs(todo):
     return jobs
 
 
+def mdbtrack_jobs(todo):
+    """MDBList: the watchlist as plain ids, the history in Trakt's form (/sync/watched)."""
+    jobs = []
+    for start in range(0, len(todo["watchlist"]), PART):
+        part, body = todo["watchlist"][start:start + PART], {}
+        for kind, tmdb_id in part:
+            body.setdefault("movies" if kind == "movie" else "shows", []).append({"tmdb": int(tmdb_id)})
+        jobs.append(("watchlist/items/add", len(part), body))
+    jobs += [("sync/watched", n, body) for n, body in history_bodies(mdbtrack, todo["movies"], todo["episodes"])]
+    return jobs
+
+
 def _post(account, path, body):
     if account is punchplay:
         punchplay.call(path, data=body, idempotent=True)
         xbmc.Monitor().waitForAbort(2.1)        # PunchPlay takes 30 bulk requests a minute
         return
     account.call(path, data=body)
+    if account is mdbtrack:
+        xbmc.Monitor().waitForAbort(1.1)        # MDBList takes 300 writes in five minutes
 
 
 def send(target, todo, progress=None):
     """Sends what is missing to the target. Returns (items sent, parts that failed)."""
     if target is punchplay:
         jobs = punchplay_jobs(todo)
+    elif target is mdbtrack:
+        jobs = mdbtrack_jobs(todo)
     else:
         jobs = [("sync/watchlist" if target is trakt else "sync/add-to-list", n, body)
                 for n, body in watchlist_bodies(target, todo["watchlist"])]
@@ -150,8 +167,8 @@ def send(target, todo, progress=None):
 def run():
     linked = [account for account in ACCOUNTS if account.logged_in()]
     if len(linked) < 2:
-        return xbmcgui.Dialog().ok("Lucent", T("Log eerst in bij twee accounts (Trakt, Simkl of PunchPlay, onder Instellingen > Account). Daarna kun je je bibliotheek van de een naar de ander kopiëren.",
-                                               "Sign in to two accounts first (Trakt, Simkl or PunchPlay, under Settings > Account). Then you can copy your library from one to the other."))
+        return xbmcgui.Dialog().ok("Lucent", T("Log eerst in bij twee accounts (Trakt, Simkl, PunchPlay of MDBList, onder Instellingen > Account). Daarna kun je je bibliotheek van de een naar de ander kopiëren.",
+                                               "Sign in to two accounts first (Trakt, Simkl, PunchPlay or MDBList, under Settings > Account). Then you can copy your library from one to the other."))
     dialog = xbmcgui.Dialog()
     ways = [(a, b) for a in linked for b in linked if a is not b]
     way = dialog.select(T("Bibliotheek kopiëren", "Copy your library"),

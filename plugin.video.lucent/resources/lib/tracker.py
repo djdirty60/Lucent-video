@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""One front for 'the account that remembers what you watched': Trakt, Simkl, or only this device.
+"""One front for 'the account that remembers what you watched': Trakt, Simkl, PunchPlay, MDBList, or only this device.
 
 Everything else in the add-on talks to this file, so the rest does not care which one is used.
 Floppy is separate: it only receives what you watch, next to whichever account is chosen.
@@ -9,6 +9,7 @@ import time
 
 import floppy
 import mdblist
+import mdbtrack
 import punchplay
 import simkl
 import tmdb
@@ -23,7 +24,7 @@ PROGRESS = "progress.json"
 
 
 def choice():
-    return users.tracker_choice()     # 0 Trakt, 1 Simkl, 2 only this device, 3 PunchPlay
+    return users.tracker_choice()     # 0 Trakt, 1 Simkl, 2 only this device, 3 PunchPlay, 4 MDBList
 
 
 def active():
@@ -35,17 +36,19 @@ def active():
         return simkl
     if mode == 3 and punchplay.logged_in():
         return punchplay
+    if mode == 4 and mdbtrack.logged_in():
+        return mdbtrack
     return None
 
 
 def mirrors():
-    """The other accounts (Trakt, Simkl, PunchPlay) you are also signed in to, when 'Also update your other account' is on."""
+    """The other accounts (Trakt, Simkl, PunchPlay, MDBList) you are also signed in to, when 'Also update your other account' is on."""
     if not util.flag("also_other"):
         return []
     main = active()
     if main is None and choice() == 2:
         return []                           # only this device: nothing goes out
-    return [m for m in (trakt, simkl, punchplay) if m is not main and m.logged_in()]
+    return [m for m in (trakt, simkl, punchplay, mdbtrack) if m is not main and m.logged_in()]
 
 
 def _mirror(job, *args):
@@ -58,7 +61,7 @@ def _mirror(job, *args):
 
 
 def _label(account):
-    return {trakt: "Trakt", simkl: "Simkl", punchplay: "PunchPlay"}.get(account, "")
+    return {trakt: "Trakt", simkl: "Simkl", punchplay: "PunchPlay", mdbtrack: "MDBList"}.get(account, "")
 
 
 def logged_in():
