@@ -35,14 +35,44 @@ def _read(path):
         handle.close()
 
 
-def from_labels():
-    """The focused library item, as context.target() makes it, from ListItem info labels."""
-    label = xbmc.getInfoLabel
+# what the skin may pass along instead of ListItem info labels (its own menu on a list that is not the media list)
+PASSED = {"dbtype": "ListItem.DBTYPE", "file": "ListItem.FileNameAndPath", "path": "ListItem.Path", "folder": "ListItem.FolderPath",
+          "tmdb": "ListItem.UniqueID(tmdb)", "season": "ListItem.Season", "episode": "ListItem.Episode",
+          "playcount": "ListItem.PlayCount", "tvshowid": "ListItem.TvShowDBID"}
+
+
+def reader(params=None):
+    """Reads the item: from the parameters when the skin passed them (dbtype or file), otherwise from ListItem."""
+    params = params or {}
+    if params.get("dbtype") or params.get("file"):
+        names = {info: key for key, info in PASSED.items()}
+        return lambda info: params.get(names.get(info, ""), "")
+    return xbmc.getInfoLabel
+
+
+def _show_of(tvshowid):
+    """The TMDB id of a library series by its Kodi database id."""
+    import json
+    if not str(tvshowid or "").isdigit():
+        return ""
+    answer = json.loads(xbmc.executeJSONRPC(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetTVShowDetails",
+                                                        "params": {"tvshowid": int(tvshowid), "properties": ["uniqueid"]}})))
+    return str((((answer.get("result") or {}).get("tvshowdetails") or {}).get("uniqueid") or {}).get("tmdb") or "")
+
+
+def from_labels(params=None):
+    """The focused library item, as context.target() makes it, from ListItem info labels (or the skin's parameters)."""
+    label = reader(params)
     kind = label("ListItem.DBTYPE")
     if kind in ("movie", "episode"):
         path = label("ListItem.FileNameAndPath")
         text = _read(path).strip() if path.endswith(".strm") else ""
         query = dict(urllib.parse.parse_qsl(text.split("?", 1)[1])) if "?" in text else {}
+        if not query.get("tmdb") and kind == "episode":
+            show = _show_of(label("ListItem.TvShowDBID"))       # no .strm to read: the series' id, season and episode
+            season, episode = label("ListItem.Season"), label("ListItem.Episode")
+            if show and season.isdigit() and episode.isdigit():
+                query = {"type": "episode", "tmdb": show, "season": season, "episode": episode}
         if not query.get("tmdb"):
             return None
         return {"type": query["type"], "tmdb": query["tmdb"], "season": query.get("season"), "episode": query.get("episode")}
@@ -64,7 +94,7 @@ def from_labels():
     return meta
 
 
-def run(what, meta):
+def run(what, meta, label=xbmc.getInfoLabel):
     if not meta:
         util.notify(util.T("Deze titel komt niet van Lucent Video", "This title does not come from Lucent Video"))
         return
@@ -73,7 +103,7 @@ def run(what, meta):
     if what == "source":
         xbmc.executebuiltin("PlayMedia(%s)" % util.url_for(action="play", select=1, **clean))
     elif what == "watched":
-        seen = (xbmc.getInfoLabel("ListItem.PlayCount") or "0") not in ("", "0")
+        seen = (label("ListItem.PlayCount") or "0") not in ("", "0")
         xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="watched", value=0 if seen else 1, **clean))
     elif what in ("watchlist_add", "watchlist_remove"):
         xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="watchlist", value=1 if what == "watchlist_add" else 0, **clean))

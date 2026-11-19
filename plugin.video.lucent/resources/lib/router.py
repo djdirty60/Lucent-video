@@ -1132,7 +1132,7 @@ def _run(argv):
             return tune.run()
         if action == "library_ctx":            # the Lucent skin's own buttons at the top of the context menu
             import libctx
-            return libctx.run(params.get("what", ""), libctx.from_labels())
+            return libctx.run(params.get("what", ""), libctx.from_labels(params), libctx.reader(params))
         if action == "season_ready":
             import seasonready
             return seasonready.run(params["tmdb"], params["season"])

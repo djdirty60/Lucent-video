@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~beta1+90",
+   "label": "Beta 1 · update 90",
+   "label_en": "Beta 1 · update 90",
+   "date": "2026-11-19",
+   "at": "2026-11-19T09:50Z",
+   "items": [
+    [
+     "library",
+     "Menu op een aflevering in het serie-overzicht",
+     "De Lucent-skin kan nu bij een aflevering in het serie-overzicht (de rij onder de seizoenen) zijn eigen menu tonen met Klaarzetten voor vanavond, Bron kiezen, Markeer als (niet) bekeken, Hervatpunt wissen en Uit de bibliotheek houden. Eerst kreeg je daar de opties van het seizoen.",
+     "Menu on an episode in the series page",
+     "The Lucent skin can now show its own menu on an episode in the series page (the row under the seasons) with Get ready for tonight, Choose source, Mark as (un)watched, Clear resume point and Keep out of the library. Before, you got the season's options there."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+89",
    "label": "Beta 1 · update 89",
    "label_en": "Beta 1 · update 89",
