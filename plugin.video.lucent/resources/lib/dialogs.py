@@ -112,7 +112,22 @@ class Sources(Base):
             else:
                 continue
             self._show_health(source)
-        for source in todo:
+        early = []                              # the top Usenet releases: their NZB now, while you look at the list,
+        for source in self.sources:             # so pressing play skips that wait (only with room at the indexer)
+            job = source.get("resolve") or {}
+            if job.get("scraper") == "Usenet" and job.get("link") and not source.get("url"):
+                early.append(source)
+            if len(early) >= EARLY_NZBS:
+                break
+        for source in early:
+            if self.done:
+                return
+            if not any(s is source for s in todo) and not nzb_source.can_check(source["resolve"]):
+                if nzb_source.ensure_nzb(source["resolve"], "list open"):
+                    source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
+                    self._show_health(source)
+                    todo.insert(0, source)
+        for source in todo:                     # per release: the full check, and right after it the tracks in the file
             if self.done:
                 return
             result = nzb_source.health(source["resolve"], stop=lambda: self.done)
@@ -120,10 +135,7 @@ class Sources(Base):
                 return
             source["health"] = nzb_source.health_text(result)
             self._show_health(source)
-        for source in todo:                     # then the tracks in the file (audio languages): a few articles each
-            if self.done:
-                return
-            found = nzb_source.tracks(source["resolve"], stop=lambda: self.done)
+            found = nzb_source.tracks(source["resolve"], stop=lambda: self.done)     # audio languages: a few articles
             if self.done:
                 return
             if found:
@@ -260,6 +272,7 @@ def _with_scraper(source):
     return "%s · %s" % (short, line) if line else short
 
 
+EARLY_NZBS = 2                    # NZBs fetched beforehand for the top Usenet releases while the list is open
 SEARCH_DONE = {}                  # when the last search finished (player.py), for the log line when the list is up
 
 

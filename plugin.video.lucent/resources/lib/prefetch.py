@@ -20,6 +20,8 @@ TONIGHT = "tonight.json"
 KEEP = 90 * 60          # links stay fresh this long
 EVERY = 15 * 60
 PER_ROUND = 4
+MISSES = "prefetch_miss.json"     # titles a background search found nothing for: not asked again for a while
+MISS_WAIT = 3 * 3600              # (an indexer at its background limit, or nothing out yet; you pressing play still searches)
 _last = {"at": 0.0}
 
 
@@ -83,12 +85,16 @@ def _check_usenet(found):
 def run():
     _last["at"] = time.time()
     store = {k: v for k, v in util.load_json(FILE, {}).items() if _fresh(v)}
+    misses = {k: at for k, at in util.load_json(MISSES, {}).items() if time.time() - at < MISS_WAIT}
     wanted = [(e, False) for e in _candidates()] + [((t["type"], t["tmdb"], t.get("season"), t.get("episode")), True) for t in tonight()]
-    done = 0
+    done = skipped = 0
     for entry, subtitles in wanted:
         key = key_of(*entry)
         if done >= PER_ROUND or (key in store and (store[key].get("keep") or time.time() - store[key].get("at", 0) < KEEP - 2 * EVERY)):
             continue                         # fresh enough; an older one is looked up again before it runs out
+        if key in misses and not subtitles:
+            skipped += 1                     # found nothing a short while ago: not again yet (tonight's titles are always tried)
+            continue
         try:
             found = _fetch(entry, subtitles)
         except Exception as error:          # noqa: BLE001 - a failing scraper must never stop the service
@@ -99,7 +105,13 @@ def run():
             if subtitles:
                 _check_usenet(found)          # ready for tonight: NZB fetched and every article checked, in advance
             store[key] = found
+            misses.pop(key, None)
+        else:
+            misses[key] = time.time()
     util.save_json(FILE, store)
+    util.save_json(MISSES, misses)
+    if skipped:
+        util.log("prefetch: %d title(s) skipped this round (nothing found for them in the last %d hours)" % (skipped, MISS_WAIT // 3600))
     tonight_ready(store)
 
 

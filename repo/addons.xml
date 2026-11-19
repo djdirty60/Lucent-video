@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~beta1+91" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -95,310 +95,21 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
+        <news>1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
+1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.
 1.0.0 beta 1, update 89: MDBList as your account (watched, resume points, watchlist, ratings), next to Trakt, Simkl and PunchPlay.
 1.0.0 beta 1, update 88: provider names in the statistics; subtitle badge from the subtitles inside the file.
 1.0.0 beta 1, update 87: all Lucent options can be at the top of the library menu with the Lucent skin.
 1.0.0 beta 1, update 86: faster source list (the Usenet check before it waits at most 3 s, skipped for a day when it keeps failing).
-1.0.0 beta 1, update 85: MediUX and fanart.tv pictures (own keys) and collection art in the library; asks for a Kodi restart after a VFS update; FLAC/PCM count as lossless sound; dubbed versions go to the bottom of their group; Get ready for tonight, Marathon planner and Get season ready in the library menu; scroll bar in the statistics.
-1.0.0 beta 1, update 84: next episode starts at once; Usenet completeness and audio check; learns from statistics; switching when a film stops; skipping without waiting; ready for tomorrow; season ready; sorting follows your profile; Tune connections fixed.
-1.0.0 beta 1, update 83: searching is fast again (the language setting was read for every source).</news>
-        <news lang="nl_NL">1.0.0 beta 1, update 91: Zoeken wacht niet meer op een trage ondertitelbron: De ondertitelcontrole bij het zoeken wacht nog hooguit 2 seconden na de bronnen en gebruikt dan wat de ondertitelbronnen die wel antwoordden gaven. Eerst wachtte de bronnenlijst tot 8 seconden op de traagste (bij jou Podnapisi, dat niet gevonden kon worden). Een ondertitelbron waarvan het adres niet te vinden is, wordt een uur overgeslagen. Podnapisi eruit: Lucent Video zoekt ondertitels nu alleen nog bij OpenSubtitles en SubDL. Podnapisi is eruit: het was vaak niet bereikbaar en hield het zoeken op.
-1.0.0 beta 1, update 90: Menu op een aflevering in het serie-overzicht: De Lucent-skin kan nu bij een aflevering in het serie-overzicht (de rij onder de seizoenen) zijn eigen menu tonen met Klaarzetten voor vanavond, Bron kiezen, Markeer als (niet) bekeken, Hervatpunt wissen en Uit de bibliotheek houden. Eerst kreeg je daar de opties van het seizoen.
-1.0.0 beta 1, update 89: MDBList als je account: Naast Trakt, Simkl en PunchPlay kun je nu ook MDBList kiezen om te onthouden wat je keek: bekeken films en afleveringen, waar je stopte, je kijklijst en je beoordelingen. Instellingen &gt; Account &gt; MDBList koppelen; Lucent gebruikt je MDBList API-sleutel (Diensten &gt; MDBList). 'Je bibliotheek kopiëren' werkt ook naar en van MDBList. Idee van Guguloi.</news>
+1.0.0 beta 1, update 85: MediUX and fanart.tv pictures (own keys) and collection art in the library; asks for a Kodi restart after a VFS update; FLAC/PCM count as lossless sound; dubbed versions go to the bottom of their group; Get ready for tonight, Marathon planner and Get season ready in the library menu; scroll bar in the statistics.</news>
+        <news lang="nl_NL">1.0.0~rc1: Release candidate 1; Minder zinloos zoeken op de achtergrond; NZB al opgehaald terwijl je kiest; Audiotalen sneller in beeld; Snelle lezer 0.1.4: precies vooruitspoelen; Hoofdstukplaatjes wachten op de film.
+1.0.0 beta 1, update 91: Zoeken wacht niet meer op een trage ondertitelbron: De ondertitelcontrole bij het zoeken wacht nog hooguit 2 seconden na de bronnen en gebruikt dan wat de ondertitelbronnen die wel antwoordden gaven. Eerst wachtte de bronnenlijst tot 8 seconden op de traagste (bij jou Podnapisi, dat niet gevonden kon worden). Een ondertitelbron waarvan het adres niet te vinden is, wordt een uur overgeslagen. Podnapisi eruit: Lucent Video zoekt ondertitels nu alleen nog bij OpenSubtitles en SubDL. Podnapisi is eruit: het was vaak niet bereikbaar en hield het zoeken op.
+1.0.0 beta 1, update 90: Menu op een aflevering in het serie-overzicht: De Lucent-skin kan nu bij een aflevering in het serie-overzicht (de rij onder de seizoenen) zijn eigen menu tonen met Klaarzetten voor vanavond, Bron kiezen, Markeer als (niet) bekeken, Hervatpunt wissen en Uit de bibliotheek houden. Eerst kreeg je daar de opties van het seizoen.</news>
         <assets>
             <icon>icon.png</icon>
         </assets>
     </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+android.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>android-aarch64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+android.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>android-aarch64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+android.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>android-armv7</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+android.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>android-armv7</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+linux.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-aarch64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+linux.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-aarch64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+linux.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-armv7</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+linux.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-armv7</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+linux.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-x86_64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+linux.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>linux-x86_64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+windows.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>windows-x86_64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
-</addon>
-<addon id="vfs.lucent" version="0.1.2+windows.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
-  <requires>
-    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
-    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
-    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
-    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
-  </requires>
-  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
-  <extension point="xbmc.addon.metadata">
-    <platform>windows-x86_64</platform>
-    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
-    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
-    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
-    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
-    <license>GPL-2.0-or-later</license>
-    <source>https://github.com/djdirty60/Lucent-video</source>
-    <assets>
-      <icon>icon.png</icon>
-    </assets>
-    <news>0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
-0.1.1: own icon (blue, with a lightning bolt).
-0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
-  </extension>
 </addon>
 <addon id="vfs.lucent" version="0.1.3+android.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
@@ -695,6 +406,318 @@
       <icon>icon.png</icon>
     </assets>
     <news>0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+android.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-aarch64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+android.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-aarch64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+android.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-armv7</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+android.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>android-armv7</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+linux.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-aarch64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+linux.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-aarch64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+linux.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-armv7</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+linux.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-armv7</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+linux.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-x86_64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+linux.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>linux-x86_64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+windows.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>windows-x86_64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
+0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
+0.1.1: own icon (blue, with a lightning bolt).
+0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
+  </extension>
+</addon>
+<addon id="vfs.lucent" version="0.1.4+windows.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
+    <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
+    <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
+    <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+  </requires>
+  <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>windows-x86_64</platform>
+    <summary lang="en_GB">Native Usenet reader for Lucent Video (test)</summary>
+    <summary lang="nl_NL">Snelle Usenet-lezer voor Lucent Video (test)</summary>
+    <description lang="en_GB">Reads Usenet releases for Lucent Video in C++, without the local web server and without Python in the data path. Based on vfs.tmdbm by Angelitto (GPL-2.0-or-later).</description>
+    <description lang="nl_NL">Leest Usenet-releases voor Lucent Video in C++, zonder de lokale webserver en zonder Python ertussen. Gebaseerd op vfs.tmdbm van Angelitto (GPL-2.0-or-later).</description>
+    <license>GPL-2.0-or-later</license>
+    <source>https://github.com/djdirty60/Lucent-video</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+    <news>0.1.4: skip targets on the film's own key frames (from the Matroska index) and kept until they are used; chapter pictures wait while the player needs the line; fewer articles fetched twice.
+0.1.3: skips forward start at once (the spots 30 s, 1 min and 10 min ahead are made ready); tells Lucent Video when a film cannot be read any further, so it continues with another source at the same moment.
 0.1.2: counts per provider for Lucent Video's statistics screen (data, speed, latency, missing articles, errors).
 0.1.1: own icon (blue, with a lightning bolt).
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>

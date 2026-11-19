@@ -2,6 +2,57 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-19",
+   "at": "2026-11-19T15:00Z",
+   "items": [
+    [
+     "star",
+     "Release candidate 1",
+     "Lucent Video is nu RC 1: alles wat voor versie 1.0 gepland stond zit erin, de komende tijd gaat het om fouten oplossen en fijnafstellen.",
+     "Release candidate 1",
+     "Lucent Video is now RC 1: everything planned for version 1.0 is in, from here on it is about fixing bugs and fine tuning."
+    ],
+    [
+     "refresh",
+     "Minder zinloos zoeken op de achtergrond",
+     "Vindt het vooraf zoeken voor een titel niets, dan slaat Lucent die titel de volgende 3 uur over in plaats van elke ronde opnieuw te zoeken. Dat spaart je indexers en de box.",
+     "Less pointless searching in the background",
+     "When searching in advance finds nothing for a title, Lucent skips that title for the next 3 hours instead of searching again every round. That spares your indexers and the box."
+    ],
+    [
+     "play",
+     "NZB al opgehaald terwijl je kiest",
+     "Terwijl de bronnenlijst open staat haalt Lucent de NZB van de twee beste Usenet-releases al op, zodat de compleet-controle en de audiotalen meteen kunnen beginnen en afspelen sneller start.",
+     "NZB already fetched while you choose",
+     "While the source list is open Lucent already fetches the NZB of the two best Usenet releases, so the completeness check and the audio languages can start at once and playback starts sooner."
+    ],
+    [
+     "subtitles",
+     "Audiotalen sneller in beeld",
+     "De audiotalen en ondertitels uit het bestand worden nu per release direct na de compleet-controle gelezen, in plaats van pas als alle releases gecontroleerd zijn.",
+     "Audio languages shown sooner",
+     "The audio and subtitle languages inside the file are now read for each release right after its completeness check, instead of only after all releases have been checked."
+    ],
+    [
+     "play",
+     "Snelle lezer 0.1.4: precies vooruitspoelen",
+     "vfs.lucent gebruikt nu de index van het MKV-bestand om de plekken 30 s, 1 min en 10 min verder klaar te zetten, precies op het beginbeeld waar Kodi naartoe springt, in plaats van een schatting. Die stukjes blijven nu ook bewaard tot ze gebruikt worden.",
+     "Fast reader 0.1.4: precise skipping",
+     "vfs.lucent now uses the MKV file's index to prepare the spots 30 s, 1 min and 10 min ahead, exactly on the key frame Kodi jumps to, instead of an estimate. Those pieces are now also kept until they are used."
+    ],
+    [
+     "settings",
+     "Hoofdstukplaatjes wachten op de film",
+     "Bij zware films (4K remux) halen de hoofdstukplaatjes van Kodi niets op zolang de film zelf op stukjes wacht of minder dan de helft vooruit heeft. Stukjes van de plaatjes worden niet meer meteen weggegooid en dus niet twee keer opgehaald.",
+     "Chapter pictures wait for the film",
+     "With heavy films (4K remux) Kodi's chapter pictures fetch nothing while the film itself is waiting or has less than half of its read-ahead. Picture pieces are no longer thrown away at once, so they are not fetched twice."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~beta1+91",
    "label": "Beta 1 · update 91",
    "label_en": "Beta 1 · update 91",

@@ -6,7 +6,7 @@
 
 <p align="center">
   Movies and series for Kodi – made for the <a href="https://github.com/djdirty60/Lucent">Lucent</a> skin, working in any skin.<br>
-  <b>1.0.0 beta 1</b> · Kodi 20 and newer · MIT licence
+  <b>1.0.0 RC 1</b> · Kodi 20 and newer · MIT licence
 </p>
 
 <p align="center">
@@ -24,7 +24,11 @@
 
 **Play**
 - With your own sources: an AIOStreams address, Easynews, TorBox, Real-Debrid, AllDebrid, Premiumize, or the scraper packs CocoScrapers, FenomScrapers and OpenScrapers. Lucent Video ships no sources of its own.
-- **Smart ranking.** Picture comes first (resolution, Dolby Vision, HDR, IMAX), then sound (Atmos, TrueHD, channels). Red flags always go to the bottom, and *Why on top?* explains the choice.
+- **Usenet, built in.** Your own Newznab indexers and NNTP providers (with a backup provider), no download client needed: the film plays straight from Usenet while it streams, also from RAR and 7z releases.
+  - Before you choose, the best releases are checked at your provider: *✓ complete* or *97% complete*, and the audio and subtitle languages that are really inside the file.
+  - The optional fast reader **vfs.lucent** (Android, Linux including CoreELEC / LibreELEC, and Windows) reads in parallel, skips at once using the film's own index, and lets chapter pictures wait for the film.
+  - A statistics screen shows per provider and per indexer the data, speed, latency, missing articles and searches.
+- **Smart ranking.** Picture comes first (resolution, Dolby Vision, HDR, IMAX), then sound (Atmos, TrueHD, channels). Dubbed releases go below the original language, red flags always go to the bottom, and *Why on top?* explains the choice.
 - Sources for the next episode, or for *tonight*, are looked up beforehand, so playback starts at once.
 
 **While watching**
@@ -32,12 +36,16 @@
 - **Stay seated:** a card tells you when a film has a scene during or after the credits.
 - **Pause recap:** after a long pause it shows the last lines that were said.
 - **Next episode** card at the credits.
-- **Built-in subtitles** from OpenSubtitles, SubDL and Podnapisi, with no separate subtitle add-on needed. It picks one by itself, can show two at once, and has *What did they say?* (10 seconds back, with subtitles).
+- **Built-in subtitles** from OpenSubtitles and SubDL, with no separate subtitle add-on needed. It picks one by itself, can show two at once, and has *What did they say?* (10 seconds back, with subtitles).
 
 **Keep track**
-- Trakt or Simkl: scrobbling, watchlist, lists, continue watching and next up. Without an account it keeps track on this device only.
+- Trakt, Simkl, PunchPlay or MDBList as your account: scrobbling, watched, resume points, watchlist, ratings, continue watching and next up. Moving from one to the other is built in. Without an account it keeps track on this device only.
 - MDBList and Floppy lists, and you choose which lists you see.
 - Rows for your Home screen in any skin, filled and refreshed by themselves.
+
+**Kodi library**
+- Put films and series in Kodi's own library, kept up to date by themselves, with artwork from MediUX, TMDB and fanart.tv (including collection posters to choose from).
+- In the library's menu: choose a source, watched, watchlist, *Ready for tonight*, the marathon planner and *Get the season ready*. In the Lucent skin these sit at the top of the menu.
 
 **Extras**
 - **Homey movie night:** lights down when a film starts, slowly up at the credits. See [README-HOMEY.md](README-HOMEY.md) (Nederlands: [LEESMIJ-HOMEY.md](LEESMIJ-HOMEY.md)).
@@ -99,7 +107,7 @@ Lucent uses Trakt but is not endorsed or certified by Trakt. Film and series dat
 
 ## Feedback
 
-It's a beta, so please report bugs and ideas in the [issues of the Lucent repository](https://github.com/djdirty60/Lucent/issues).
+It's a release candidate, so please report bugs and ideas in the [issues of this repository](https://github.com/djdirty60/Lucent-video/issues). *Make an error report* in the settings makes a report you can attach; it holds no keys or addresses.
 
 ## Made with AI
 
@@ -111,7 +119,8 @@ Lucent Video is designed and tested by Wilfried van der Voort (djdirty60). The c
 <summary><b>For developers</b></summary>
 
 - `plugin.video.lucent/` – the add-on itself.
-- `repo/` – the Kodi repository folder that the Lucent Repository reads.
+- `repo/` – the Kodi repository folder that the Lucent Repository reads (also holds the vfs.lucent builds).
+- vfs.lucent (GPL-2.0-or-later, based on Angelitto's vfs.tmdbm) is built by GitHub Actions on the `vfs-lucent-build` branch: Android (armv7, arm64), Linux (armv7, aarch64, x86-64) and Windows (x86-64), each for Kodi 21 and Kodi 22.
 - The public actions for other add-ons and skins are listed in [plugin.video.lucent/README.md](plugin.video.lucent/README.md).
 
 **Publishing a new version**
