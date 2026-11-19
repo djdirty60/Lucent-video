@@ -104,7 +104,7 @@ class Sources(Base):
             known = nzb_source.health_known(job)
             heard = nzb_source.tracks_known(job)
             if known and heard:
-                source["health"] = nzb_source.health_text(known) + nzb_source.tracks_text(heard)
+                source["health"] = nzb_source.health_text(known) + nzb_source.tracks_text(heard, source["resolve"], source)
                 self._subs_badge(source, heard)
             elif nzb_source.can_check(job):
                 source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
@@ -139,31 +139,24 @@ class Sources(Base):
             if self.done:
                 return
             if found:
-                source["health"] = (source.get("health") or "") + nzb_source.tracks_text(found)
+                source["health"] = (source.get("health") or "") + nzb_source.tracks_text(found, source["resolve"], source)
                 self._show_health(source)
                 self._subs_badge(source, found)
 
     def _subs_badge(self, source, found):
-        """Subtitles in your language inside the file (read from its tracks), not in the release name: the same badge
-        as a name with NL-SUBS / RO-SUBS gets."""
-        import mylang
+        """The labels set right by what the file itself says (sound, HDR, your language, FEL / P7): changed in place, the
+        order of the list stays as it is while you look at it."""
         from nzb import source as nzb_source
-        wanted = []
-        if mylang.code() in (found.get("subs") or []):
-            wanted.append(mylang.subs_flag())
-        dovi = nzb_source.dovi_flag(found)          # Dolby Vision from the file itself: FEL, or P7 (MEL)
-        if dovi and not ({"aio_FEL", "aio_P7"} & set(source.get("flags") or []) and dovi == "aio_P7"):
-            wanted.append(dovi)
-        wanted = [f for f in wanted if f not in (source.get("flags") or [])]
-        if not wanted:
+        flags = nzb_source.file_flags(source, found)
+        if flags == list(source.get("flags") or []):
             return
-        source["flags"] = list(source.get("flags") or []) + wanted
+        source["flags"] = flags
         try:
             position = next(n for n, s in enumerate(self.current) if s is source)
             item = self.rows.getListItem(position)
-            flags = streams.tidy_flags(source["flags"])[:12]
+            shown = streams.tidy_flags(flags)[:12]
             for number in range(1, 13):
-                item.setProperty("flag%d" % number, "lucent/flags/%s.png" % flags[number - 1] if number <= len(flags) else "")
+                item.setProperty("flag%d" % number, "lucent/flags/%s.png" % shown[number - 1] if number <= len(shown) else "")
         except (StopIteration, RuntimeError, AttributeError):
             pass                                # on another tab now: shown when that tab is opened
 

@@ -119,45 +119,138 @@ def dolby(data, number, nal_size, start):
     return "mel" if part < MEL_BELOW else ("fel" if part > FEL_ABOVE else "")
 
 
+INFO, SCALE, DURATION, CHAPTERS, EDITION, ATOM = 0x1549A966, 0x2AD7B1, 0x4489, 0x1043A770, 0x45B9, 0xB6
+NAME, FORCED, AUDIO, CHANNELS, VIDEO = 0x536E, 0x55AA, 0xE1, 0x9F, 0xE0
+WIDTH, HEIGHT, COLOUR, BITS, TRANSFER = 0xB0, 0xBA, 0x55B0, 0x55B2, 0x55BA
+# Matroska codec ids of sound, as the source labels name them (DTS is one id for DTS, DTS-HD and DTS:X)
+AUDIO_CODECS = {"A_TRUEHD": "TRUEHD", "A_EAC3": "DD+", "A_AC3": "DD", "A_DTS": "DTS", "A_AAC": "AAC", "A_FLAC": "FLAC",
+                "A_OPUS": "OPUS", "A_PCM": "PCM", "A_MPEG/L3": "MP3"}
+
+
+def _uint(raw):
+    return int.from_bytes(raw, "big")
+
+
+def _float(raw):
+    import struct
+    if len(raw) == 4:
+        return struct.unpack(">f", raw)[0]
+    if len(raw) == 8:
+        return struct.unpack(">d", raw)[0]
+    return 0.0
+
+
+def _text(raw):
+    return raw.decode("utf-8", "replace").strip("\x00 ")
+
+
+def _audio_kind(codec, name):
+    kind = next((v for k, v in AUDIO_CODECS.items() if codec.startswith(k)), "")
+    low = name.lower()
+    if kind == "DTS":
+        if "dts:x" in low or "dts-x" in low or "dtsx" in low:
+            kind = "DTS-X"
+        elif "ma" in low.replace("-", " ").split() or "master audio" in low or "dts-hd ma" in low:
+            kind = "DTS-HDMA"
+    return kind
+
+
 def read(data):
-    """{'audio': ['nl', 'en'], 'subs': [...], 'dv': 7, 'video': (number, NAL size), 'after': where the clusters start}
-    from the start of an MKV file, or None when the track list is not in these bytes (or it is not Matroska)."""
+    """What the start of an MKV file says, or None when the track list is not in these bytes (or it is not Matroska):
+    {'audio': ['nl', 'en'], 'subs': [...] (full subtitles), 'forced': [...] (only forced ones), 'sound': [[lang, kind,
+    channels, atmos], ...] (commentary left out), 'seconds', 'width', 'height', 'bits', 'transfer' (16 PQ / 18 HLG / 1 SDR,
+    0 not said), 'chapters', 'dv': profile, 'video': (number, NAL size), 'after': where the clusters start}."""
     if data[:4] != b"\x1a\x45\xdf\xa3":
         return None
     try:
         for ident, start, end, stop in _children(data, 0, len(data)):
             if ident != SEGMENT:
                 continue
+            out, scale, duration, chapters = None, 1000000, 0.0, 0
             for inner, istart, iend, istop in _children(data, start, end):
                 if inner == CLUSTER:
-                    return None                 # the picture starts and no track list came before it
-                if inner != TRACKS:
-                    continue
+                    break                       # the picture starts: what is not there yet does not come
                 if istop > len(data):
-                    return None                 # the track list is longer than what was read
-                out = {"audio": [], "subs": [], "dv": 0, "video": None, "after": istop, "segment": (start, end)}
-                for entry, estart, eend, _estop in _children(data, istart, iend):
-                    if entry != ENTRY:
-                        continue
-                    kind, lang, bcp = 0, None, None
-                    fields = list(_children(data, estart, eend))
-                    for field, fstart, fend, _fstop in fields:
-                        raw = data[fstart:fend]
-                        if field == TYPE:
-                            kind = int.from_bytes(raw, "big")
-                        elif field == LANGUAGE:
-                            lang = raw.decode("ascii", "replace").strip("\x00 ")
-                        elif field == BCP47:
-                            bcp = raw.decode("ascii", "replace").strip("\x00 ")
-                    if kind == 1 and out["video"] is None:
-                        number, nal_size, profile = _video(fields, data)
-                        out["video"], out["dv"] = (number, nal_size), profile
-                    if kind in (2, 17):
-                        code = _code(lang, bcp)
-                        bucket = out["audio" if kind == 2 else "subs"]
-                        if code and code != "un" and code not in bucket:
-                            bucket.append(code)
-                return out
+                    break                       # longer than what was read
+                if inner == INFO:
+                    for field, fstart, fend, _fstop in _children(data, istart, iend):
+                        if field == SCALE:
+                            scale = _uint(data[fstart:fend]) or scale
+                        elif field == DURATION:
+                            duration = _float(data[fstart:fend])
+                elif inner == CHAPTERS:
+                    for edition, estart, eend, _e in _children(data, istart, iend):
+                        if edition == EDITION:
+                            chapters = max(chapters, sum(1 for a, *_r in _children(data, estart, eend) if a == ATOM))
+                elif inner == TRACKS and out is None:
+                    out = _tracks(data, istart, iend, istop)
+            if out is None:
+                return None
+            out["seconds"] = int(duration * scale / 1e9) if duration else 0
+            out["chapters"] = chapters
+            out["segment"] = (start, end)
+            return out
     except (ValueError, IndexError):
         return None
     return None
+
+
+def _tracks(data, istart, iend, istop):
+    out = {"audio": [], "subs": [], "forced": [], "sound": [], "dv": 0, "video": None, "after": istop,
+           "width": 0, "height": 0, "bits": 0, "transfer": 0}
+    for entry, estart, eend, _estop in _children(data, istart, iend):
+        if entry != ENTRY:
+            continue
+        kind, lang, bcp, codec, name, forced, channels = 0, None, None, "", "", False, 0
+        fields = list(_children(data, estart, eend))
+        for field, fstart, fend, _fstop in fields:
+            raw = data[fstart:fend]
+            if field == TYPE:
+                kind = _uint(raw)
+            elif field == LANGUAGE:
+                lang = raw.decode("ascii", "replace").strip("\x00 ")
+            elif field == BCP47:
+                bcp = raw.decode("ascii", "replace").strip("\x00 ")
+            elif field == CODEC:
+                codec = raw.decode("ascii", "replace").strip("\x00 ")
+            elif field == NAME:
+                name = _text(raw)
+            elif field == FORCED:
+                forced = bool(_uint(raw))
+            elif field == AUDIO:
+                for a, astart, aend, _a in _children(data, fstart, fend):
+                    if a == CHANNELS:
+                        channels = _uint(data[astart:aend])
+            elif field == VIDEO and kind in (0, 1) and not out["height"]:
+                for v, vstart, vend, _v in _children(data, fstart, fend):
+                    if v == WIDTH:
+                        out["width"] = _uint(data[vstart:vend])
+                    elif v == HEIGHT:
+                        out["height"] = _uint(data[vstart:vend])
+                    elif v == COLOUR:
+                        for c, cstart, cend, _c in _children(data, vstart, vend):
+                            if c == BITS:
+                                out["bits"] = _uint(data[cstart:cend])
+                            elif c == TRANSFER:
+                                out["transfer"] = _uint(data[cstart:cend])
+        if kind == 1 and out["video"] is None:
+            number, nal_size, profile = _video(fields, data)
+            out["video"], out["dv"] = (number, nal_size), profile
+        if kind not in (2, 17):
+            continue
+        code = _code(lang, bcp)
+        if not code or code == "un":
+            continue
+        low = name.lower()
+        if kind == 2:
+            if code not in out["audio"]:
+                out["audio"].append(code)
+            if "comment" not in low and "descri" not in low:      # commentary and audio description do not count
+                out["sound"].append([code, _audio_kind(codec, name), channels, "atmos" in low])
+        else:
+            forced = forced or "forced" in low or "geforceerd" in low
+            bucket = out["forced" if forced else "subs"]
+            if code not in bucket:
+                bucket.append(code)
+    out["forced"] = [c for c in out["forced"] if c not in out["subs"]]
+    return out

@@ -69,6 +69,7 @@ def mark(holder, sources, wait=2):
         video = {"release": core.release_name(source.get("name") or "")}
         if any(core.release_match(release, video) >= FIT for release in releases):
             fitting.add(id(source))
+            source["subs_online"] = True        # a subtitle in your language fits online: the file check keeps NL-SUBS
             if mylang.subs_flag() not in (source.get("flags") or []):
                 source["flags"] = list(source.get("flags") or []) + [mylang.subs_flag()]
     util.log("subtitle check: %d subtitles, %d of %d sources fit" % (len(rows), len(fitting), len(sources)))

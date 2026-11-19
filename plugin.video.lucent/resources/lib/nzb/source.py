@@ -118,7 +118,7 @@ def fetch(meta):
     show_badges = util.flag("nzb_badges")
     seconds = int(meta.get("runtime") or 0) * 60
     out, seen = [], set()
-    dead, skipped = _dead_now(), 0
+    dead, skipped, locked = _dead_now(), 0, 0
     for rows in answers:
         for row in rows or []:
             name = row["title"]
@@ -144,7 +144,9 @@ def fetch(meta):
             if not pack:
                 source = usenet._source(name, row["size"], SERVICE, resolve=job)          # noqa: SLF001 - same add-on
                 _add_info(source, row)
-                _add_dovi(source, job)
+                if not _from_file(source, job):
+                    locked += 1                     # found locked or packed before: never playable, not shown
+                    continue
                 source["meta"] = " · ".join(p for p in (SERVICE, where, streams.size_text(row["size"]), _group(row["title"]), badges, warn) if p)
                 source["heavy"] = heavy
                 source["always"] = True
@@ -164,6 +166,8 @@ def fetch(meta):
             out.append(source)
     if skipped:
         util.log("usenet: %d release(s) left out that were found taken down before" % skipped)
+    if locked:
+        util.log("usenet: %d release(s) left out that were found locked or packed before" % locked)
     return out
 
 
@@ -241,11 +245,19 @@ ALIVE = "nzb_alive.json"
 ALIVE_HOURS = 24            # a release found complete is not checked (nor its NZB fetched) again for this long
 
 
-def _add_dovi(source, job):
-    """FEL or P7 (MEL) as read from the file in an earlier check: a label, and the order of sources can use it."""
-    flag = dovi_flag(util.cache_get("nzbtracks" + _dead_key(job["link"]), TRACKS_DAYS * 86400))
-    if flag and flag not in (source.get("flags") or []):
-        source["flags"] = list(source.get("flags") or []) + [flag]
+def _from_file(source, job):
+    """What an earlier check read in the file itself: the labels set right (sound, HDR, language, FEL), the real
+    resolution, so the order of sources uses the truth. False for an archive that can never be streamed."""
+    found = tracks_known(job)
+    if not found:
+        return True
+    if found.get("locked"):
+        return False
+    source["flags"] = file_flags(source, found)
+    real = _real_resolution(found)
+    if real and not job.get("pack"):
+        source["resolution"] = real
+    return True
 
 
 def _nzb_name(job):
@@ -515,14 +527,16 @@ def health_text(result):
 CHECKING = "  ·  [COLOR FF8D99AA]%s[/COLOR]"
 TRACKS_DAYS = 7
 DOLBY_BYTES = 12 * 1024 * 1024          # FEL or MEL: the first frames, when they are not in the first 3 MB
-DV_BLURAY = re.compile(r"(?i)(?:^|[ ._\-])(?:DV|DOVI|DOLBY[ ._]?VISION)(?:$|[ ._\-]).*(?:BLU-?RAY|REMUX|BDREMUX)|(?:BLU-?RAY|REMUX|BDREMUX).*(?:^|[ ._\-])(?:DV|DOVI|DOLBY[ ._]?VISION)(?:$|[ ._\-])")
 TRACKS_BYTES = 3 * 1024 * 1024          # the track list of an MKV is in its first few hundred KB; 3 MB to be safe
+
+
+FILE_FORMAT = 2                         # what a saved file check holds; older ones are read once more
 
 
 def tracks_known(job):
     saved = util.cache_get("nzbtracks" + _dead_key(job["link"]), TRACKS_DAYS * 86400)
-    if saved and "dovi" not in saved and DV_BLURAY.search(job.get("name") or ""):
-        return None                             # read before Lucent looked at Dolby Vision: read once more for FEL / MEL
+    if saved and saved.get("f") != FILE_FORMAT:
+        return None                             # read before Lucent looked at sound, picture and running time: once more
     return saved or None
 
 
@@ -533,7 +547,8 @@ def dovi_flag(found):
 
 
 def tracks(job, stop=lambda: False):
-    """{'audio': [...], 'subs': [...]} really in the MKV of this release (read from its first megabytes), or None.
+    """What the MKV of this release really holds (read from its first megabytes), or None: languages, sound, picture,
+    running time, chapters, Dolby Vision. {'locked': 'encrypted' / 'compressed'} for an archive that can never be streamed.
     Only for releases whose NZB Lucent already has; a few articles are read, nothing at the indexer."""
     from . import nntp, stream, tracks as mkv
     known = tracks_known(job)
@@ -552,6 +567,7 @@ def tracks(job, stop=lambda: False):
     spare = nntp.Pool(spare_settings, limit=2) if spare_settings else None
     release = None
     started = time.time()
+    found = None
     try:
         release = stream.open_release(pool, data, job.get("season"), job.get("episode"), pack=bool(job.get("pack")), backup=spare,
                                       ahead=4 * 1024 * 1024, cache=16 * 1024 * 1024)
@@ -568,6 +584,13 @@ def tracks(job, stop=lambda: False):
                 kind = mkv.dolby(head, number, nal_size, found["after"])
             found["dovi"] = kind or "p7"
     except Exception as error:                  # noqa: BLE001 - no track info, never an error on screen
+        text = str(error).lower()
+        locked = "encrypted" if "encrypted" in text else ("compressed" if "compressed" in text else "")
+        if locked:
+            util.log("usenet: release can never be streamed: archive %s" % locked)
+            found = {"f": FILE_FORMAT, "locked": locked}
+            util.cache_set("nzbtracks" + _dead_key(job["link"]), found)
+            return found
         util.log("usenet: tracks not read (%s)" % type(error).__name__)
         return None
     finally:
@@ -578,29 +601,141 @@ def tracks(job, stop=lambda: False):
             spare.close()
     if found is None:
         return None
-    found = {"audio": found["audio"], "subs": found["subs"], "dovi": found.get("dovi") or ("dv%d" % found["dv"] if found.get("dv") else "")}
-    util.log("usenet: tracks read in %.1f s: audio %s, subtitles %s%s" % (time.time() - started, ",".join(found["audio"]) or "-",
-                                                                           ",".join(found["subs"]) or "-",
-                                                                           ", Dolby Vision %s" % found["dovi"] if found["dovi"] else ""))
+    keep = ("audio", "subs", "forced", "sound", "seconds", "width", "height", "bits", "transfer", "chapters")
+    found = dict({k: found.get(k) for k in keep}, f=FILE_FORMAT,
+                 dovi=found.get("dovi") or ("dv%d" % found["dv"] if found.get("dv") else ""))
+    util.log("usenet: tracks read in %.1f s: audio %s, subtitles %s%s; %s" % (
+        time.time() - started, ",".join(found["audio"]) or "-", ",".join(found["subs"]) or "-",
+        (" (forced only: %s)" % ",".join(found["forced"])) if found["forced"] else "",
+        ", ".join(p for p in ("Dolby Vision %s" % found["dovi"] if found["dovi"] else "",
+                              "%dx%d" % (found["width"], found["height"]) if found["height"] else "",
+                              "transfer %d" % found["transfer"] if found["transfer"] else "",
+                              "%d min" % (found["seconds"] // 60) if found["seconds"] else "",
+                              "%d chapters" % found["chapters"] if found["chapters"] else "",
+                              "sound " + " ".join("%s:%s/%d%s" % (l, k or "?", c, "+atmos" if a else "") for l, k, c, a in found["sound"][:4]))
+                    if p)))
     util.cache_set("nzbtracks" + _dead_key(job["link"]), found)
     return found
 
 
-def tracks_text(found):
-    """'  ·  audio NL EN · subs NL' with your own language in green; '' when unknown."""
-    if not found or not (found.get("audio") or found.get("subs")):
+# ------------------------------------------------------------------ labels and text from what the file says
+SOUND_FLAGS = ("TRUEHD", "DD+", "DD", "AAC", "OPUS")
+DTS_FLAGS = ("DTS-X", "DTS-HDMA", "DTS-HD", "DTS")
+CHANNEL_FLAGS = {8: "7.1", 7: "5.1", 6: "5.1", 2: "2.0"}
+SOUND_NAMES = {"TRUEHD": "TrueHD", "DTS-HDMA": "DTS-HD MA", "DTS-X": "DTS:X", "OPUS": "Opus", "MP3": "MP3"}
+
+
+def _real_resolution(found):
+    width, height = found.get("width") or 0, found.get("height") or 0
+    if not height:
         return ""
+    if width >= 3200 or height >= 1700:
+        return "4K"
+    if width >= 1700 or height >= 950:
+        return "1080p"
+    if width >= 1100 or height >= 650:
+        return "720p"
+    return "SD"
+
+
+def file_flags(source, found):
+    """The source's labels set right by what the file says: sound, channels, HDR, your language, Dolby Vision. A label
+    the file cannot confirm or deny (DTS-HD MA vs DTS, an Atmos the track name does not mention) stays as the name had it."""
+    import mylang
+    flags = list(source.get("flags") or [])
+    if not found or found.get("locked"):
+        return flags
+    sound = found.get("sound") or []
+    kinds = {k for _l, k, _c, _a in sound if k}
+    if kinds:
+        for flag in SOUND_FLAGS:
+            if flag in kinds and flag not in flags:
+                flags.append(flag)
+            elif flag not in kinds and flag in flags:
+                flags.remove(flag)
+        dts = [k for k in kinds if k in DTS_FLAGS]
+        if not dts:
+            flags = [f for f in flags if f not in DTS_FLAGS]
+        elif not any(f in DTS_FLAGS for f in flags):
+            flags.append(sorted(dts, key=DTS_FLAGS.index)[0])
+        if any(a for _l, _k, _c, a in sound) and "ATMOS" not in flags:
+            flags.append("ATMOS")
+        elif "ATMOS" in flags and not kinds & {"TRUEHD", "DD+"}:
+            flags.remove("ATMOS")                   # Atmos only comes in TrueHD or DD+
+        most = max((c for _l, _k, c, _a in sound), default=0)
+        channel = CHANNEL_FLAGS.get(most) or ("7.1" if most > 8 else "")
+        if channel:
+            flags = [f for f in flags if f not in CHANNEL_FLAGS.values()] + [channel]
+    transfer = found.get("transfer") or 0
+    if transfer in (16, 18):                    # PQ or HLG: HDR (also the base layer under Dolby Vision)
+        flags = [f for f in flags if f != "SDR"] + ([] if "HDR" in flags else ["HDR"])
+    elif transfer and not found.get("dovi"):
+        if transfer in (1, 6, 14, 15):          # BT.709 / BT.601 / BT.2020 SDR: no HDR in this file
+            flags = [f for f in flags if f not in ("HDR",)] + ([] if "SDR" in flags else ["SDR"])
+    audio_flag, subs_flag = mylang.flags()
+    mine = mylang.code()
+    if found.get("audio"):
+        if mine in found["audio"] and audio_flag not in flags:
+            flags.append(audio_flag)
+        elif mine not in found["audio"] and audio_flag in flags:
+            flags.remove(audio_flag)
+    if mine in (found.get("subs") or []):
+        if subs_flag not in flags:
+            flags.append(subs_flag)
+    elif subs_flag in flags and not source.get("subs_online") and (found.get("audio") or found.get("subs") or found.get("forced")):
+        flags.remove(subs_flag)                 # the name said so, the file has no full subtitles in your language
+    dovi = dovi_flag(found)
+    if dovi == "aio_FEL":
+        flags = [f for f in flags if f != "aio_P7"] + ([] if "aio_FEL" in flags else ["aio_FEL"])
+    elif dovi == "aio_P7" and "aio_FEL" not in flags and "aio_P7" not in flags:
+        flags.append("aio_P7")
+    return flags
+
+
+def _minutes(seconds):
+    hours, minutes = divmod(int(seconds) // 60, 60)
+    return util.T("%d u %02d", "%d h %02d") % (hours, minutes) if hours else "%d min" % minutes
+
+
+def tracks_text(found, job=None, source=None):
+    """'  ·  audio EN TrueHD 7.1 · NL DD 5.1 · subs NL', what does not match the name or TMDb in orange; '' when unknown."""
+    if not found:
+        return ""
+    if found.get("locked"):
+        return "  ·  [COLOR FFE5A15A]%s[/COLOR]" % (util.T("op slot met een wachtwoord, speelt niet", "locked with a password, cannot play")
+                                                    if found["locked"] == "encrypted" else
+                                                    util.T("ingepakt, kan niet gestreamd worden", "packed, cannot be streamed"))
     import mylang
     mine = mylang.code()
-
-    def show(codes):
-        return " ".join(("[COLOR FF4CC38A]%s[/COLOR]" % c.upper()) if c == mine else c.upper() for c in codes[:5])
+    green, grey, orange = "[COLOR FF4CC38A]%s[/COLOR]", "[COLOR FF8D99AA]%s[/COLOR]", "[COLOR FFE5A15A]%s[/COLOR]"
     parts = []
+    sound = found.get("sound") or []
     if found.get("audio"):
-        parts.append("audio " + show(found["audio"]))
+        best = {}
+        for lang, kind, channels, atmos in sound:     # per language its best track, as the file lists it first
+            best.setdefault(lang, (kind, channels, atmos))
+        shown = []
+        for code in found["audio"][:4]:
+            label = green % code.upper() if code == mine else code.upper()
+            kind, channels, atmos = best.get(code, ("", 0, False))
+            detail = " ".join(p for p in (SOUND_NAMES.get(kind, kind or ""), "Atmos" if atmos else "",
+                                          CHANNEL_FLAGS.get(channels, "%d.0" % channels if channels else "")) if p)
+            shown.append(label + (" " + detail if detail and len(found["audio"]) <= 3 else ""))
+        parts.append(util.T("audio ", "audio ") + ", ".join(shown))
     if mine in (found.get("subs") or []):
-        parts.append("subs [COLOR FF4CC38A]%s[/COLOR]" % mine.upper())
-    return "  ·  [COLOR FF8D99AA]%s[/COLOR]" % " · ".join(parts)
+        parts.append("subs " + green % mine.upper())
+    elif mine in (found.get("forced") or []):
+        parts.append(orange % util.T("subs %s alleen geforceerd", "subs %s forced only") % mine.upper())
+    if job and found.get("seconds") and job.get("minutes"):
+        real, tmdb = found["seconds"] / 60.0, float(job["minutes"])
+        if abs(real - tmdb) > max(8.0, tmdb * 0.1):
+            parts.append(orange % (util.T("%s (TMDb %s)", "%s (TMDb %s)") % (_minutes(found["seconds"]), _minutes(tmdb * 60))))
+    real = _real_resolution(found)
+    if source and real and source.get("resolution") and real != source["resolution"]:
+        parts.append(orange % (util.T("beeld is %s", "picture is %s") % real))
+    if not parts:
+        return ""
+    return "  ·  " + grey % " · ".join(parts)
 
 
 def _port():

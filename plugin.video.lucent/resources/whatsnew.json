@@ -2,11 +2,11 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
-   "v": "1.0.0~rc1.1",
+   "v": "1.0.0~rc1.2",
    "label": "RC 1",
    "label_en": "RC 1",
    "date": "2026-11-19",
-   "at": "2026-11-19T15:30Z",
+   "at": "2026-11-19T16:00Z",
    "items": [
     [
      "star",
@@ -28,6 +28,13 @@
      "Bij Usenet-releases met Dolby Vision van een UHD Blu-ray kijkt Lucent tijdens de controle in het bestand zelf: echte FEL krijgt het label FEL, een bijna lege laag (MEL) het label P7. Dat werkt ook als de releasenaam het niet zegt, en de volgorde van bronnen gebruikt het (bijvoorbeeld met 'FEL eerst').",
      "FEL or MEL from the file itself",
      "For Usenet releases with Dolby Vision from a UHD Blu-ray, Lucent looks inside the file during the check: real FEL gets the FEL label, an almost empty layer (MEL) the P7 label. This works when the release name does not say it, and the order of sources uses it (for example with 'FEL first')."
+    ],
+    [
+     "info",
+     "De labels kloppen met het bestand zelf",
+     "Bij de controle van een Usenet-release leest Lucent nu ook het geluid per spoor (TrueHD, DD+, DTS, kanalen, Atmos als het spoor dat zegt), of het beeld echt HDR is, de echte resolutie, de speelduur en of de ondertitels in jouw taal alleen geforceerd zijn. Labels die niet kloppen met het bestand worden aangepast; wijkt de speelduur flink af van TMDb (een andere versie, of een sample) of is het beeld anders dan de naam zegt, dan staat dat in oranje achter de regel. Een release die op slot zit met een wachtwoord of ingepakt is, krijgt dat te zien en komt bij de volgende keer zoeken niet meer in de lijst.",
+     "The labels match the file itself",
+     "When checking a Usenet release Lucent now also reads the sound per track (TrueHD, DD+, DTS, channels, Atmos when the track says so), whether the picture is really HDR, the real resolution, the running time and whether the subtitles in your language are forced only. Labels the file contradicts are set right; a running time far from TMDb's (another cut, or a sample) or a picture other than the name says is shown in orange after the line. A release locked with a password or packed says so and is left out of the list the next time you search."
     ],
     [
      "refresh",
