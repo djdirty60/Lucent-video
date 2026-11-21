@@ -2,7 +2,7 @@
 
 Opening a series (in Lucent Video or in the Kodi library) skips the seasons screen: you land in the episode list of
 the season you are in, with the cursor on your next episode. One step back brings you to the seasons screen, and from
-there it does not jump again. Runs as a light watcher in the service: only while the Videos window is open and nothing
+there it does not jump again. A short note says where it went and that Back shows all seasons. Runs as a light watcher in the service: only while the Videos window is open and nothing
 plays, it reads two labels four times a second.
 """
 import re
@@ -16,6 +16,7 @@ import xbmcgui
 import util
 
 VIDEOS = 10025
+LATE = 2.5                 # seconds: a jump that comes later than this would surprise you, so it does not come
 PLUGIN = "plugin://%s/" % util.ADDON_ID
 LIBRARY_SHOW = re.compile(r"^videodb://tvshows/titles/(\d+)/(?:-?\d+/)?(?:\?.*)?$")
 
@@ -107,14 +108,26 @@ class Jumper:
         threading.Thread(target=self.jump, args=(path, here[1]), daemon=True).start()
 
     def jump(self, path, key):
+        started = time.time()
         try:
             found = _plugin_next(key[1:]) if key.startswith("p") else _library_next(key[1:])
             if not found or xbmc.getInfoLabel("Container.FolderPath") != path or xbmc.Player().isPlaying():
+                return
+            if time.time() - started > LATE:
+                # the lookup took long: by now you may be choosing a season yourself (or pressing Back), and a jump in
+                # the middle of that feels like a fault (GitHub skin #37). Then the seasons screen simply stays.
+                util.log("series: no jump, finding the next episode took %.1f s" % (time.time() - started))
+                return
+            if xbmcgui.getCurrentWindowId() != VIDEOS or xbmc.getInfoLabel("Container.FolderPath") != path:
                 return
             target = _episodes_path(key, found[0])
             self.focus = (target, found[0], found[1], 40)
             util.log("series: opening season %d at episode %d" % found)
             xbmc.executebuiltin("Container.Update(%s)" % target)
+            xbmcgui.Dialog().notification(util.T("Verder waar je was", "Where you left off"),
+                                          util.T("Seizoen %d, aflevering %d · Terug = alle seizoenen",
+                                                 "Season %d, episode %d · Back = all seasons") % found,
+                                          util.ADDON.getAddonInfo("icon"), 3000, False)
         except Exception as error:      # noqa: BLE001 - a jump is a convenience, never a reason to fail
             util.log("series jump: %s" % type(error).__name__)
         finally:
