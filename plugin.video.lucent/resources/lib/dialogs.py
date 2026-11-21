@@ -96,7 +96,7 @@ class Sources(Base):
             import ranking
             profile = ranking.active()
             groups = " > ".join("%s(%s)" % (g["id"], ",".join(g.get("order", [])[:6])) for g in profile.get("groups", []))
-            util.log("sources: order (%s, ranking test10), profile '%s', tab %s: %s"
+            util.log("sources: order (%s, ranking rc1.8), profile '%s', tab %s: %s"
                      % (when, profile.get("name", "?"), self.tab, groups))
             import learn
             learned = util.load_json(learn.FILE, {})
@@ -300,7 +300,7 @@ class Sources(Base):
         if action.getId() in BACK:
             return self.close()
         if action.getId() in MENU and self.getFocusId() == 200:
-            return self.explain()           # menu button / long press on a source: why is the recommended one on top
+            return self.menu()              # menu button / long press on a source: why it is here, or check it now
         if action.getId() in LEFT_RIGHT and self.getFocusId() == 100:
             position = self.tabs.getSelectedPosition()
             if 0 <= position < len(self.names):
@@ -323,6 +323,50 @@ class Sources(Base):
             self.close()
         elif control == 303:
             self.explain()
+
+    def menu(self):
+        """Usenet releases get a choice: why it stands here, or check it now (every article, also a release Lucent did not
+        check by itself, for example because its NZB was not fetched yet). Other sources go straight to 'why'."""
+        position = self.rows.getSelectedPosition()
+        if not 0 <= position < len(self.current):
+            return
+        source = self.current[position]
+        job = source.get("resolve") or {}
+        if job.get("scraper") != "Usenet" or not job.get("link"):
+            return self.explain()
+        choice = xbmcgui.Dialog().contextmenu([T("Waarom staat deze hier", "Why is this one here"),
+                                               T("Deze release nu controleren", "Check this release now")])
+        if choice == 0:
+            self.explain()
+        elif choice == 1:
+            threading.Thread(target=self._check_now, args=(source,), daemon=True).start()
+
+    def _check_now(self, source):
+        """The check asked from the menu: the NZB (when there is room at the indexer), what the file says, then every
+        article again, also when an earlier result is remembered."""
+        from nzb import source as nzb_source
+        job = source["resolve"]
+        util.log("sources: check asked from the menu: %s" % source.get("name", "")[:80])
+        source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
+        self._show_health(source)
+        if not nzb_source.ensure_nzb(job, "check from the menu"):
+            source["health"] = nzb_source.CHECKING % T("NZB niet opgehaald (indexer: geen ruimte of fout)",
+                                                       "NZB not fetched (indexer: no room or an error)")
+            return self._show_health(source)
+        found = nzb_source.tracks(job, stop=lambda: self.done)
+        if self.done:
+            return None
+        if found and (found.get("locked") or found.get("gone")):
+            source["health"] = nzb_source.tracks_text(found)
+            return self._show_health(source)
+        if found:
+            self._subs_badge(source, found)
+        result = nzb_source.health(job, stop=lambda: self.done, beside=True, again=True)
+        if self.done:
+            return None
+        source["health"] = (nzb_source.health_text(result) or nzb_source.CHECKING % T("controle niet gelukt", "check did not work")) \
+            + nzb_source.tracks_text(found, job, source)
+        return self._show_health(source)
 
     def explain(self):
         position = self.rows.getSelectedPosition()

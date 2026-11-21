@@ -125,14 +125,28 @@ def torbox():
     if not util.setting("torbox_key"):
         return [T("Vul eerst je API-sleutel in.", "Enter your API key first.")]
     import usenet
-    answer, _ = util.http(usenet.TB_API + "/user/me", headers=usenet._tb_head())
-    data = (answer or {}).get("data") or {}
+    try:
+        answer, _ = util.http(usenet.TB_API + "/user/me", headers=usenet._tb_head())
+    except util.HttpError as error:
+        util.log("TorBox account: %s" % usenet.tb_reason(error))
+        return [T("Geen verbinding: %s", "No connection: %s") % usenet.tb_reason(error)]
+    data = answer.get("data") if isinstance(answer, dict) else None
+    if not isinstance(data, dict):
+        util.log("TorBox account: unexpected answer (%s)" % usenet._shape(answer))
+        raise ValueError("TorBox answer")
     plans = {0: T("Gratis", "Free"), 1: "Essential", 2: "Pro", 3: "Standard"}
-    lines = [T("Verbonden met TorBox.", "Connected to TorBox."), T("Abonnement: %s", "Plan: %s") % plans.get(data.get("plan"), data.get("plan"))]
+    try:
+        plan = plans.get(int(data.get("plan")), data.get("plan"))
+    except (TypeError, ValueError):
+        plan = data.get("plan") or "?"
+    lines = [T("Verbonden met TorBox.", "Connected to TorBox."), T("Abonnement: %s", "Plan: %s") % plan]
     if data.get("premium_expires_at"):
         lines.append(_until(data["premium_expires_at"]))
-    if data.get("total_downloaded"):
-        lines.append(T("Gedownload in totaal: %d", "Downloaded in total: %d") % data["total_downloaded"])
+    try:
+        if data.get("total_downloaded"):
+            lines.append(T("Gedownload in totaal: %d", "Downloaded in total: %d") % int(float(data["total_downloaded"])))
+    except (TypeError, ValueError):
+        pass                                    # a counter in another form: not worth an error
     return lines
 
 

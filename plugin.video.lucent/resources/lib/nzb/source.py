@@ -467,12 +467,12 @@ def can_check(job):
     return bool(_saved_nzb(_nzb_name(job)))
 
 
-def health(job, stop=lambda: False, beside=False):
+def health(job, stop=lambda: False, beside=False, again=False):
     """(present, total) articles of the files that would be played, over the provider and the backup provider; or
     None when it cannot be told. beside: in the source list, where nothing plays and the file of another release is
     read at the same time over 4 connections: the check takes the rest but 2, up to HEALTH_CONNS_LIST. Only STAT questions: no data is downloaded and nothing is fetched at the indexer."""
     from . import nntp, nzbfile, vfs
-    known = health_known(job)
+    known = None if again else health_known(job)        # again: asked from the menu, every article once more
     if known:
         return known
     try:

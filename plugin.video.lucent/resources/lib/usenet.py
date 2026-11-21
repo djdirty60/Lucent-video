@@ -184,6 +184,15 @@ def _tb_head():
     return {"Authorization": "Bearer %s" % _tb_key(), "User-Agent": AGENT}
 
 
+def tb_reason(error):
+    """'HTTP 403 (BAD_TOKEN: ...)': the status plus TorBox's own error code and text, never the key or the address."""
+    detail = getattr(error, "detail", None) or {}
+    code = str(detail.get("error") or "").strip()
+    text = str(detail.get("detail") or "").strip()
+    extra = ": ".join(p for p in (code, text) if p)[:160].replace(_tb_key() or "\0", "***")
+    return "%s (%s)" % (error, extra) if extra else str(error)
+
+
 def _tb_search(kind, meta):
     """kind: usenet or torrents. Returns the rows, or None when this search failed."""
     ident = "imdb_id:%s" % meta["imdb"] if meta.get("imdb") else "tmdb_id:%s" % meta["tmdb"]
@@ -194,14 +203,29 @@ def _tb_search(kind, meta):
     key = "torboxsearch" + url
     answer = util.cache_get(key, KEEP_RESULTS)
     if answer is None:
+        started = time.time()
         try:
             answer, _ = util.http(url, headers=_tb_head(), timeout=25)
         except util.HttpError as error:
-            util.log("TorBox %s: %s" % (kind, error))
+            util.log("TorBox %s search: %s after %.1f s" % (kind, tb_reason(error), time.time() - started))
             return None
+        if not isinstance(answer, dict) or not isinstance(answer.get("data") or {}, dict):
+            util.log("TorBox %s search: unexpected answer (%s)" % (kind, _shape(answer)))
+            return None
+        util.log("TorBox %s search: answer in %.1f s" % (kind, time.time() - started))
         util.cache_set(key, answer)
     data = (answer or {}).get("data") or {}
-    return data.get("nzbs" if kind == "usenet" else "torrents") or []
+    rows = data.get("nzbs" if kind == "usenet" else "torrents") or []
+    return rows if isinstance(rows, list) else []
+
+
+def _shape(answer):
+    """What an answer looks like, without any value in it (TorBox answers hold the e-mail address)."""
+    if isinstance(answer, dict):
+        inner = answer.get("data")
+        return "keys %s; data: %s" % (",".join(sorted(answer)[:12]), type(inner).__name__ if not isinstance(inner, dict)
+                                     else "keys " + ",".join(sorted(inner)[:20]))
+    return type(answer).__name__
 
 
 def torbox(meta):
@@ -279,6 +303,7 @@ def check_torbox():
     try:
         answer, _ = util.http(TB_API + "/user/me", headers=_tb_head())
     except util.HttpError as error:
-        return False, T("Geen verbinding: %s", "No connection: %s") % error
-    plan = ((answer or {}).get("data") or {}).get("plan")
+        return False, T("Geen verbinding: %s", "No connection: %s") % tb_reason(error)
+    data = answer.get("data") if isinstance(answer, dict) else None
+    plan = data.get("plan") if isinstance(data, dict) else None
     return True, T("Verbonden met TorBox (abonnement %s).", "Connected to TorBox (plan %s).") % plan

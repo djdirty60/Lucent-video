@@ -125,6 +125,17 @@ tier1 = src("Film.2160p.UHD.BluRay.REMUX.DV.HDR.HEVC.TrueHD.Atmos.7.1-FraMeSToR"
 expect("TRaSH-groep (tier 1) gaat niet boven NL-subs (Taal op 6)",
        [tier1, remux_sub], profile("best", BEST), ["RSUB", "FraMeSToR"])
 
+print("5b. Grootte hoger in je volgorde (GitHub #4)")
+web_big = src("Film.2160p.WEB-DL.HDR.DDP5.1-WBIG", 25, flags=["HDR", "WEB", "DD+", "5.1"])
+remux_mid = src("Film.2160p.UHD.BluRay.REMUX.DV.HDR.HEVC.TrueHD.Atmos.7.1-RMID", 60, flags=["DV", "HDR", "REMUX", "TRUEHD", "ATMOS", "7.1"])
+bluray_big = src("Film.2160p.UHD.BluRay.HDR.x265.DTS-BRBIG", 75, flags=["HDR", "BLURAY", "DTS"])
+expect("Grootte als eerste groep: grootste eerst, ook boven een Remux met Dolby Vision",
+       [web_big, remux_mid, bluray_big], profile("best", ["size"] + [g for g in BEST if g != "size"]), ["BRBIG", "RMID", "WBIG"])
+expect("Grootte als tweede groep (na resolutie): grootste eerst binnen 4K",
+       [web_big, remux_mid, bluray_big], profile("best", ["resolution", "size"] + [g for g in BEST if g not in ("resolution", "size")]), ["BRBIG", "RMID", "WBIG"])
+expect("Grootte laag (standaard Beste kwaliteit): Remux met Dolby Vision blijft boven een grotere Blu-ray",
+       [bluray_big, remux_mid], profile("best", BEST), ["RMID", "BRBIG"])
+
 print("6. Te zwaar voor je lijn")
 heavy = dict(remux_nosub, heavy=True)
 expect("Te zwaar zakt naar het eind van zijn resolutie (bewuste uitzondering)",

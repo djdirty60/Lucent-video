@@ -469,7 +469,7 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
     3. Every other group gives points from the research values; a group higher in your list counts more, and inside
        a group your own order still counts. Picture adds up (Dolby Vision + HDR + IMAX), sound counts its best track
        (TrueHD Atmos above TrueHD above DD+). So Dolby Vision + IMAX + Atmos beat 'only Blu-ray'.
-    4. Size and scraper only decide between equal points."""
+    4. Size decides at the place it has in your list; the scraper only decides between equal sources."""
     trash = profile["filters"].get("trash_groups", True)
     low = trash and trash_low(source)
     flagged = red_flag(source, tags, kind) or low
@@ -485,14 +485,21 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
         tier, tier_label = 1, rgroup                # your own preferred groups count as the best tier
     groups = profile["groups"]
     scored = [g for g in groups[1:] if g["id"] not in ("size", "scraper")]
-    ladder, extras = [], []
+    ladder, extras, size_at = [], [], None
     for number, group in enumerate(groups, 1):
         if group["id"] == "scraper":
             tie.append(scraper_order.index(source.get("scraper")) if source.get("scraper") in scraper_order else 99)
             continue
         if group["id"] == "size":
+            # size counts at the place you gave it, like every other group: first, it decides alone; lower, it parts
+            # only what the groups above it left equal (before 1.0.0~rc1.8 it only ever parted equal sources at the end)
             if group["order"]:
-                tie.append(_size_key(group["order"][0], source))
+                if number > 1:
+                    size_at = len(ladder)       # learned choices and subtitles-first may still part sources that
+                    #                             only differ in size (see 'equal' below); as first group size is binding
+                (key if number == 1 else ladder).append(_size_key(group["order"][0], source))
+                if number == 1 and source.get("size"):
+                    why.append((RULES[group["order"][0]][0], T("Regel %d", "Rule %d") % number))
             continue
         if number == 1:
             looked = tags
@@ -529,10 +536,14 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
         language = _points("language", next((g["order"] for g in groups if g["id"] == "language"), []), tags)[0]
         key = key[:2] + [0 if "uncached" not in tags else 1, SOURCE_RANK.get(source_class(tags), 9), tier or 9, -round(language, 3), -round(total, 3)]
         key[2], key[1] = key[1], key[2]         # ready to play before resolution
+        equal = list(key)
+        if size_at is not None:
+            tie.insert(0, ladder[size_at])      # this profile keeps its own order: size parts equal sources, as before
     else:
+        equal = key + [v for n, v in enumerate(ladder) if n != size_at]
         key += ladder
-    equal = list(key)                           # what your own groups decide: extras such as 'played well' may only
-    #                                             change the order among sources that are equal here
+    # equal: what your own groups decide; extras such as 'played well' may only change the order among sources that
+    # are equal here
     if not profile.get("strict"):
         key += extras
         key.append(-(TIER_BONUS.get(tier, 0)))  # a TRaSH tier group only parts what your groups left equal
