@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.44",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T00:30Z",
+   "items": [
+    [
+     "refresh",
+     "Rustiger bronnenlijst",
+     "Na het lezen van FEL of MEL bij Easynews bouwde Lucent de hele bronnenlijst opnieuw op terwijl je erin stond. Nu komt alleen het nieuwe label op zijn regel. Kodi crashte een keer vlak daarna.",
+     "Calmer source list",
+     "After reading FEL or MEL for Easynews, Lucent built the whole source list again while you were in it. Now only the new label is set on its row. Kodi crashed once right after it."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.43",
    "label": "RC 1",
    "label_en": "RC 1",

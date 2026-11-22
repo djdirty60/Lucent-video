@@ -170,12 +170,21 @@ class Sources(Base):
             if label:
                 source["flags"] = [f for f in source.get("flags") or [] if f not in ("aio_FEL", "aio_MEL", "aio_P7")] + [label]
                 changed = True
+                self._show_flags(source)        # the new label on its row, in place (the list is not built again)
         if changed and not self.done:
             util.log("easynews: Dolby Vision read for %d file(s)" % len(todo))
-            if not self._rerank():
-                with self._rows_lock:
-                    name, self.tab = self.tab, None
-                    self.show_tab(name)         # same order, new labels
+            self._rerank()                      # built again only when the order really changed, like the Usenet check
+
+    def _show_flags(self, source):
+        with self._rows_lock:
+            try:
+                position = next(n for n, s in enumerate(self.current) if s is source)
+                item = self.rows.getListItem(position)
+                shown = streams.tidy_flags(source["flags"])[:12]
+                for number in range(1, 13):
+                    item.setProperty("flag%d" % number, "lucent/flags/%s.png" % shown[number - 1] if number <= len(shown) else "")
+            except (StopIteration, RuntimeError, AttributeError):
+                pass                            # on another tab now: shown when that tab is opened
 
     def _checks(self):
         threading.Thread(target=self._easynews_dolby, daemon=True).start()
