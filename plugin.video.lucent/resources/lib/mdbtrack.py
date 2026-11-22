@@ -273,6 +273,10 @@ def dropped_shows():
     return out
 
 
+NEXT_WANT = 40          # next episodes wanted for 'Next up'
+NEXT_LOOK = 200         # series looked at, at most (TMDb answers are cached, so later rounds are quick)
+
+
 def next_up():
     """[(show tmdb id, season, episode)], most recent first: the episode after the last one you saw, when it is out.
     Shows you dropped on MDBList are left out."""
@@ -290,12 +294,18 @@ def next_up():
         return (show, following["season"], following["episode"]) if following else None
     dropped = dropped_shows()
     watched = watched_episodes()
-    recent = sorted([s for s in watched.items() if s[0] not in dropped],
-                    key=lambda s: max(s[1].values()) if s[1] else "", reverse=True)[:40]
+    shows = sorted([s for s in watched.items() if s[0] not in dropped],
+                   key=lambda s: max(s[1].values()) if s[1] else "", reverse=True)
+    # Most recent first, in batches, until there are enough: many of the series you watched last are finished (no next
+    # episode). Before rc1.11 only the 40 most recent were looked at, which could leave just 2 (Guguloi: 547 series).
+    out, looked = [], 0
     with ThreadPoolExecutor(max_workers=6) as pool:
-        out = [r for r in pool.map(step, recent) if r]
+        while looked < len(shows) and looked < NEXT_LOOK and len(out) < NEXT_WANT:
+            batch = shows[looked:looked + 30]
+            looked += len(batch)
+            out += [r for r in pool.map(step, batch) if r]
     util.log("MDBList next up: %d series watched, %d dropped, %d looked at, %d with an aired next episode"
-             % (len(watched), len(dropped), len(recent), len(out)))
+             % (len(watched), len(dropped), looked, len(out)))
     util.cache_set("mdbtracknextup", out)
     return out
 
