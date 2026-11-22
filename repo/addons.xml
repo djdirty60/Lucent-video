@@ -131,12 +131,13 @@
         </assets>
     </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+android.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+android.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -150,7 +151,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -161,12 +164,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+android.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+android.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -180,7 +184,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -191,12 +197,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+android.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+android.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -210,7 +217,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -221,12 +230,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+android.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+android.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_android="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -240,7 +250,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -251,12 +263,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+linux.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+linux.aarch64.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -270,7 +283,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -281,12 +296,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+linux.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+linux.aarch64.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -300,7 +316,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -311,12 +329,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+linux.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+linux.armv7.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -330,7 +349,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -341,12 +362,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+linux.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+linux.armv7.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -360,7 +382,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -371,12 +395,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+linux.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+linux.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -390,7 +415,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -401,12 +428,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+linux.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+linux.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_linux="libvfs.lucent.so"/>
   <extension point="xbmc.addon.metadata">
@@ -420,7 +448,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -431,12 +461,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+windows.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+windows.x8664.k21" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.5"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.7" version="1.1.9"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
   <extension point="xbmc.addon.metadata">
@@ -450,7 +481,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
@@ -461,12 +494,13 @@
 0.1.0: first release: native Usenet reader for Lucent Video, faster seeking.</news>
   </extension>
 </addon>
-<addon id="vfs.lucent" version="0.1.8+windows.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
+<addon id="vfs.lucent" version="0.1.10+windows.x8664.k22" name="Lucent Video VFS" provider-name="Wilfried van der Voort">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.4"/>
     <import addon="kodi.binary.global.general" minversion="1.0.4" version="1.0.6"/>
     <import addon="kodi.binary.global.filesystem" minversion="1.1.11" version="1.1.11"/>
     <import addon="kodi.binary.instance.vfs" minversion="3.0.1" version="3.0.1"/>
+    <import addon="vfs.lucentcheck" version="0.1.0"/>
   </requires>
   <extension point="kodi.vfs" protocols="lucentv" files="true" directories="false" filedirectories="false" supportBrowsing="false" supportDialog="false" supportWrite="false" label="Lucent Video VFS" library_windows="vfs.lucent.dll"/>
   <extension point="xbmc.addon.metadata">
@@ -480,7 +514,9 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
 0.1.5: an article the player needs is never left waiting when it was first asked for by an extra reader or as a skip target (possible freeze).
