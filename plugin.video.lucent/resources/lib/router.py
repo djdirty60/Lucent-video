@@ -197,6 +197,22 @@ def menu(handle, params):
         rows.append(items.folder(T("Netwerken", "Networks"), util.url_for(action="studios", type="movie", networks="1")))
     else:                                       # the same studios as for films (Marvel, Pixar, Warner Bros. ...): their series
         rows.append(items.folder(T("Studio's", "Studios"), util.url_for(action="studios", type="tvshow", studios="1")))
+    import discover
+    if movie:
+        season = discover.season_now()
+        if season:                              # Christmas films from mid November, Halloween in October ...
+            rows.insert(1, items.folder(discover.label(season), util.url_for(action="list", name="discover", key=season)))
+        rows.append(items.folder(discover.label("digital"), util.url_for(action="list", name="discover", key="digital")))
+        rows.append(items.folder(T("Filmreeksen", "Film series"), util.url_for(action="collections")))
+    else:
+        rows.append(items.folder(discover.label("ended"), util.url_for(action="list", name="discover", key="ended")))
+    rows.append(items.folder(T("Meest verwacht", "Most anticipated"), util.url_for(action="list", name="anticipated", type=params.get("type"))))
+    if movie:
+        rows.append(items.folder(discover.label("short"), util.url_for(action="list", name="discover", key="short")))
+        rows.append(items.folder(discover.label("long"), util.url_for(action="list", name="discover", key="long")))
+    rows.append(items.folder(T("Per land", "By country"), util.url_for(action="countries", type="movie" if movie else "tvshow")))
+    rows.append(items.folder(discover.label("anime_movie" if movie else "anime_tv"),
+                             util.url_for(action="list", name="discover", key="anime_movie" if movie else "anime_tv")))
     rows.append(items.folder(T("Per decennium", "By decade"), util.url_for(action="decades", type=params.get("type"))))
     rows.append(items.folder(T("Populaire acteurs", "Popular people"), util.url_for(action="people")))
     rows.append(items.folder(T("Prijswinnaars", "Award winners"), util.url_for(action="awards", type=params.get("type"))))
@@ -249,6 +265,25 @@ def studios(handle, params):
             item.setArt({"icon": logo, "thumb": logo, "clearlogo": logo})
         rows.append((url, item, folder))
     send(handle, rows)
+
+
+def collections(handle, _params):
+    """Film series (TMDB collections): Harry Potter, Star Wars, Mission: Impossible ... in the order they came out."""
+    import discover
+    rows = []
+    for number, name, poster in discover.collections():
+        url, item, folder = items.folder(name, util.url_for(action="list", name="collection", id=number))
+        if poster:
+            item.setArt({"poster": poster, "thumb": poster, "icon": poster})
+        rows.append((url, item, folder))
+    send(handle, rows)
+
+
+def countries(handle, params):
+    import discover
+    kind = "movie" if params.get("type") == "movie" else "tvshow"
+    send(handle, [items.folder(discover.label(key), util.url_for(action="list", name="discover", key=key))
+                  for key in discover.COUNTRIES[kind]])
 
 
 def decades(handle, params):
@@ -742,6 +777,19 @@ def gather(params):
     elif name == "tonight":
         import prefetch
         titles = prefetch.tonight_titles()
+    elif name == "discover":
+        import discover
+        titles, more = discover.titles(params["key"], page)
+        kind = discover.PRESETS[params["key"]][1] if params["key"] in discover.PRESETS else "movie"
+        content = "movies" if kind == "movie" else "tvshows"
+    elif name == "anticipated":
+        import discover
+        kind = "movie" if params.get("type") == "movie" else "tvshow"
+        titles, more = discover.anticipated(kind, page)
+        content = "movies" if kind == "movie" else "tvshows"
+    elif name == "collection":
+        import discover
+        titles, content = discover.collection_titles(params["id"]), "movies"
     elif name == "studio_series":
         import browse
         titles, more = browse.studio_series(params["id"], page)
@@ -1079,7 +1127,8 @@ def test():
 
 FOLDERS = {"people": people, "tmdbmenu": tmdb_menu, "kompasmenu": kompas_menu, "": home, "menu": menu, "tools": tools, "studios": studios, "decades": decades, "awards": awards, "traktmenu": trakt_menu, "traktlists": trakt_lists, "genres": genres,
            "searchmenu": search_menu, "cast": cast, "publiclists": public_lists, "floppylists": floppy_lists, "services": services, "service": service, "mdblistmenu": mdblist_menu, "mdblists": mdblists, "title": title, "list": list_titles, "search": search, "seasons": seasons, "episodes": episodes,
-           "easynews_search": easynews_search, "easynews_play": easynews_play, "easynews_pictures": easynews_pictures}
+           "easynews_search": easynews_search, "easynews_play": easynews_play, "easynews_pictures": easynews_pictures,
+           "collections": collections, "countries": countries}
 
 
 def run(argv):

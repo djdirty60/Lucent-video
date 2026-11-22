@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.45",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T00:45Z",
+   "items": [
+    [
+     "movies",
+     "Nieuwe filmlijsten",
+     "Net digitaal verschenen, Filmreeksen op volgorde (Harry Potter, Star Wars, Mission: Impossible ...), Meest verwacht, Korte films, Lange zit, Per land en Anime-films. En een lijst die met het seizoen meegaat: nu Kerstfilms.",
+     "New film lists",
+     "Just out digitally, Film series in order (Harry Potter, Star Wars, Mission: Impossible ...), Most anticipated, Short films, Long sit, By country and Anime films. And a list that follows the season: Christmas films now."
+    ],
+    [
+     "movies",
+     "Nieuwe serielijsten",
+     "Afgeronde series om in één keer te kijken, Meest verwacht, Per land (Nederlandse, Koreaanse en Scandinavische crime) en Anime-series.",
+     "New series lists",
+     "Finished series to watch in one go, Most anticipated, By country (Dutch, Korean and Nordic crime) and Anime series."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.44",
    "label": "RC 1",
    "label_en": "RC 1",

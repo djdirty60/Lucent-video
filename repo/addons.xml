@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.44" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.45" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -97,7 +97,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.44: after reading FEL / MEL of Easynews files the source list is no longer built again from the background (Kodi crashed 12 seconds after it once): the new label is set on its row, and the list is only built again when the order really changes.
+        <news>1.0.0~rc1.45: new lists. Films: Just out digitally (the last two months), Film series (Harry Potter, Star Wars, Mission: Impossible ... in order), Most anticipated (Trakt), Short films, Long sit, By country (Dutch, Korean, Nordic), Anime films, and a seasonal list (Christmas films now, Halloween in October). Series: Finished series, Most anticipated, By country (Dutch, Korean, Nordic crime), Anime series.
+1.0.0~rc1.44: after reading FEL / MEL of Easynews files the source list is no longer built again from the background (Kodi crashed 12 seconds after it once): the new label is set on its row, and the list is only built again when the order really changes.
 1.0.0~rc1.43: Series has Studios like Films (Marvel Studios, Pixar, Warner Bros. ...), with the series each studio made; studios without series are left out.
 1.0.0~rc1.42: Films has Networks like Series (Netflix, HBO, Prime Video, Disney+, Apple TV ...), with the films each one streams in your country (or in the US when it is not offered here); TV channels without a streaming service are left out. It replaces the Streaming services row of rc1.40, which the main page already has.
 1.0.0~rc1.41: a FEL release now always stands above the same release without FEL (also when Dolby Vision stands above FEL in your profile): a group that failed here once or twice no longer pushes it under a plain Dolby Vision remux; a Usenet release taken down no longer counts against its release group; Easynews Blu-ray Dolby Vision files get FEL, MEL or P7 too, read from their first megabytes while the list is open.
@@ -143,7 +144,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.44: na het lezen van FEL / MEL van Easynews-bestanden wordt de bronnenlijst niet meer vanaf de achtergrond opnieuw opgebouwd (Kodi crashte er een keer 12 seconden na): het nieuwe label komt op zijn regel, en de lijst wordt alleen opnieuw opgebouwd als de volgorde echt verandert.
+        <news lang="nl_NL">1.0.0~rc1.45: nieuwe lijsten. Films: Net digitaal verschenen (de laatste twee maanden), Filmreeksen (Harry Potter, Star Wars, Mission: Impossible ... op volgorde), Meest verwacht (Trakt), Korte films, Lange zit, Per land (Nederlands, Koreaans, Scandinavisch), Anime-films, en een seizoenslijst (nu Kerstfilms, Halloween in oktober). Series: Afgeronde series, Meest verwacht, Per land (Nederlands, Koreaans, Scandinavische crime), Anime-series.
+1.0.0~rc1.44: na het lezen van FEL / MEL van Easynews-bestanden wordt de bronnenlijst niet meer vanaf de achtergrond opnieuw opgebouwd (Kodi crashte er een keer 12 seconden na): het nieuwe label komt op zijn regel, en de lijst wordt alleen opnieuw opgebouwd als de volgorde echt verandert.
 1.0.0~rc1.43: Series heeft Studio's zoals Films (Marvel Studios, Pixar, Warner Bros. ...), met de series die elke studio maakte; studio's zonder series worden weggelaten.
 1.0.0~rc1.42: Films heeft Netwerken zoals Series (Netflix, HBO, Prime Video, Disney+, Apple TV ...), met de films die elk netwerk in jouw land streamt (of in de VS als het hier niet beschikbaar is); tv-zenders zonder streamingdienst worden weggelaten. Dit vervangt de regel Streamingdiensten van rc1.40, die de beginpagina al heeft.
 1.0.0~rc1.41: een FEL-release staat nu altijd boven dezelfde release zonder FEL (ook als Dolby Vision boven FEL staat in je profiel): een groep die hier een of twee keer faalde, drukt hem niet meer onder een gewone Dolby Vision-remux; een weggehaalde Usenet-release telt niet meer mee tegen zijn releasegroep; Easynews Blu-ray-bestanden met Dolby Vision krijgen ook FEL, MEL of P7, gelezen uit hun eerste megabytes terwijl de lijst open is.
