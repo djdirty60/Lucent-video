@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.38",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T23:00Z",
+   "items": [
+    [
+     "refresh",
+     "Volgende release wordt gecontroleerd",
+     "Valt een gecontroleerde Usenet-release weg (weggehaald, op slot of minder dan 95% compleet), dan controleert Lucent meteen de volgende release in de lijst. Zo heb je altijd releases waarvan je weet dat ze spelen. Hooguit 4 extra per lijst, en alleen als de indexer nog ruimte heeft.",
+     "The next release is checked",
+     "When a checked Usenet release falls away (taken down, locked or less than 95% complete), Lucent checks the next release in the list at once. You always have releases you know will play. At most 4 extra per list, and only with room at the indexer."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.37",
    "label": "RC 1",
    "label_en": "RC 1",

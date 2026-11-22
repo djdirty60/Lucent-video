@@ -189,13 +189,48 @@ class Sources(Base):
         import queue
         ready = queue.Queue()                   # releases whose file was read: their full check starts at once
 
+        checked = {id(s) for s in self.sources if s.get("health")} | {id(s) for s in todo}
+        replaced = [0]
+
+        def replacement():
+            """A checked release fell away (taken down, locked, far from complete): the next Usenet release in the list
+            is checked in its place, so as many releases as before are known to play. Its NZB only with room at the
+            indexer; at most EXTRA_CHECKS per list."""
+            if replaced[0] >= EXTRA_CHECKS or self.done:
+                return None
+            for candidate in list(self.sources):
+                job = candidate.get("resolve") or {}
+                if id(candidate) in checked or candidate.get("gone") or candidate.get("locked"):
+                    continue
+                if job.get("scraper") != "Usenet" or not job.get("link"):
+                    continue
+                checked.add(id(candidate))
+                if not nzb_source.can_check(job) and not nzb_source.ensure_nzb(job, "check in place of a release that fell away"):
+                    return None                 # no room at the indexer: no more replacements
+                replaced[0] += 1
+                candidate["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
+                self._show_health(candidate)
+                util.log("sources: a checked release fell away: checking the next one (%s)" % candidate.get("name", "")[:70])
+                found = nzb_source.tracks(job, stop=lambda: self.done)
+                if found and not found.get("gone"):
+                    candidate["health"] = (nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
+                                           + nzb_source.tracks_text(found, job, candidate))
+                    self._show_health(candidate)
+                    self._subs_badge(candidate, found)
+                return candidate, found
+            return None
+
         def full_checks():                      # beside the reading of the next files, not after all of them
+            extra = []                          # releases checked in place of ones that fell away
             while True:
-                item = ready.get()
+                item = extra.pop(0) if extra else ready.get()
                 if item is None or self.done:
                     return
                 source, found = item
                 if found and (found.get("locked") or found.get("gone")):
+                    following = replacement()
+                    if following:
+                        extra.append(following)
                     source["health"] = nzb_source.tracks_text(found)
                     self._show_health(source)
                     if found.get("gone") and not source.get("gone"):
@@ -210,6 +245,10 @@ class Sources(Base):
                     return
                 source["health"] = nzb_source.health_text(result) + nzb_source.tracks_text(found, source["resolve"], source)
                 self._show_health(source)
+                if result and result[0] < result[1] * 0.95:
+                    following = replacement()   # far from complete: it may stop halfway, so one more is checked
+                    if following:
+                        extra.append(following)
 
         checker = threading.Thread(target=full_checks, daemon=True)
         checker.start()
@@ -465,6 +504,7 @@ def _with_scraper(source):
 
 
 EARLY_NZBS = 2                    # NZBs fetched beforehand for the top Usenet releases while the list is open
+EXTRA_CHECKS = 4                  # at most this many releases checked in place of checked ones that fell away
 SEARCH_DONE = {}                  # when the last search finished (player.py), for the log line when the list is up
 
 
