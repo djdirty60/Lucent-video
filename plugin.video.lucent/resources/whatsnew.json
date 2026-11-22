@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.27",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T19:00Z",
+   "items": [
+    [
+     "movies",
+     "Easynews kijkt in het bestand",
+     "Easynews leest welke beeld- en geluidscodec er echt in een bestand zitten. Staat TrueHD, Atmos of DTS-HD MA er wel in maar niet in de naam, dan krijgt de release toch dat label. En een 4K-release die eigenlijk 1920 pixels breed is, staat nu bij 1080p met geen echte 4K.",
+     "Easynews looks inside the file",
+     "Easynews reads which video and sound codec are really in a file. When TrueHD, Atmos or DTS-HD MA is inside but not in the name, the release still gets that label. And a 4K release that is really 1920 pixels wide now sits under 1080p with not real 4K."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.26",
    "label": "RC 1",
    "label_en": "RC 1",

@@ -178,13 +178,14 @@ def _en_fields(answer):
     """Once a day: which fields Easynews sends per file (names only, never values), to build on what is really there."""
     rows = [r for r in answer.get("data") or [] if isinstance(r, dict)]
     saved = util.load_json(EN_FIELDS, {})
-    if not rows or (time.time() - saved.get("at", 0) < 86400 and saved.get("v") == 2):
+    if not rows or (time.time() - saved.get("at", 0) < 86400 and saved.get("v") == 3):
         return
-    util.save_json(EN_FIELDS, {"at": time.time(), "v": 2})
+    util.save_json(EN_FIELDS, {"at": time.time(), "v": 3})
     util.log("Easynews gives: %s; top: %s" % (", ".join(sorted(rows[0])), ", ".join(sorted(k for k in answer if k != "data")[:40])))
     # what some fields look like (file facts only, never an address or the login), to build on them
     sample = rows[0]
-    shown = {k: str(sample.get(k))[:60] for k in ("expires", "nfo", "sb", "ts", "type", "volume", "reposts", "bps", "fps", "fullres") if k in sample}
+    shown = {k: str(sample.get(k))[:60] for k in ("acodec", "vcodec", "xres", "yres", "height", "width", "hz", "bps", "fps", "fullres", "meta",
+                                                   "disposition") if k in sample}
     util.log("Easynews sample: %s; dlFarm %s, dlPort %s" % (shown, str(answer.get("dlFarm"))[:20], str(answer.get("dlPort"))[:10]))
 
 
@@ -249,6 +250,54 @@ def preview_file(url):
     with open(path, "wb") as handle:
         handle.write(data)
     return path
+
+
+VIDEO_CODECS = (("HEVC", "HEVC"), ("H265", "HEVC"), ("H.265", "HEVC"), ("X265", "HEVC"), ("AV1", "AV1"), ("AVC", "AVC"), ("H264", "AVC"),
+                ("H.264", "AVC"), ("X264", "AVC"))
+AUDIO_CODECS = (("TRUEHD", "TRUEHD"), ("MLP", "TRUEHD"), ("DTS-X", "DTS-X"), ("DTS:X", "DTS-X"), ("DTS-HD MA", "DTS-HDMA"),
+                ("DTS-HD", "DTS-HD"), ("DTSHD", "DTS-HD"), ("DTS", "DTS"), ("E-AC-3", "DD+"), ("EAC3", "DD+"), ("DD+", "DD+"), ("AC-3", "DD"),
+                ("AC3", "DD"), ("FLAC", "FLAC"), ("OPUS", "OPUS"), ("AAC", "AAC"))
+
+
+def _en_number(value):
+    try:
+        return int(float(str(value).strip()))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _en_tech(raw, source):
+    """What Easynews read from the file itself: the video and sound codec, and the real size of the picture. Adds
+    labels the name does not have; a '4K' that is not 4K (1920 wide) is put under 1080p, with a note."""
+    flags = source["flags"]
+    video = str(raw.get("vcodec") or raw.get("12") or "").upper()
+    if video and not set(flags) & {"HEVC", "AVC", "AV1"}:
+        found = next((flag for word, flag in VIDEO_CODECS if word in video), "")
+        if found:
+            flags.append(found)
+    sound = str(raw.get("acodec") or raw.get("18") or "").upper()
+    if "ATMOS" in sound and "ATMOS" not in flags:
+        flags.append("ATMOS")                   # on top of the codec it rides on (TrueHD or DD+)
+    for word, flag in AUDIO_CODECS:
+        if word in sound:
+            if flag not in flags and not (flag == "DTS" and set(flags) & {"DTS-HD", "DTS-HDMA", "DTS-X"}) \
+                    and not (flag == "DD" and "DD+" in flags) and not (flag == "TRUEHD" and "TRUEHD" in flags):
+                flags.append(flag)
+            break                               # the first (best) match only: 'DTS-HD MA' is not also 'DTS'
+    width = _en_number(raw.get("xres") or raw.get("width"))
+    height = _en_number(raw.get("yres") or raw.get("height"))
+    if not width and "x" in str(raw.get("fullres") or ""):
+        width, height = (_en_number(part) for part in str(raw["fullres"]).split("x", 1))
+    if not width:
+        return
+    real = "4K" if width >= 3200 else "1080p" if width >= 1800 else "720p" if width >= 1200 else "SD"
+    order = ["4K", "1080p", "720p", "SD"]
+    named = source.get("resolution") or "SD"
+    if named in order and order.index(real) > order.index(named):
+        source["resolution"] = real             # the name promises more than the picture has
+        source["meta"] += " · " + T("geen echte %s (%d×%d)", "not real %s (%d×%d)") % (named, width, height)
+    elif named == "SD" and real != "SD":
+        source["resolution"] = real             # the name says nothing: the picture tells
 
 
 def _version(stem, minutes, runtime):
@@ -317,6 +366,7 @@ def easynews(meta):
                 source["flags"].append(mylang.subs_flag())
             if len(sound) > 1:
                 source["meta"] += " · " + T("geluid", "audio") + " " + " ".join(c.upper() for c in sound[:4])
+            _en_tech(raw, source)
             preview = _en_preview(answer, raw)
             if preview:
                 source["preview"] = preview
