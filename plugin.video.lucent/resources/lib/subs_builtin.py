@@ -66,6 +66,7 @@ def search(handle, params):
                                   offscreen=True)
             li.setArt({"icon": str(r["score"]), "thumb": r["lang"]})
             li.setProperty("sync", "true" if r["sync"] else "false")
+            li.setProperty("match", str(r.get("match") or 0))         # how well its release fits the file (0..1)
             li.setProperty("hearing_imp", "true" if r["hi"] else "false")
             args = {"action": "subdownload", "item": json.dumps({k: r[k] for k in ("src", "id", "lang", "release")})}
             if params.get("video"):

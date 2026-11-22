@@ -372,6 +372,9 @@ def speed_lines():
     saved = util.load_json(EN_SPEED, {})
     if not saved.get("rate"):
         return []
+    if saved.get("v") != EN_SPEED_V:            # a measurement of an older version: done again at the next search
+        return [T("Snelheid: wordt opnieuw gemeten bij de volgende zoekopdracht met Easynews",
+                  "Speed: measured again at the next search with Easynews")]
     days = int((time.time() - saved.get("at", 0)) // 86400)
     when = T("vandaag gemeten", "measured today") if days < 1 else T("%d dag(en) geleden gemeten", "measured %d day(s) ago") % days
     lines = [T("Snelheid: %.1f MB/s (%s)", "Speed: %.1f MB/s (%s)") % (saved["rate"] / 1048576, when)]

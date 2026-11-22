@@ -161,13 +161,28 @@ def own_search(video, languages, mine_name):
         return []
 
 
+def item_of(entry):
+    """What Lucent Ondertitels put in a result's address (src, id, lang, release): JSON-RPC does not give label2, so
+    the release name is read from there."""
+    try:
+        query = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(entry.get("file") or "").query))
+        return json.loads(query.get("item") or "{}")
+    except ValueError:
+        return {}
+
+
+def release_of(entry):
+    return split_label2(entry.get("label2", ""))[0] or str(item_of(entry).get("release") or "")
+
+
 def best_of(files, code, pref=None):
-    """The add-on lists its best first; among those in your language, the one that fits your series wins."""
+    """The add-on lists its best first (the subtitle whose release fits the file best, see subs_core.release_match);
+    among those in your language, the one that fits your series wins."""
     from subs_live import lang_of
     mine = [(n, f) for n, f in enumerate(files) if f.get("file") and lang_of(f) == code]
     if not mine:
         return None
-    return min(mine, key=lambda nf: (pref_rank(*split_label2(nf[1].get("label2", "")), pref), nf[0]))[1]
+    return min(mine, key=lambda nf: (pref_rank(release_of(nf[1]), split_label2(nf[1].get("label2", ""))[1], pref), nf[0]))[1]
 
 
 # ----------------------------------------------------------------------------- 2. next episode
@@ -186,7 +201,7 @@ def _keep(key, code, local, best, store):
     os.makedirs(os.path.join(DIR, "next"), exist_ok=True)
     keep = os.path.join(DIR, "next", re.sub(r"[^\w.-]+", ".", f"{key}.{code}") + os.path.splitext(local)[1])
     shutil.copyfile(local, keep)
-    release, source = split_label2(best.get("label2", ""))
+    release, source = release_of(best), split_label2(best.get("label2", ""))[1] or str(item_of(best).get("src") or "")
     store[key] = {"path": keep, "lang": code, "release": release, "source": source, "at": int(time.time())}
     for k in [k for k, e in store.items() if time.time() - e.get("at", 0) > 14 * 86400]:
         try:
@@ -222,7 +237,10 @@ def ready_ahead(video):
         local = subs_live.download(best["file"])
         if local and os.path.exists(local):
             release = _keep(key, code, local, best, store)
-            log(f"ahead {label(video)}: ready in {time.time() - started:.1f} s ({release})")
+            import subs_core
+            fit = subs_core.release_match(release, video) if release else 0.0
+            log(f"ahead {label(video)}: ready in {time.time() - started:.1f} s ({release or 'no release name'}; fits the file {fit:.2f}"
+                f" of 1; first of {sum(1 for f in files if f.get('file'))} found)")
     finally:
         HOME.clearProperty(READY)
 
@@ -386,7 +404,7 @@ def other_subtitle():
     local = subs_live.download(files[at]["file"])
     if not local:
         return xbmcgui.Dialog().notification("Lucent", t("Download failed", "Downloaden mislukt"), xbmcgui.NOTIFICATION_WARNING, 3000)
-    release, _source = split_label2(files[at].get("label2", ""))
+    release = release_of(files[at])
     subs_live.activate(local, code, 10)
     log(f"other subtitle {at + 1} of {len(files)}: {release}")
     xbmcgui.Dialog().notification("Lucent", t(f"Subtitle {at + 1} of {len(files)}", f"Ondertitel {at + 1} van {len(files)}") +

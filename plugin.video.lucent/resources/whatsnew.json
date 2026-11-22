@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.34",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T22:00Z",
+   "items": [
+    [
+     "subtitles",
+     "Ondertitel past bij je bestand",
+     "Lucent kiest de ondertitel die het best bij je bestand past: eerst exact dezelfde release, dan dezelfde releasegroep, dezelfde bron (Blu-ray, WEB) en dienst (Netflix, Amazon ...). Een ondertitel van een Extended- of IMAX-versie wordt niet meer gekozen voor de gewone versie. Ook bij Usenet en Easynews, en ook in de ondertitellijst.",
+     "Subtitle fits your file",
+     "Lucent picks the subtitle that fits your file best: first the very same release, then the same release group, the same source (Blu-ray, WEB) and service (Netflix, Amazon ...). A subtitle of an Extended or IMAX cut is no longer chosen for the normal cut. Also for Usenet and Easynews, and in the subtitle list."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.33",
    "label": "RC 1",
    "label_en": "RC 1",

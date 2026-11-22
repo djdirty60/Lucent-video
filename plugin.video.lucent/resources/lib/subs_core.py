@@ -144,8 +144,27 @@ def current_video():
     for key in ("imdb", "show_imdb"):
         if video[key] and not str(video[key]).startswith("tt"):
             video[key] = ""
-    video["release"] = release_name(video["file"])
+    video["release"] = _lucent_release(video["file"]) or release_name(video["file"])
     return video
+
+
+def _lucent_release(path):
+    """The release name of what Lucent Video is playing (from its handoff), when the playing file is Lucent's: a
+    Usenet file in vfs.lucent or an Easynews CDN address does not carry the release name, the source did."""
+    if not path:
+        return ""
+    try:
+        now = json.loads(xbmc.getInfoLabel("Window(home).Property(lucent.video.now)") or "{}")
+    except ValueError:
+        return ""
+    url = str(now.get("url") or "")
+
+    def bare(text):
+        parts = urllib.parse.urlsplit(text.split("|")[0])
+        return (parts.netloc.rsplit("@", 1)[-1] + parts.path).lower()
+    if not url or not now.get("name") or bare(url) != bare(path):
+        return ""
+    return re.sub(r"\.(mkv|mp4|avi|m4v|ts|m2ts|wmv|mov)$", "", now["name"], flags=re.I)
 
 
 def release_name(path):
@@ -164,24 +183,59 @@ def tokens(text):
     return [t for t in TOKEN.findall((text or "").lower()) if t not in NOISE]
 
 
+SOURCE_KIND = (("bluray", {"bluray", "bdrip", "brrip", "remux", "bdremux", "bd", "uhd"}), ("web", {"web", "webdl", "webrip", "dl"}),
+               ("tv", {"hdtv", "pdtv", "dsr", "tvrip"}), ("dvd", {"dvd", "dvdrip", "dvd9", "dvd5"}))
+SERVICES = {"amzn", "nf", "dsnp", "hmax", "max", "atvp", "hulu", "pcok", "pmtp", "ma", "it", "cr", "stan", "vdl", "nlz", "skst"}
+EDITIONS = {"extended": "extended", "directors": "directors", "director": "directors", "dc": "directors", "uncut": "uncut",
+            "unrated": "unrated", "imax": "imax", "theatrical": "theatrical", "remastered": "remastered", "final": "final"}
+
+
+def _plain(text):
+    return re.sub(r"\.(srt|ass|ssa|sub|vtt|zip|mkv|mp4|avi)$", "", (text or "").strip().lower()).replace("-", ".").replace(" ", ".").replace("_", ".")
+
+
+def _group(text):
+    m = re.search(r"-([a-z0-9]{2,20})(?:\[[^\]]*\])?$", re.sub(r"\.(srt|ass|ssa|sub|vtt|zip|mkv|mp4|avi)$", "", (text or "").strip().lower()))
+    return m.group(1) if m else ""
+
+
+def _kind(words):
+    return next((name for name, members in SOURCE_KIND if words & members), "")
+
+
 def release_match(release, video):
-    """0..1: how well a subtitle's release name fits the playing file (quality, source, group)."""
-    mine = set(tokens(video.get("release")))
+    """0..1: how well a subtitle's release name fits the playing file. What decides whether a subtitle runs in sync:
+    the same release (1.0), the same release group, the same source (Blu-ray, WEB, TV), the same streaming service
+    and the same edition (an Extended or IMAX cut is minutes longer). Resolution and codec count least: the timing of a
+    1080p and a 2160p release of the same group is the same."""
+    name = video.get("release") or ""
+    mine = set(tokens(name))
     if not mine or not release:
         return 0.0
     theirs = set(tokens(release))
     if not theirs:
         return 0.0
-    keys = {"2160p", "1080p", "720p", "480p", "web", "webrip", "webdl", "dl", "bluray", "brrip", "bdrip", "hdtv", "remux",
-            "x264", "x265", "h264", "h265", "hevc", "amzn", "nf", "dsnp", "hmax", "atvp", "hulu", "proper", "repack"}
-    group = tokens(video.get("release"))[-1:]
-    score = len(mine & theirs) / max(len(mine), 1)
-    important = (mine & keys)
-    if important:
-        score = 0.5 * score + 0.5 * len(important & theirs) / len(important)
-    if group and group[0] in theirs:
-        score = min(1.0, score + 0.25)
-    return score
+    if _plain(release) == _plain(name):
+        return 1.0                                  # the very same release
+    score = 0.15 * len(mine & theirs) / max(len(mine), 1)           # words in common
+    group = _group(name)
+    if group and (group == _group(release) or group in theirs):
+        score += 0.4                                # the same group: almost always the same timing
+    kind_mine, kind_theirs = _kind(mine), _kind(theirs)
+    if kind_mine and kind_theirs:
+        score += 0.2 if kind_mine == kind_theirs else -0.2      # a WEB subtitle on a Blu-ray often runs off
+    service = mine & SERVICES
+    if service and service & theirs:
+        score += 0.15                               # the same service (AMZN, NF ...): the same cut and intro
+    cut_mine = {EDITIONS[w] for w in mine if w in EDITIONS}
+    cut_theirs = {EDITIONS[w] for w in theirs if w in EDITIONS}
+    if cut_mine != cut_theirs:
+        score -= 0.3                                # another edition: another length
+    if {"2160p", "1080p", "720p", "480p"} & mine & theirs:
+        score += 0.05
+    if {"repack", "proper"} & mine and {"repack", "proper"} & mine & theirs:
+        score += 0.05
+    return round(max(0.0, min(0.99, score)), 3)
 
 
 # ----------------------------------------------------------------------------- OpenSubtitles hash

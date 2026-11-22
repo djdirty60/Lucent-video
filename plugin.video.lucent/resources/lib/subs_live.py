@@ -38,6 +38,13 @@ def t(en, nl):
     return nl if NL else en
 
 
+def _number(text):
+    try:
+        return float(text or 0)
+    except ValueError:
+        return 0.0
+
+
 def log(text):
     xbmc.log(f"[lucent.video] subtitles: {text}", xbmc.LOGINFO)
 
@@ -274,6 +281,7 @@ class SubsWindow(xbmcgui.WindowXMLDialog):
                 "path": path, "code": code, "lang": full_name(code, lang), "release": xbmc.getInfoLabel(base + "Label2"),
                 "source": name, "sync": xbmc.getInfoLabel(base + "Property(sync)") == "true",
                 "hi": xbmc.getInfoLabel(base + "Property(hearing_imp)") == "true", "rating": rating,
+                "match": _number(xbmc.getInfoLabel(base + "Property(match)")),
             })
         log(f"{aid}: {len(rows)} subtitles{' (no answer in time)' if timed_out else ''}")
         with self.lock:
@@ -288,7 +296,8 @@ class SubsWindow(xbmcgui.WindowXMLDialog):
         if mine and getattr(self, "pref", None):
             import subs_extra
             rank = subs_extra.pref_rank(*subs_extra.split_label2(r["release"]), self.pref)
-        return (not mine, rank, r["code"] != "en", not r["sync"], -r["rating"], r["lang"], r["release"].lower())
+        # the subtitle whose release fits the playing file best comes first (subs_core.release_match)
+        return (not mine, rank, r["code"] != "en", not r["sync"], -r.get("match", 0), -r["rating"], r["lang"], r["release"].lower())
 
     def local_items(self, fresh=False):
         """Above the found subtitles: switch subtitles on / off, and the film's own subtitles in your languages (the
