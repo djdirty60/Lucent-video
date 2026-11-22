@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.9" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.10" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -94,7 +94,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.9: Opening a series where you left off: a short note says where it went and that Back shows all seasons; when finding the next episode takes long, the seasons screen simply stays (skin #37).
+        <news>1.0.0~rc1.10: MDBList: a long watch history is read to the end (every page), so Next up no longer misses series; the log says how many series were looked at.
+1.0.0~rc1.9: Opening a series where you left off: a short note says where it went and that Back shows all seasons; when finding the next episode takes long, the seasons screen simply stays (skin #37).
 1.0.0~rc1.8: Size counts at the place you give it in your ranking (first = largest first; GitHub #4); TorBox: account information and the log show TorBox's own reason when something fails, and a counter in another form no longer gives "could not be read" (GitHub #3); in the source list the menu button on a Usenet release offers "Check this release now".
 1.0.0~rc1.7: the source list follows your ranking groups in order (the first group decides, then the next); learned choices and subtitles-first only move releases that are equal there; a release that was taken down shows "gone" at once; next episodes from MDBList leave out shows you dropped; the full article check can use the new add-on Lucent Video Check (Virtual filesystems), much faster.
 1.0.0~rc1.5: a release found locked or packed moves to the bottom of the list at once; fast reader 0.1.5 (a piece prepared in advance can no longer keep the film waiting).
@@ -105,7 +106,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.9: Een serie openen waar je was: een korte melding zegt waar hij heen ging en dat Terug alle seizoenen toont; duurt het zoeken van de volgende aflevering lang, dan blijft het seizoenenscherm gewoon staan.
+        <news lang="nl_NL">1.0.0~rc1.10: MDBList: een lange kijkgeschiedenis wordt tot het eind gelezen (elke pagina), zodat Volgende aflevering geen series meer mist; de log zegt hoeveel series bekeken zijn.
+1.0.0~rc1.9: Een serie openen waar je was: een korte melding zegt waar hij heen ging en dat Terug alle seizoenen toont; duurt het zoeken van de volgende aflevering lang, dan blijft het seizoenenscherm gewoon staan.
 1.0.0~rc1.8: Grootte telt op de plek die je hem geeft in je rangschikking (bovenaan = grootste eerst); TorBox: accountinformatie en de log tonen TorBox' eigen reden als iets misgaat, en een teller in een andere vorm geeft geen "kon niet worden gelezen" meer; in de bronnenlijst geeft de menuknop op een Usenet-release "Deze release nu controleren".
 1.0.0~rc1.7: De bronnenlijst volgt je rangschikgroepen op volgorde (de eerste groep beslist, dan de volgende); geleerde keuzes en ondertitels-eerst verschuiven alleen releases die daar gelijk staan; een weggehaalde release toont meteen "weg"; volgende afleveringen van MDBList laten gedropte series weg; de volledige controle kan de nieuwe add-on Lucent Video Check gebruiken (Virtuele bestandssystemen), veel sneller.
 1.0.0~rc1.5: Release candidate 1; NZBIndex: gratis zoeken zonder account; FEL of MEL uit het bestand zelf; De labels kloppen met het bestand zelf; Eerst wat er in het bestand zit, dan de controle; De lijst schuift mee met de nieuwe labels; Snelle lezer 0.1.5: kan niet meer vastlopen op een vooraf klaargezet stukje; Minder zinloos zoeken op de achtergrond; NZB al opgehaald terwijl je kiest; Audiotalen sneller in beeld; Snelle lezer 0.1.4: precies vooruitspoelen; Hoofdstukplaatjes wachten op de film.

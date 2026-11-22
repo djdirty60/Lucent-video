@@ -75,21 +75,32 @@ def forget_lists():
 
 # ----------------------------------------------------------------------------------------- watched history
 def _pages(path, **params):
-    """Every page of a cursor-paged answer, merged: {'movies': [...], 'episodes': [...], ...}."""
-    merged, cursor = {}, None
+    """Every page of a paged answer, merged: {'movies': [...], 'episodes': [...], ...}. MDBList pages some answers with
+    a cursor (next_cursor) and its sync endpoints with an offset (has_more); both are followed. Before rc1.10 only the
+    cursor was, so a long watch history stopped after its first page and series were missing from Next up."""
+    merged, cursor, offset = {}, None, 0
     for _ in range(50):
         if cursor:
             params["cursor"] = cursor
+        elif offset:
+            params["offset"] = offset
         data = call(path, limit=PAGE, **params) or {}
         if isinstance(data, list):
             merged.setdefault("items", []).extend(data)
             break
+        got = 0
         for key, value in data.items():
             if isinstance(value, list):
                 merged.setdefault(key, []).extend(value)
-        cursor = (data.get("pagination") or {}).get("next_cursor")
-        if not cursor:
-            break
+                got += len(value)
+        paging = data.get("pagination") or {}
+        cursor = paging.get("next_cursor")
+        if cursor:
+            continue
+        if paging.get("has_more") and got:
+            offset += int(paging.get("limit") or PAGE)
+            continue
+        break
     return merged
 
 
@@ -278,10 +289,13 @@ def next_up():
             return None
         return (show, following["season"], following["episode"]) if following else None
     dropped = dropped_shows()
-    recent = sorted([s for s in watched_episodes().items() if s[0] not in dropped],
+    watched = watched_episodes()
+    recent = sorted([s for s in watched.items() if s[0] not in dropped],
                     key=lambda s: max(s[1].values()) if s[1] else "", reverse=True)[:40]
     with ThreadPoolExecutor(max_workers=6) as pool:
         out = [r for r in pool.map(step, recent) if r]
+    util.log("MDBList next up: %d series watched, %d dropped, %d looked at, %d with an aired next episode"
+             % (len(watched), len(dropped), len(recent), len(out)))
     util.cache_set("mdbtracknextup", out)
     return out
 
