@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.39",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T23:45Z",
+   "items": [
+    [
+     "play",
+     "Geen 'Afspelen mislukt' meer bij terug",
+     "Sloot je de bronnenlijst, dan liet Kodi soms zijn eigen venster 'Afspelen mislukt' zien. Lucent sluit dat venster nu meteen.",
+     "No more 'Playback failed' when you go back",
+     "When you closed the source list, Kodi sometimes showed its own 'Playback failed' window. Lucent now closes that window at once."
+    ],
+    [
+     "star",
+     "Labels ook bij elk AIOStreams",
+     "Stuurt je AIOStreams geen extra gegevens mee, dan haalt Lucent de labels (Dolby Vision, Atmos, Remux ...) uit de releasenaam, en staan de bronnen niet meer allemaal als 'niet direct speelbaar'.",
+     "Labels with every AIOStreams",
+     "When your AIOStreams sends no extra data, Lucent takes the labels (Dolby Vision, Atmos, Remux ...) from the release name, and the sources are no longer all marked 'not ready to play'."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.38",
    "label": "RC 1",
    "label_en": "RC 1",

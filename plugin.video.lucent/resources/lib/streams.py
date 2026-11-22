@@ -159,8 +159,12 @@ def convert(raw, include_uncached=True):
         addon = str(data.get("addon") or "").strip()[:24] if kind != "usenet" else ""
         if addon.lower() in (service_name.lower(), indexer.lower(), "aiostreams"):
             addon = ""
+        flags = flags_of(parsed, name)
+        if not parsed:                          # no parsedFile from this AIOStreams: the labels from the name
+            import usenet
+            flags = flags + [f for f in usenet._flags(name) if f not in flags]      # noqa: SLF001 - same add-on
         out.append({
-            "flags": flags_of(parsed, name),
+            "flags": flags,
             "meta": " · ".join(p for p in (service_name, addon, indexer, size_label) if p),
             "always": kind in ("usenet", "http"),        # nothing to cache: 'CACHED' would say nothing
             "url": with_headers(stream["url"], hints),
@@ -169,9 +173,26 @@ def convert(raw, include_uncached=True):
             "badges": badges,
             "size": size if isinstance(size, (int, float)) else 0,
             "service": str(service.get("id") or data.get("addon") or "").upper(),
-            "cached": service.get("cached") is True or kind in ("usenet", "http"),
+            # no word about the cache at all (an AIOStreams without streamData): not 'not ready', it may well be
+            "cached": service.get("cached") is True or kind in ("usenet", "http") or (not data and service.get("cached") is None),
         })
     return out
+
+
+FIELDS_LOGGED = "aiostreams_fields.json"
+
+
+def _log_fields(raw):
+    """Once a day: which fields AIOStreams sends (names only), to see why labels or 'ready to play' are missing."""
+    import time
+    if not raw or time.time() - util.load_json(FIELDS_LOGGED, {}).get("at", 0) < 86400:
+        return
+    util.save_json(FIELDS_LOGGED, {"at": time.time()})
+    first = raw[0] if isinstance(raw[0], dict) else {}
+    data = first.get("streamData") or {}
+    util.log("AIOStreams gives: %s; streamData: %s; service: %s; parsedFile: %s" % (
+        ", ".join(sorted(first))[:200], ", ".join(sorted(data))[:200] or "none",
+        ", ".join(sorted(data.get("service") or {}))[:80] or "none", ", ".join(sorted(data.get("parsedFile") or {}))[:200] or "none"))
 
 
 def stream_id(meta):
@@ -195,6 +216,7 @@ def fetch(meta):
         raw = (answer or {}).get("streams") or []
         if raw:
             util.cache_set(key, raw)
+    _log_fields(raw)
     return convert(raw)
 
 

@@ -54,6 +54,24 @@ def _fail(handle, text=None):
         xbmcgui.Dialog().notification("Lucent", text, xbmcgui.NOTIFICATION_WARNING, 5000)
     if handle >= 0:
         xbmcplugin.setResolvedUrl(handle, False, xbmcgui.ListItem(offscreen=True))
+        _no_failed_dialog()
+
+
+def _no_failed_dialog(most=3.0):
+    """Kodi answers a play that is not resolved (you closed the source list, or nothing could start) with its own
+    'Playback failed - one or more items failed to play' window: closed at once, Lucent already said what happened (or
+    you chose to stop). Only that window, recognised by Kodi's own heading (string 16026)."""
+    heading = xbmc.getLocalizedString(16026)
+    monitor, end = xbmc.Monitor(), time.time() + most
+    while time.time() < end:
+        if xbmc.getCondVisibility("Window.IsVisible(okdialog)"):
+            shown = xbmc.getInfoLabel("Control.GetLabel(1)") or xbmc.getInfoLabel("Window(okdialog).Property(heading)")
+            if not heading or not shown or shown == heading:
+                xbmc.executebuiltin("Dialog.Close(okdialog,true)")
+                util.log("closed Kodi's 'playback failed' window (the play was stopped or could not start)")
+            return
+        if monitor.waitForAbort(0.05):
+            return
 
 
 def _no_finder(services):
