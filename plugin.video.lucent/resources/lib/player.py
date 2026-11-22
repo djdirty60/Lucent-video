@@ -103,19 +103,22 @@ def _easynews_direct(source):
 
 
 def _easynews_fallback(source):
-    """The Easynews link does not answer: Easynews' own second address for the same file (fallbackURL). True when
-    that one works; the source keeps it."""
-    spare = source.get("en_fallback")
-    if not spare or (source.get("resolve") or {}).get("scraper"):
+    """The Easynews link does not answer: first the link with the port Easynews itself sent (when you set your own
+    port), then Easynews' own second address for the same file (fallbackURL). True when one works; the source keeps it."""
+    if (source.get("resolve") or {}).get("scraper"):
         return False
-    url = usenet.fallback_link(spare)
-    if not url:
-        return False
-    first, source["url"] = source["url"], url
-    if link_works(source):
-        util.log("Easynews link failed: its fallback address works (%s)" % (urllib.parse.urlsplit(url.partition("|")[0]).hostname or "?"))
-        return True
-    util.log("Easynews link failed, its fallback address too")
+    first = source["url"]
+    tries = [("Easynews' own port", source.get("en_original") or "")]
+    if source.get("en_fallback"):
+        tries.append(("its fallback address", usenet.fallback_link(source["en_fallback"])))
+    for what, url in tries:
+        if not url:
+            continue
+        source["url"] = url
+        if link_works(source):
+            util.log("Easynews link failed: %s works" % what)
+            return True
+        util.log("Easynews link failed, %s too" % what)
     source["url"] = first
     return False
 

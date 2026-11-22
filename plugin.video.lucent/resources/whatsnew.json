@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.32",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T21:20Z",
+   "items": [
+    [
+     "settings",
+     "Eigen Easynews-poort",
+     "De Route Selector van Easynews onthoudt je keuze niet altijd. Bij Bronnen > Easynews-poort vul je zelf een poort in, bijvoorbeeld 444, en Lucent gebruikt die in elk Easynews-adres. Werkt hij niet, dan valt Lucent terug op de poort van Easynews. Na een andere poort meet Lucent de snelheid meteen opnieuw.",
+     "Your own Easynews port",
+     "Easynews' Route Selector does not always keep your choice. Under Sources > Easynews port you fill in a port yourself, for example 444, and Lucent uses it in every Easynews address. When it fails, Lucent falls back on Easynews' port. After another port Lucent measures the speed again at once."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.31",
    "label": "RC 1",
    "label_en": "RC 1",

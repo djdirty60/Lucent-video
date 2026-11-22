@@ -293,11 +293,32 @@ EN_SPEED_DAYS = 7
 EN_FIELDS = "easynews_fields.json"      # when the names of Easynews' fields were last written in the log (once a day)
 
 
-def _en_speed(base, sample_path):
+def port_choice():
+    """Your own Easynews port (setting 'Easynews port'), or '' for the one Easynews sends: its Route Selector does
+    not always keep a choice (November 2026: back to automatic after a refresh)."""
+    return re.sub(r"[^0-9]", "", util.setting("easynews_port"))[:5]
+
+
+def _en_bases(answer):
+    """(the download base Lucent uses, the one Easynews sent): downURL/farm/port. Your own port replaces Easynews'."""
+    sent = "%s/%s/%s" % (answer.get("downURL") or EASYNEWS + "/dl", answer.get("dlFarm") or "auto", answer.get("dlPort") or "auto")
+    port = port_choice()
+    return ("%s/%s/%s" % (sent.rsplit("/", 2)[0], answer.get("dlFarm") or "auto", port) if port else sent), sent
+
+
+def _with_login(base):
+    """Login inside the address, not as a header: Kodi hides the first in its log but writes the second out in full."""
+    parts = urllib.parse.urlsplit(base)
+    user, password = _en_login()
+    return "%s://%s:%s@%s%s" % (parts.scheme, urllib.parse.quote(user, safe=""), urllib.parse.quote(password, safe=""), parts.netloc, parts.path)
+
+
+def _en_speed(base, sample_path, port=""):
     """Bytes per second this box gets from Easynews, measured once a week with the first 4 MB of one result (one
     connection, as Kodi plays it). 0 when unknown."""
     saved = util.load_json(EN_SPEED, {})
-    if saved.get("rate") and time.time() - saved.get("at", 0) < EN_SPEED_DAYS * 86400:
+    same = str(saved.get("port", port)) == str(port)        # another port: measured again at once
+    if saved.get("rate") and same and time.time() - saved.get("at", 0) < EN_SPEED_DAYS * 86400:
         return saved["rate"]
     if not sample_path:
         return saved.get("rate") or 0
@@ -320,10 +341,11 @@ def _en_speed(base, sample_path):
     if got < 1048576 or seconds <= 0:
         return saved.get("rate") or 0
     rate = got / seconds
-    util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time()))
-    util.log("Easynews speed: %.1f MB/s (%.1f MB in %.1f s)" % (rate / 1048576, got / 1048576, seconds))
+    util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time(), port=port))
+    util.log("Easynews speed: %.1f MB/s (%.1f MB in %.1f s, port %s%s)" % (rate / 1048576, got / 1048576, seconds, port or "?",
+                                                                           ", your own" if port_choice() else ""))
     if rate < EN_SLOW and time.time() - saved.get("tipped", 0) > 30 * 86400:
-        util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time(), tipped=time.time()))
+        util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time(), port=port, tipped=time.time()))
         util.notify(T("Easynews: %.1f MB/s. Een snellere server kiezen? Zie Accountinformatie.",
                       "Easynews: %.1f MB/s. Choose a faster server? See Account information.") % (rate / 1048576))
     return rate
@@ -512,11 +534,9 @@ def easynews(meta):
             pass
     reading = _check_data()                 # beside the search, finished before Easynews' results are returned
     answer = _en_all(meta, titles)
-    base = "%s/%s/%s" % (answer.get("downURL") or EASYNEWS + "/dl", answer.get("dlFarm") or "auto", answer.get("dlPort") or "auto")
-    # Login inside the address, not as a header: Kodi hides the first in its log but writes the second out in full.
-    parts = urllib.parse.urlsplit(base)
-    user, password = _en_login()
-    base = "%s://%s:%s@%s%s" % (parts.scheme, urllib.parse.quote(user, safe=""), urllib.parse.quote(password, safe=""), parts.netloc, parts.path)
+    own, sent = _en_bases(answer)
+    base = _with_login(own)
+    original = _with_login(sent) if sent != own else ""     # Easynews' own port: tried when yours fails
     agent = urllib.parse.urlencode({"User-Agent": AGENT})
     _en_fields(answer)
     runtime = int(meta.get("runtime") or 0) if meta["kind"] == "movie" else 0
@@ -543,6 +563,8 @@ def easynews(meta):
         name = stem + extension
         path = "%s%s%s/%s" % (key, suffix, extension, urllib.parse.quote(name))
         source = dict(_source(name, size, "EASYNEWS", url="%s/%s|%s" % (base, path, agent)), always=True, seconds=seconds or 0, _path=path)
+        if original:
+            source["en_original"] = "%s/%s|%s" % (original, path, agent)
         if label:
             source["meta"] += " · " + label
         if seconds and size:
@@ -575,7 +597,7 @@ def easynews(meta):
         out.append(source)
     if short:
         util.log("Easynews: %d result(s) left out: far shorter than the film or episode" % short)
-    rate = _en_speed(base, out[0]["_path"] if out else "") if out else 0
+    rate = _en_speed(base, out[0]["_path"] if out else "", own.rsplit("/", 2)[-1]) if out else 0
     heavy = 0
     for source in out:
         source.pop("_path")
@@ -761,7 +783,7 @@ def free_sources(query):
     except util.HttpError as error:
         util.log("Easynews search: %s - asking 2.0" % error)
         answer = _en_search2(query)
-    base = "%s/%s/%s" % (answer.get("downURL") or EASYNEWS + "/dl", answer.get("dlFarm") or "auto", answer.get("dlPort") or "auto")
+    base = _en_bases(answer)[0]
     out = []
     for raw in answer.get("data") or []:
         item = _en_item(raw)
