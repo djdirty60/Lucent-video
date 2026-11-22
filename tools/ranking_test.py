@@ -100,6 +100,11 @@ _learned["rmx|4K|usenet"] = {"good": 0, "bad": 3, "at": 1}
 expect("Een release die steeds mislukte zakt naar het eind van zijn resolutie",
        [remux_nosub, bluray_sub, web_sub], profile("fel", FEL, FEL_ORDERS), ["BRS", "WEBS", "RMX"])
 _learned.clear()
+_learned["rmx|4K|usenet"] = {"good": 0, "bad": 1, "at": 1}
+plain_br = src("Film.2160p.UHD.BluRay.HEVC.TrueHD.Atmos.7.1-PLAIN", 80, flags=["BLURAY", "TRUEHD", "ATMOS", "7.1"])
+expect("Een keer mislukt: de DV-Remux blijft boven een gewone Blu-ray, alleen onder een gelijke Remux",
+       [plain_br, remux_nosub, twin], profile("best", BEST), ["OTHER", "RMX", "PLAIN"])
+_learned.clear()
 online = src("Film.2160p.UHD.BluRay.DV.HDR.x265.TrueHD.Atmos.7.1-ONL", 30, flags=["DV", "HDR", "BLURAY", "TRUEHD", "ATMOS", "7.1", SUB], subs_online=True)
 expect("Passende online ondertitel gaat niet boven een Remux (Bron boven Taal)",
        [online, remux_nosub], profile("fel", FEL, FEL_ORDERS), ["RMX", "ONL"])

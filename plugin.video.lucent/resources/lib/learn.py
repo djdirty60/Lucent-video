@@ -62,7 +62,12 @@ def adjust(sources):
 
     def bucket(source):
         value = score(key(source), data)
-        place = 0 if value >= 2 else (2 if value <= -2 else 1)
+        place = 0 if value >= 2 else (2 if value <= GIVE_UP else 1)
+        if GIVE_UP < value <= -2:
+            # its release group failed here once or twice: a small step down among equal sources only. Before
+            # 1.0.0~rc1.21 one failure put the whole group below everything of its resolution (a Dolby Vision remux under
+            # plain Blu-rays), also when it was not the release's fault (a crash of Kodi, a test version)
+            weak.add(id(source))
         job = source.get("resolve") or {}
         if job.get("scraper") == "Usenet":
             known = health.get(id(source))
@@ -79,11 +84,12 @@ def adjust(sources):
     kept = ranking.within_class(kept, lambda s: places[id(s)] == 0, apart=lambda s: places[id(s)] == 2)
     if not weak:
         return kept
-    # an indexer whose NZBs often failed here (taken down, locked) only loses from equal sources elsewhere: never a whole
-    # indexer under the rest of the list (before 1.0.0~rc1.17 all its releases went below even the red-flagged ones)
+    # a group that failed here, or an indexer whose NZBs often failed (taken down, locked), only loses from equal sources
+    # elsewhere: never under the rest of the list (only a release known to miss articles goes to the end)
     return ranking.within_class(kept, lambda s: id(s) not in weak, apart=lambda s: places[id(s)] == 2)
 
 
+GIVE_UP = -6            # a group that kept failing here (three times or more, never good): to the end of its resolution
 WEAK_INDEXER = 0.80     # an indexer whose NZBs played less often than this (at least 5 times) moves its releases down
 GAPPY = 0.98            # a release known (full check) to miss more than 2% of its articles goes to the end of its resolution
 

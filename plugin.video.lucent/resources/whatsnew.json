@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.21",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T18:15Z",
+   "items": [
+    [
+     "layout",
+     "Topreleases weer bovenaan",
+     "Mislukte een release-groep hier een keer, bijvoorbeeld door een storing, dan zakten al zijn releases onder alles, zelfs een Dolby Vision-remux onder gewone Blu-rays. Nu zakt zo'n release alleen nog onder gelijke releases. Pas na drie keer mislukt gaat hij naar onderen.",
+     "Top releases on top again",
+     "When a release group failed here once, for example because of an outage, all its releases dropped below everything, even a Dolby Vision remux below plain Blu-rays. Now such a release only drops below equal releases. Only after three failures does it go to the bottom."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.20",
    "label": "RC 1",
    "label_en": "RC 1",
