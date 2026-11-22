@@ -340,6 +340,8 @@ def search_menu(handle, _params):
     rows = [items.folder(T("Films zoeken", "Search movies"), util.url_for(action="search", type="movie"), "DefaultAddonsSearch.png"),
             items.folder(T("Series zoeken", "Search shows"), util.url_for(action="search", type="tvshow"), "DefaultAddonsSearch.png"),
             _action(T("Typ met je telefoon", "Type with your phone"), util.url_for(action="remote"), "DefaultAddonsSearch.png")]
+    if util.setting("easynews_user") and util.setting("easynews_pass"):
+        rows.append(items.folder(T("Zoeken op Easynews", "Search Easynews"), util.url_for(action="easynews_search"), "DefaultAddonsSearch.png"))
     history = util.load_json(HISTORY, [])
     for kind, query in history:
         word = T("Film", "Movie") if kind == "movie" else T("Serie", "Show")
@@ -347,6 +349,71 @@ def search_menu(handle, _params):
     if history:
         rows.append((util.url_for(action="clear_history"), xbmcgui.ListItem(T("Zoekgeschiedenis wissen", "Clear search history"), offscreen=True), False))
     send(handle, rows)
+
+
+EN_HISTORY = "easynews_history.json"
+
+
+def easynews_search(handle, params):
+    """Easynews searched for your own words: for files that do not match a title (WALL·E, a concert, a documentary).
+    Without words: a new search and the earlier ones."""
+    query = params.get("query")
+    if not query and not params.get("new"):
+        history = util.load_json(EN_HISTORY, [])
+        if history:
+            rows = [_action(T("Nieuwe zoekopdracht", "New search"), util.url_for(action="easynews_search", new="1"), "DefaultAddonsSearch.png")]
+            rows += [items.folder(word, util.url_for(action="easynews_search", query=word), "DefaultAddonsSearch.png") for word in history]
+            rows.append((util.url_for(action="clear_history", which="easynews"), xbmcgui.ListItem(T("Zoekgeschiedenis wissen", "Clear search history"), offscreen=True), False))
+            return send(handle, rows)
+    if not query:
+        query = xbmcgui.Dialog().input(T("Zoeken op Easynews", "Search Easynews"))
+        if not query:
+            return xbmcplugin.endOfDirectory(handle, succeeded=False)
+        query = query.strip()
+        history = [q for q in util.load_json(EN_HISTORY, []) if q != query]
+        util.save_json(EN_HISTORY, ([query] + history)[:20])
+    try:
+        found = usenet.free_sources(query)
+    except util.HttpError as error:
+        util.notify(T("Easynews: %s", "Easynews: %s") % error)
+        return xbmcplugin.endOfDirectory(handle, succeeded=False)
+    rows = []
+    for source in found:
+        url = util.url_for(action="easynews_play", base=source["base"], path=source["path"], name=source["name"])
+        item = xbmcgui.ListItem(source["name"], "%s · %s" % (source["resolution"], source["meta"]), offscreen=True)
+        item.setInfo("video", {"title": source["name"], "plot": "%s · %s" % (source["resolution"], source["meta"])})
+        item.setProperty("IsPlayable", "true")
+        if source.get("preview"):
+            item.setArt({"thumb": source["preview"]})
+            item.addContextMenuItems([(T("Voorvertoning", "Preview"), "RunPlugin(%s)" % util.url_for(action="easynews_preview", url=source["preview"], name=source["name"]))])
+        rows.append((url, item, False))
+    if not rows:
+        util.notify(T("Niets gevonden op Easynews", "Nothing found on Easynews"))
+    return send(handle, rows, "videos")
+
+
+def easynews_play(handle, params):
+    url = usenet.direct(usenet.play_url(params["base"], params["path"]))
+    item = xbmcgui.ListItem(params.get("name") or "", path=url, offscreen=True)
+    util.log("playing an Easynews file found with your own words")
+    xbmcplugin.setResolvedUrl(handle, True, item)
+
+
+def easynews_pictures(handle, params):
+    """Easynews' photos of a person (picture groups, safe filter on), like Fen shows them."""
+    try:
+        found = usenet.pictures(params["name"])
+    except util.HttpError as error:
+        util.notify(T("Easynews: %s", "Easynews: %s") % error)
+        return xbmcplugin.endOfDirectory(handle, succeeded=False)
+    rows = []
+    for number, (small, large) in enumerate(found, 1):
+        item = xbmcgui.ListItem("%s %d" % (params["name"], number), offscreen=True)
+        item.setArt({"thumb": small, "icon": small})
+        rows.append((large, item, False))
+    if not rows:
+        util.notify(T("Geen foto's gevonden op Easynews", "No photos found on Easynews"))
+    return send(handle, rows, "images")
 
 
 def remember_search(kind, query):
@@ -984,7 +1051,8 @@ def test():
 
 
 FOLDERS = {"people": people, "tmdbmenu": tmdb_menu, "kompasmenu": kompas_menu, "": home, "menu": menu, "tools": tools, "studios": studios, "decades": decades, "awards": awards, "traktmenu": trakt_menu, "traktlists": trakt_lists, "genres": genres,
-           "searchmenu": search_menu, "cast": cast, "publiclists": public_lists, "floppylists": floppy_lists, "services": services, "service": service, "mdblistmenu": mdblist_menu, "mdblists": mdblists, "title": title, "list": list_titles, "search": search, "seasons": seasons, "episodes": episodes}
+           "searchmenu": search_menu, "cast": cast, "publiclists": public_lists, "floppylists": floppy_lists, "services": services, "service": service, "mdblistmenu": mdblist_menu, "mdblists": mdblists, "title": title, "list": list_titles, "search": search, "seasons": seasons, "episodes": episodes,
+           "easynews_search": easynews_search, "easynews_play": easynews_play, "easynews_pictures": easynews_pictures}
 
 
 def run(argv):
@@ -1063,6 +1131,9 @@ def _run(argv):
             from nzb import source as usenet_source
             ok, lines = usenet_source.test()
             return xbmcgui.Dialog().ok("Usenet" if ok else T("Niet alles werkt", "Not everything works"), "\n".join(lines))
+        if action == "easynews_preview":
+            import dialogs
+            return dialogs.show_preview({"preview": params["url"], "name": params.get("name") or ""})
         if action == "test_easynews":
             ok, text = usenet.check_easynews()
             return xbmcgui.Dialog().ok("Easynews" if ok else T("Niet gelukt", "Failed"), text)
@@ -1106,7 +1177,7 @@ def _run(argv):
             import backup
             return backup.menu()
         if action == "clear_history":
-            util.save_json(HISTORY, [])
+            util.save_json(EN_HISTORY if params.get("which") == "easynews" else HISTORY, [])
             return xbmc.executebuiltin("Container.Refresh")
         if action == "trailer":
             meta = tmdb.details(params.get("type", "movie"), params["tmdb"])

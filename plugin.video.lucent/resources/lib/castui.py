@@ -38,7 +38,22 @@ class Cast(dialogs.Base):
     def onAction(self, action):
         if action.getId() in dialogs.BACK:
             return self.close()
+        if action.getId() in dialogs.MENU and util.setting("easynews_user") and util.setting("easynews_pass"):
+            return self.menu()                  # menu button on a person: films and series, or photos from Easynews
         self.hint()
+        return None
+
+    def menu(self):
+        at = self.getControl(100).getSelectedPosition()
+        if not 0 <= at < len(self.people):
+            return None
+        person = self.people[at]
+        choice = xbmcgui.Dialog().contextmenu([T("Films en series", "Films and series"), T("Foto's (Easynews)", "Photos (Easynews)")])
+        if choice == 0:
+            return self.onClick(100)
+        if choice == 1:
+            self.close()
+            xbmc.executebuiltin("ActivateWindow(Pictures,%s,return)" % util.url_for(action="easynews_pictures", name=person["name"]))
         return None
 
     def onClick(self, _control):

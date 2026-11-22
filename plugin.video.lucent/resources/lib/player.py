@@ -18,6 +18,7 @@ import ranking
 import scrapers
 import tmdb
 import tracker
+import usenet
 import util
 
 HANDOFF = "lucent.video.now"
@@ -94,6 +95,27 @@ def _answers(source, offset=0):
         return False
 
 
+def _easynews_direct(source):
+    """An Easynews web link: its CDN address (followed once), so Kodi needs no login for every jump."""
+    if source.get("service") == "EASYNEWS" and source.get("url") and not (source.get("resolve") or {}).get("scraper"):
+        source["url"] = usenet.direct(source["url"])
+    return source
+
+
+def _easynews_over_usenet(source):
+    """The Easynews web link does not answer: the same file over Usenet (an NZB from Easynews, played by vfs.lucent
+    with your own provider), when a Usenet provider is filled in. True when that works."""
+    if not source.get("en_nzb") or (source.get("resolve") or {}).get("scraper") or not usenet.can_nzb():
+        return False
+    util.log("Easynews link failed: trying the same file over Usenet")
+    source["url"] = ""
+    source["resolve"] = dict(source["en_nzb"], scraper="EasynewsNZB")
+    if link_works(source):
+        util.notify(util.T("Easynews via Usenet afgespeeld", "Easynews played over Usenet"))
+        return True
+    return False
+
+
 def final_server(source):
     """Where the picture really comes from: the server name after all redirects (one byte is asked). Never the address."""
     url, _, extra = (source.get("url") or "").partition("|")
@@ -124,11 +146,14 @@ def first_working(sources, index):
 def _first(sources, index):
     import learn
     for position in range(index, min(index + 5, len(sources))):
-        if link_works(sources[position]):
+        source = sources[position]
+        if link_works(source):
             if position != index:
                 util.notify(util.T("Link werkte niet, volgende bron gekozen", "Link failed, using the next source"))
-            return sources[position]
-        learn.record(learn.key(sources[position]), False)
+            return _easynews_direct(source)
+        if _easynews_over_usenet(source):
+            return source
+        learn.record(learn.key(source), False)
     for source in sources[index:]:
         if scrapers.ready(source):
             return source

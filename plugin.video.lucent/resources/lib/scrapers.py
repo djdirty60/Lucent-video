@@ -25,7 +25,7 @@ def _usenet_link(job):
 # TorBox retired its Search API (search-api.torbox.app has no address any more, November 2026): TorBox is no longer a
 # scraper of its own. Your TorBox key still plays cached torrents from AIOStreams and CocoScrapers (debrid.py).
 REGISTRY = {"AIOStreams": streams.fetch, "Easynews": usenet.easynews, "Usenet": _usenet_fetch}
-LINKS = {"TorBox": usenet.torbox_link, "Usenet": _usenet_link}
+LINKS = {"TorBox": usenet.torbox_link, "Usenet": _usenet_link, "EasynewsNZB": usenet.nzb_link}
 for _pack in coco.PACKS:                     # CocoScrapers, FenomScrapers, OpenScrapers, GearsScrapers: only when installed
     REGISTRY[_pack] = (lambda pack: lambda meta: coco.fetch(meta, pack))(_pack)
     LINKS[_pack] = coco.link

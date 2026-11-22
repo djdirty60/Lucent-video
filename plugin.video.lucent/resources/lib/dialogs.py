@@ -361,12 +361,25 @@ class Sources(Base):
             return
         source = self.current[position]
         job = source.get("resolve") or {}
-        if source.get("preview"):                       # Easynews: a picture with a few frames of the video
-            choice = xbmcgui.Dialog().contextmenu([T("Waarom staat deze hier", "Why is this one here"), T("Voorvertoning", "Preview")])
-            if choice == 0:
+        if source.get("preview") or source.get("en_nzb"):  # Easynews: a picture with a few frames, or play it over Usenet
+            import usenet
+            options = [("why", T("Waarom staat deze hier", "Why is this one here"))]
+            if source.get("preview"):
+                options.append(("preview", T("Voorvertoning", "Preview")))
+            if source.get("en_nzb") and usenet.can_nzb():
+                options.append(("nzb", T("Afspelen via Usenet (NZB)", "Play over Usenet (NZB)")))
+            choice = xbmcgui.Dialog().contextmenu([label for _key, label in options])
+            picked = options[choice][0] if choice >= 0 else ""
+            if picked == "why":
                 self.explain()
-            elif choice == 1:
+            elif picked == "preview":
                 show_preview(source)
+            elif picked == "nzb":
+                # the same source, played by vfs.lucent from an NZB Easynews makes (with your own Usenet provider)
+                source["url"] = ""
+                source["resolve"] = dict(source["en_nzb"], scraper="EasynewsNZB")
+                self.result = source
+                self.close()
             return None
         if job.get("scraper") != "Usenet" or not job.get("link"):
             return self.explain()

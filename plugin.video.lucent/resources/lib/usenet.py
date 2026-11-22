@@ -71,6 +71,11 @@ def title_matches(name, titles, meta):
                     return not re.search(r"\bs\d{1,2} ?e\d{1,3}\b", rest)
             elif re.search(r"\bs0*%d ?e0*%d\b|\b0*%dx0*%d\b" % (int(meta["season"]), int(meta["episode"]), int(meta["season"]), int(meta["episode"])), rest):
                 return True
+            elif len(meta.get("premiered") or "") == 10 and " ".join(meta["premiered"].split("-")) in rest:
+                return True                     # a daily show: Show 2026 11 20
+            elif meta.get("anime") and int(meta["season"]) == 1 and re.match(r"(?:\d{4} )?0*%d\b" % int(meta["episode"]), rest) \
+                    and not re.search(r"\bs\d{1,2} ?e\d", rest):
+                return True                     # anime numbered on: Show - 05
     return False
 
 
@@ -143,14 +148,31 @@ def _en_ask(url):
     raise util.HttpError("empty answer")
 
 
-def _en_search3(query):
+EN_NO_SPAM = "easynews_nospam.json"   # {"at": time}: 3.0 refused the spam filter, asked without it for a day
+
+
+def _en_search3(query, most=EN_PAGES, kind="VIDEO"):
     """Easynews 3.0 (/3.0/api/search): 100 results a page and up to 10 searches at once, so the first pages are asked
-    together. The answer is shaped like 2.0's (data, downURL, dlFarm, dlPort), with named fields per file."""
+    together. The answer is shaped like 2.0's (data, downURL, dlFarm, dlPort), with named fields per file. With
+    Easynews' own spam filter (spamf=1: leaves out mass reposted junk); refused, it is asked without it for a day."""
+    spam = time.time() - util.load_json(EN_NO_SPAM, {}).get("at", 0) > 86400
+
     def url(page):
-        params = [("gps", query), ("pno", page), ("u", 1), ("safeO", 0), ("s1", "relevance"), ("s1d", "-"), ("fty[]", "VIDEO")]
+        # pictures with Easynews' safe filter on: a person's name can bring up anything in the picture groups
+        params = [("gps", query), ("pno", page), ("u", 1), ("safeO", 1 if kind == "IMAGE" else 0), ("s1", "relevance"), ("s1d", "-"), ("fty[]", kind)]
+        if spam:
+            params.append(("spamf", 1))
         return EASYNEWS + "/3.0/api/search?" + urllib.parse.urlencode(params)
-    first = _en_ask(url(1))
-    pages = min(EN_PAGES, int(first.get("numPages") or 1))
+    try:
+        first = _en_ask(url(1))
+    except util.HttpError as error:
+        if not spam or getattr(error, "status", 0) not in (400, 422):
+            raise
+        util.log("Easynews 3.0: the spam filter was refused (%s), asked without it" % error)
+        util.save_json(EN_NO_SPAM, {"at": time.time()})
+        spam = False
+        first = _en_ask(url(1))
+    pages = min(most, int(first.get("numPages") or 1))
     rows, seen = [], set()
 
     def add(answer):
@@ -176,25 +198,109 @@ def _en_try(url):
 
 
 def _en_search2(query):
-    params = {"gps": query, "pno": 1, "pby": 250, "u": 1, "safeO": 0, "s1": "relevance", "s1d": "-", "fty[]": "VIDEO", "fly": 2, "sb": 1, "st": "basic", "chxu": 1, "chxgx": 1, "vv": 1}
+    params = {"gps": query, "pno": 1, "pby": 250, "u": 1, "safeO": 0, "s1": "relevance", "s1d": "-", "fty[]": "VIDEO", "fly": 2, "sb": 1, "st": "basic", "chxu": 1, "chxgx": 1, "vv": 1,
+              "spamf": 1}
     return _en_ask(EASYNEWS + "/2.0/search/solr-search/?" + urllib.parse.urlencode(params))
 
 
-def _en_search(query):
-    """3.0 first; 2.0 when 3.0 fails (an error, or no answer twice), so Easynews keeps working either way."""
-    key = "easynews3" + query
+def _en_search(query, pages=EN_PAGES, fallback=True):
+    """3.0 first; 2.0 when 3.0 fails (an error, or no answer twice), so Easynews keeps working either way. An extra
+    search (fallback=False: another way of writing the title) asks 3.0 only: 2.0 allows just two at a time."""
+    query = clean_query(query)
+    key = "easynews3-%d-%s" % (pages, query)
     answer = util.cache_get(key, KEEP_RESULTS)
     if answer is None:
         try:
-            answer = _en_search3(query)
+            answer = _en_search3(query, pages)
             version = "3.0"
         except util.HttpError as error:
+            if not fallback:
+                util.log("Easynews 3.0: extra search left out (%s)" % error)
+                return {}
             util.log("Easynews 3.0: %s - asking 2.0" % error)
             answer = _en_search2(query)
             version = "2.0"
-        util.log("Easynews %s: %d result(s) for the search" % (version, len(answer.get("data") or [])))
+        if version == "3.0" and fallback and not answer.get("data"):
+            util.log("Easynews 3.0: nothing found - asking 2.0 to be sure")
+            try:
+                answer = _en_search2(query)
+                version = "2.0"
+            except util.HttpError as error:
+                util.log("Easynews 2.0: %s" % error)
+        util.log("Easynews %s: %d result(s) for the search%s" % (version, len(answer.get("data") or []), "" if fallback else " (extra)"))
         util.cache_set(key, answer)
     return answer or {}
+
+
+def clean_query(query):
+    """Words only: 3.0 found nothing for 'Avengers: Infinity War 2018' or 'Spider-Man: No Way Home 2021' (a colon
+    or a dash means something to its search). 'Ocean's' becomes 'Oceans', as releases write it."""
+    text = query.replace("'", "").replace("\u2019", "").replace("&", " and ")
+    return " ".join(re.sub(r"[^\w\s]", " ", text, flags=re.UNICODE).split())
+
+
+def _show_facts(meta):
+    """(year the series started, anime?, daily show?) from TMDB, for the extra ways of searching an episode."""
+    raw = tmdb.get("tv/%s" % meta["tmdb"], ttl=7 * tmdb.DAY, language="en-US") or {}
+    genres = {str(g.get("name") or "").lower() for g in raw.get("genres") or []}
+    anime = "animation" in genres and (raw.get("original_language") == "ja" or "JP" in (raw.get("origin_country") or []))
+    daily = bool(genres & {"talk", "news"})
+    return str(raw.get("first_air_date") or "")[:4], anime, daily
+
+
+def queries(meta, titles):
+    """The ways Easynews is searched, the main one first (asked with 3 pages, the others with 1): like AIOStreams and
+    MediaFusion. Films: the title and year, and the original title. Episodes: S01E05 and 1x05, the season (S01, for
+    files from a season pack), the original title, the title with the year the series started (two series with the
+    same name), the episode number alone for anime, and the date for daily shows."""
+    first = titles[0]
+    other = next((t for t in titles[1:] if _words(t) and _words(t) != _words(first) and t.isascii()), "")
+    if meta["kind"] == "movie":
+        year = meta.get("year") or ""
+        out = ["%s %s" % (first, year)]
+        if other:
+            out.append("%s %s" % (other, year))
+        return [q.strip() for q in out]
+    season, episode = int(meta["season"]), int(meta["episode"])
+    code = "S%02dE%02d" % (season, episode)
+    out = ["%s %s" % (first, code), "%s %dx%02d" % (first, season, episode), "%s S%02d" % (first, season)]
+    if other:
+        out.append("%s %s" % (other, code))
+    try:
+        started, anime, daily = _show_facts(meta)
+    except util.HttpError:
+        started, anime, daily = "", False, False
+    if started:
+        out.append("%s %s %s" % (first, started, code))
+    if anime and season == 1:
+        out.append("%s %02d" % (first, episode))
+    if daily and len(meta.get("premiered") or "") == 10:
+        out.append("%s %s" % (first, meta["premiered"].replace("-", " ")))
+    return out
+
+
+def _en_all(meta, titles):
+    """The main search and the extra ones at the same time, the files of all of them together (each once)."""
+    asked = queries(meta, titles)
+    with ThreadPoolExecutor(max_workers=min(4, len(asked))) as pool:
+        answers = list(pool.map(lambda pair: _en_search(pair[1], EN_PAGES if pair[0] == 0 else 1, pair[0] == 0), enumerate(asked)))
+    main = dict(answers[0])
+    rows, seen = [], set()
+    for number, answer in enumerate(answers):
+        for raw in answer.get("data") or []:
+            key = str((raw.get("hash") or raw.get("0") or "") if isinstance(raw, dict) else (raw[0] if raw else ""))
+            if key and key not in seen:
+                seen.add(key)
+                rows.append(raw)
+        if number == 0:
+            first_count = len(rows)
+    if not main.get("downURL"):
+        main.update({k: v for answer in answers for k, v in answer.items() if k in ("downURL", "dlFarm", "dlPort", "thumbURL")})
+    extra = len(rows) - first_count
+    if extra > 0:
+        util.log("Easynews: %d more file(s) from the extra searches (%s)" % (extra, ", ".join(q.split(" ", 1)[-1] if len(q) < 80 else "?" for q in asked[1:])))
+    main["data"] = rows
+    return main
 
 
 EN_SPEED = "easynews_speed.json"        # {"rate": bytes per second of one Easynews download, "at": when measured}
@@ -384,8 +490,13 @@ def easynews(meta):
     if not all(_en_login()):
         return None
     titles = titles_for(meta)
-    query = "%s %s" % (titles[0], meta.get("year") or "") if meta["kind"] == "movie" else "%s S%02dE%02d" % (titles[0], int(meta["season"]), int(meta["episode"]))
-    answer = _en_search(query.strip())
+    if meta["kind"] != "movie":
+        try:
+            meta = dict(meta, anime=_show_facts(meta)[1])
+        except util.HttpError:
+            pass
+    reading = _check_data()                 # beside the search, finished before Easynews' results are returned
+    answer = _en_all(meta, titles)
     base = "%s/%s/%s" % (answer.get("downURL") or EASYNEWS + "/dl", answer.get("dlFarm") or "auto", answer.get("dlPort") or "auto")
     # Login inside the address, not as a header: Kodi hides the first in its log but writes the second out in full.
     parts = urllib.parse.urlsplit(base)
@@ -419,6 +530,11 @@ def easynews(meta):
         source = dict(_source(name, size, "EASYNEWS", url="%s/%s|%s" % (base, path, agent)), always=True, seconds=seconds or 0, _path=path)
         if label:
             source["meta"] += " · " + label
+        if seconds and size:
+            source["meta"] += " · %.0f Mbps" % (size * 8.0 / seconds / 1e6)      # the average bitrate of the whole file
+        sig = str(raw.get("sig") or "") if isinstance(raw, dict) else ""
+        source["en_nzb"] = {"hash": key, "fn": stem, "ext": extension.lstrip("."), "sig": sig, "season": meta.get("season"),
+                            "episode": meta.get("episode"), "minutes": int(meta.get("runtime") or 0)}
         if isinstance(raw, dict):
             # what is really inside the file (Easynews reads the tracks), not guessed from the name
             sound = _en_langs(raw.get("audio_tracks") or raw.get("alangs") or raw.get("alang"))
@@ -452,6 +568,8 @@ def easynews(meta):
             heavy += 1
     if heavy:
         util.log("Easynews: %d of %d result(s) may be too heavy for %.1f MB/s" % (heavy, len(out), rate / 1048576))
+    if reading:
+        reading.join(5)                     # no thread left running when Kodi ends the add-on
     return out
 
 
@@ -477,6 +595,176 @@ def easynews_account():
     info += [""] * (4 - len(info))
     usage += [""] * (3 - len(usage))
     return info[0], info[1], info[2], info[3], usage[0].replace("Gigs", "GB"), usage[1].replace("Gigs", "GB"), usage[2].replace("Gigs", "GB")
+
+
+EN_DATA = "easynews_data.json"          # {"at": when read, "left": GB left, "warned": when the warning was shown}
+EN_DATA_LOW = 10.0                      # GB: below this a warning that your Easynews data is almost used up
+
+
+def _gigabytes(text):
+    found = re.search(r"([\d.,]+)\s*([KMGT])?", str(text or ""), re.I)
+    if not found:
+        return None
+    number = float(found.group(1).replace(",", ""))
+    return number * {"K": 1e-6, "M": 1e-3, "G": 1.0, "T": 1e3}.get((found.group(2) or "G").upper(), 1.0)
+
+
+def _check_data():
+    """Once a day, beside a search (never in its way): how much data is left at Easynews; a warning below 10 GB,
+    at most once a day."""
+    saved = util.load_json(EN_DATA, {})
+    if time.time() - saved.get("at", 0) < 86400:
+        return None
+
+    def run():
+        try:
+            left = _gigabytes(easynews_account()[5])
+        except Exception as error:      # noqa: BLE001 - only a warning
+            util.log("Easynews data left: not read (%s)" % type(error).__name__)
+            util.save_json(EN_DATA, dict(saved, at=time.time()))
+            return
+        now = dict(saved, at=time.time(), left=left)
+        if left is not None and left < EN_DATA_LOW and time.time() - saved.get("warned", 0) > 86400:
+            now["warned"] = time.time()
+            util.notify(T("Easynews: nog %.1f GB over", "Easynews: %.1f GB left") % left)
+        util.log("Easynews data left: %s" % ("%.1f GB" % left if left is not None else "unknown"))
+        util.save_json(EN_DATA, now)
+    import threading
+    job = threading.Thread(target=run, daemon=True)
+    job.start()
+    return job
+
+
+def direct(url):
+    """Where an Easynews link really points (its CDN), followed once like Fen, Umbrella and AIOStreams do: that address
+    needs no login and Kodi can jump through the file without sending the login on every jump. The Easynews link
+    itself when the CDN does not answer as a file (206)."""
+    address, _, extra = url.partition("|")
+    parts = urllib.parse.urlsplit(address)
+    if not parts.username:
+        return url
+    clean = urllib.parse.urlunsplit((parts.scheme, parts.netloc.rsplit("@", 1)[1], parts.path, parts.query, ""))
+
+    class Stop(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *args, **kwargs):
+            return None
+    head = {"Authorization": _en_header(), "User-Agent": AGENT, "Range": "bytes=0-0"}
+    try:
+        urllib.request.build_opener(Stop).open(urllib.request.Request(clean, headers=head), timeout=10).close()
+        util.log("Easynews: no redirect, the link itself is played")
+        return url
+    except urllib.error.HTTPError as error:
+        target = error.headers.get("Location") if error.code in (301, 302, 303, 307, 308) else ""
+    except OSError as error:
+        util.log("Easynews: redirect not read (%s)" % type(error).__name__)
+        return url
+    if not target:
+        return url
+    target = urllib.parse.urljoin(clean, target)
+    try:
+        with urllib.request.urlopen(urllib.request.Request(target, headers={"User-Agent": AGENT, "Range": "bytes=0-0"}), timeout=10) as answer:
+            works = answer.status == 206
+    except OSError as error:
+        util.log("Easynews: CDN did not answer (%s), the link itself is played" % type(error).__name__)
+        return url
+    host = urllib.parse.urlsplit(target).hostname or "?"
+    if not works:
+        util.log("Easynews: CDN %s does not jump through files, the link itself is played" % host)
+        return url
+    util.log("Easynews: playing from %s (followed once, no login needed there)" % host)
+    return target + ("|" + extra if extra else "")
+
+
+def nzb_link(job):
+    """An Easynews file played over Usenet with your own provider and vfs.lucent: Easynews makes the NZB
+    (POST /2.0/api/dl-nzb, like AIOStreams and UsenetStreamer), Lucent plays it like any other NZB. A second way
+    when the web link of Easynews fails."""
+    from nzb import source as nzb_source
+    plain = lambda text: base64.b64encode(text.encode("utf-8")).decode("ascii").replace("=", "")      # noqa: E731
+    token = "%s|%s:%s" % (job["hash"], plain(job["fn"]), plain(job["ext"]))
+    form = urllib.parse.urlencode([("autoNZB", "1"), ("0&sig=%s" % job["sig"] if job.get("sig") else "0", token),
+                                   ("nameZipQ0", job["fn"][:120])]).encode("ascii")
+    head = {"Authorization": _en_header(), "User-Agent": "Mozilla/5.0", "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/x-nzb, */*"}
+    link = "easynews:%s" % job["hash"]
+    play = {"scraper": "Usenet", "link": link, "name": job["fn"] + "." + job["ext"], "season": job.get("season"),
+            "episode": job.get("episode"), "minutes": job.get("minutes") or 0, "indexer": "Easynews"}
+    name = nzb_source._nzb_name(play)                                       # noqa: SLF001 - same add-on
+    if not nzb_source._saved_nzb(name):                                     # noqa: SLF001
+        try:
+            with urllib.request.urlopen(urllib.request.Request(EASYNEWS + "/2.0/api/dl-nzb", data=form, headers=head), timeout=30) as answer:
+                data = answer.read(64 * 1048576)
+        except OSError as error:
+            util.log("Easynews NZB: not made (%s)" % (getattr(error, "code", "") or type(error).__name__))
+            return None
+        if b"<segment" not in data:
+            util.log("Easynews NZB: empty (no articles)")
+            return None
+        util.log("Easynews NZB: %d KB" % (len(data) // 1024))
+        nzb_source._save_nzb(name, data)                                    # noqa: SLF001
+    return nzb_source.link(play)
+
+
+def can_nzb():
+    """Is there a Usenet provider filled in, so an Easynews NZB can be played by vfs.lucent?"""
+    return bool(util.flag("nzb_on") and util.setting("nzb_host"))
+
+
+def free_search(query, kind="VIDEO", pages=1):
+    """Easynews searched for your own words (no title from TMDB): for files that do not match, like WALL·E."""
+    return _en_search3(clean_query(query), pages, kind)
+
+
+def free_sources(query):
+    """Playable sources for your own words: the same checks as the normal search, without the title check."""
+    try:
+        answer = free_search(query, pages=2)
+    except util.HttpError as error:
+        util.log("Easynews search: %s - asking 2.0" % error)
+        answer = _en_search2(query)
+    base = "%s/%s/%s" % (answer.get("downURL") or EASYNEWS + "/dl", answer.get("dlFarm") or "auto", answer.get("dlPort") or "auto")
+    out = []
+    for raw in answer.get("data") or []:
+        item = _en_item(raw)
+        if not item:
+            continue
+        key, suffix, stem, extension, size, bad, seconds = item
+        extension = "." + extension.lstrip(".")
+        if not key or bad or extension.lower() not in VIDEO:
+            continue
+        name = stem + extension
+        source = _source(name, size, "EASYNEWS")
+        source.update(path="%s%s%s/%s" % (key, suffix, extension, urllib.parse.quote(name)), base=base, seconds=seconds or 0)
+        if seconds:
+            source["meta"] += " · %d min" % (seconds // 60)
+        if isinstance(raw, dict):
+            _en_tech(raw, source)
+            source["preview"] = _en_preview(answer, raw)
+        out.append(source)
+    util.log("Easynews search: %d file(s) for your own words" % len(out))
+    return out
+
+
+def play_url(base, path):
+    """The Easynews link of a file found with your own words (the login inside the address: Kodi hides it in its log)."""
+    parts = urllib.parse.urlsplit(base)
+    user, password = _en_login()
+    login = "%s:%s@" % (urllib.parse.quote(user, safe=""), urllib.parse.quote(password, safe=""))
+    return "%s://%s%s%s/%s|%s" % (parts.scheme, login, parts.netloc, parts.path, path, urllib.parse.urlencode({"User-Agent": AGENT}))
+
+
+def pictures(name):
+    """Easynews' photos of a person (pictures in the newsgroups), like Fen shows them: (small picture, large picture)."""
+    answer = free_search(name, "IMAGE", 1)
+    out = []
+    for raw in answer.get("data") or []:
+        if not isinstance(raw, dict):
+            continue
+        key = str(raw.get("hash") or "")
+        if len(key) < 3:
+            continue
+        out.append(("https://th.easynews.com/thumbnails-%s/sm-%s.jpg" % (key[:3], key), "https://th.easynews.com/thumbnails-%s/pr-%s.jpg" % (key[:3], key)))
+    return out[:60]
 
 
 def check_easynews():

@@ -2,6 +2,64 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.29",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T20:45Z",
+   "items": [
+    [
+     "search",
+     "Easynews vindt weer Avengers en Spider-Man",
+     "Bij titels met een dubbele punt of streepje vond Easynews 3.0 niets. Lucent zoekt nu alleen met de woorden, en vindt 3.0 toch niets, dan vraagt Lucent het nog bij 2.0.",
+     "Easynews finds Avengers and Spider-Man again",
+     "For titles with a colon or dash Easynews 3.0 found nothing. Lucent now searches with the words only, and when 3.0 still finds nothing, it asks 2.0."
+    ],
+    [
+     "search",
+     "Meer manieren van zoeken",
+     "Bij afleveringen zoekt Lucent op Easynews ook op 1x05, op het seizoen, op de originele titel en op het beginjaar van de serie. Bij anime op het nummer, bij dagelijkse shows op de datum. Bij films ook op de originele titel.",
+     "More ways of searching",
+     "For episodes Lucent also searches Easynews for 1x05, the season, the original title and the year the series started. For anime the number, for daily shows the date. For films the original title too."
+    ],
+    [
+     "play",
+     "Afspelen via Usenet",
+     "Werkt de weblink van Easynews niet, dan speelt Lucent hetzelfde bestand via je eigen Usenet-provider (Easynews maakt de NZB). Ook te kiezen met de menuknop op een Easynews-bron.",
+     "Play over Usenet",
+     "When the Easynews web link fails, Lucent plays the same file over your own Usenet provider (Easynews makes the NZB). Also in the menu of an Easynews source."
+    ],
+    [
+     "search",
+     "Zoeken op Easynews",
+     "In het zoekmenu: zoek met je eigen woorden op Easynews, met zoekgeschiedenis. Handig voor wat niet bij een titel past.",
+     "Search Easynews",
+     "In the search menu: search Easynews with your own words, with a search history. Handy for what does not match a title."
+    ],
+    [
+     "info",
+     "Bitrate, spamfilter en datawaarschuwing",
+     "Easynews-bronnen tonen hun bitrate (Mbps). Easynews' eigen spamfilter staat aan. Je krijgt een melding als er minder dan 10 GB data over is.",
+     "Bitrate, spam filter and data warning",
+     "Easynews sources show their bitrate (Mbps). Easynews' own spam filter is on. You get a message when less than 10 GB of data is left."
+    ],
+    [
+     "refresh",
+     "Spoelen zonder steeds de login",
+     "Lucent volgt de link van Easynews één keer en speelt dan rechtstreeks van zijn server: spoelen hoeft dan niet elke keer opnieuw in te loggen.",
+     "Jumping without the login every time",
+     "Lucent follows the Easynews link once and plays straight from its server: jumping no longer signs in every time."
+    ],
+    [
+     "info",
+     "Foto's van acteurs",
+     "Met de menuknop op een acteur kies je Foto's (Easynews).",
+     "Photos of actors",
+     "With the menu button on an actor you choose Photos (Easynews)."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.28",
    "label": "RC 1",
    "label_en": "RC 1",
