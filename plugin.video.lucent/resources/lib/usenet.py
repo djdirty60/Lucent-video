@@ -8,6 +8,7 @@ import base64
 import re
 import time
 import urllib.parse
+import urllib.request
 import uuid
 
 import xbmc
@@ -154,7 +155,6 @@ def _en_speed(base, sample_path):
     clean = urllib.parse.urlunsplit((parts.scheme, parts.netloc.rsplit("@", 1)[-1], parts.path, parts.query, ""))
     started, got = time.time(), 0
     try:
-        import urllib.request
         with urllib.request.urlopen(urllib.request.Request(clean, headers=head), timeout=8) as response:
             while time.time() - started < 6:
                 block = response.read(262144)
@@ -180,7 +180,7 @@ def _en_fields(answer):
     if not rows or time.time() - saved.get("at", 0) < 86400:
         return
     util.save_json(EN_FIELDS, {"at": time.time()})
-    util.log("Easynews gives: %s; top: %s" % (", ".join(sorted(rows[0])[:60]), ", ".join(sorted(k for k in answer if k != "data")[:40])))
+    util.log("Easynews gives: %s; top: %s" % (", ".join(sorted(rows[0])), ", ".join(sorted(k for k in answer if k != "data")[:40])))
 
 
 def _version(stem, minutes, runtime):
