@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.42",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T00:15Z",
+   "items": [
+    [
+     "movies",
+     "Netwerken bij Films",
+     "Films heeft nu Netwerken, net als Series: Netflix, HBO, Prime Video, Disney+, Apple TV en meer, met de films die je daar kunt kijken. Streamingdiensten blijft op de beginpagina.",
+     "Networks in Films",
+     "Films now has Networks, just like Series: Netflix, HBO, Prime Video, Disney+, Apple TV and more, with the films you can watch there. Streaming services stays on the main page."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.41",
    "label": "RC 1",
    "label_en": "RC 1",

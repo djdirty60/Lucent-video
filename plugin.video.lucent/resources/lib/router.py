@@ -193,8 +193,8 @@ def menu(handle, params):
     rows += [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
     rows.append(items.folder(T("Genres", "Genres"), util.url_for(action="genres", type=params.get("type"))))
     rows.append(items.folder(T("Studio's", "Studios") if movie else T("Netwerken", "Networks"), util.url_for(action="studios", type=params.get("type"))))
-    if movie:                                   # films have no TV networks: the streaming services they are on instead
-        rows.append(items.folder(T("Streamingdiensten", "Streaming services"), util.url_for(action="services", type="movie")))
+    if movie:                                   # the same networks as for series (Netflix, HBO, Prime Video ...): their films
+        rows.append(items.folder(T("Netwerken", "Networks"), util.url_for(action="studios", type="movie", networks="1")))
     rows.append(items.folder(T("Per decennium", "By decade"), util.url_for(action="decades", type=params.get("type"))))
     rows.append(items.folder(T("Populaire acteurs", "Popular people"), util.url_for(action="people")))
     rows.append(items.folder(T("Prijswinnaars", "Award winners"), util.url_for(action="awards", type=params.get("type"))))
@@ -229,9 +229,15 @@ def trakt_menu(handle, _params):
 def studios(handle, params):
     import browse
     kind = params.get("type", "movie")
+    networks = params.get("networks") == "1" and kind == "movie"
     rows = []
-    for number, name, logo in browse.companies(kind):
-        url, item, folder = items.folder(name, util.url_for(action="list", name="company", type=kind, id=number))
+    for number, name, logo in browse.companies("tvshow" if networks else kind):
+        if networks and not browse.network_provider(name):
+            continue                            # a TV channel (ABC, BBC One ...): no films to stream
+        if networks:                            # a network's films: what it streams (TMDB has no network for films)
+            url, item, folder = items.folder(name, util.url_for(action="list", name="network_films", network=name))
+        else:
+            url, item, folder = items.folder(name, util.url_for(action="list", name="company", type=kind, id=number))
         if logo:
             item.setArt({"icon": logo, "thumb": logo, "clearlogo": logo})
         rows.append((url, item, folder))
@@ -729,6 +735,10 @@ def gather(params):
     elif name == "tonight":
         import prefetch
         titles = prefetch.tonight_titles()
+    elif name == "network_films":
+        import browse
+        titles, more = browse.network_films(params["network"], page)
+        content = "movies"
     elif name == "company":
         import browse
         titles, more = browse.company_titles(params.get("type", "movie"), params["id"], page)

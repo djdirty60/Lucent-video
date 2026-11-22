@@ -66,6 +66,39 @@ def companies(kind):
     return out
 
 
+PROVIDER_NAMES = {"netflix": ["netflix"], "hbo": ["hbo max", "max", "hbo"], "hbo max": ["hbo max", "max", "hbo"],
+                  "prime video": ["amazon prime video", "prime video"], "amazon": ["amazon prime video", "prime video"],
+                  "disney+": ["disney plus", "disney+"], "apple tv": ["apple tv plus", "apple tv+", "apple tv"],
+                  "apple tv+": ["apple tv plus", "apple tv+", "apple tv"], "hulu": ["hulu"],
+                  "paramount+": ["paramount plus", "paramount+", "paramount plus premium"], "peacock": ["peacock premium", "peacock"],
+                  "showtime": ["paramount plus with showtime", "showtime"], "starz": ["starz"], "amc": ["amc+", "amc plus"]}
+
+
+def network_provider(network):
+    """(TMDB streaming service id, country) of a network (Netflix, HBO Max, Prime Video ...): in your country, or in
+    the United States when it is not offered here. None for a TV channel without a streaming service (ABC, BBC One)."""
+    import services
+    wanted = PROVIDER_NAMES.get(network.lower(), [network.lower()])
+    for region in dict.fromkeys((tmdb.region(), "US")):
+        catalog = services._catalog(region)                     # noqa: SLF001 - same add-on
+        row = next((catalog[n] for n in wanted if n in catalog), None)
+        if row:
+            return row["provider_id"], region
+    return None
+
+
+def network_films(network, page=1):
+    """The films a network streams: TMDB has networks only for series, so its streaming service is used."""
+    found = network_provider(network)
+    if not found:
+        util.log("networks: no streaming service found for %s" % network)
+        return [], False
+    today = datetime.date.today().isoformat()
+    return tmdb.listing("discover/movie", "movie", page, with_watch_providers=found[0], watch_region=found[1],
+                        with_watch_monetization_types="flatrate", include_adult="false", sort_by="popularity.desc",
+                        **{"primary_release_date.lte": today})
+
+
 def company_titles(kind, number, page=1):
     if kind == "movie":
         return tmdb.listing("discover/movie", "movie", page, with_companies=number, sort_by="popularity.desc", include_adult="false")
