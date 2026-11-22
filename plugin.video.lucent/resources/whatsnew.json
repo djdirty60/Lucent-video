@@ -2,6 +2,43 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.28",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T19:30Z",
+   "items": [
+    [
+     "search",
+     "Easynews 3.0: meer en vaker resultaat",
+     "Lucent gebruikt nu de nieuwe zoekdienst van Easynews. Die haalt drie pagina's tegelijk op en heeft geen grens van twee zoekopdrachten tegelijk, dus minder vaak Easynews 0. Lukt 3.0 niet, dan neemt de oude dienst het vanzelf over.",
+     "Easynews 3.0: more results, more often",
+     "Lucent now uses Easynews' new search. It fetches three pages at once and has no limit of two searches at a time, so Easynews 0 happens less. If 3.0 fails, the old search takes over by itself."
+    ],
+    [
+     "subtitles",
+     "Geluidstalen als badges",
+     "De talen van de geluidssporen van een Easynews-bestand staan nu als badges in de lijst (DE, EN, NL ...).",
+     "Sound languages as badges",
+     "The languages of the sound tracks of an Easynews file now show as badges in the list (DE, EN, NL ...)."
+    ],
+    [
+     "info",
+     "Je Easynews-account",
+     "Accountinformatie bij Easynews toont nu je abonnement, tot wanneer het loopt en hoeveel data je verbruikt hebt en nog over hebt.",
+     "Your Easynews account",
+     "Account information for Easynews now shows your plan, until when it runs and how much data you used and have left."
+    ],
+    [
+     "refresh",
+     "Kortere pauze bij een storing",
+     "Faalt een bron twee keer achter elkaar, dan slaat Lucent hem nu 2 minuten over in plaats van 10. Op het zoekscherm blijft hij staan met een kruis en pauze.",
+     "Shorter pause during an outage",
+     "When a source fails twice in a row, Lucent now skips it for 2 minutes instead of 10. It stays on the search screen with a cross and paused."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.27",
    "label": "RC 1",
    "label_en": "RC 1",

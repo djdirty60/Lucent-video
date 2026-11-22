@@ -66,7 +66,7 @@ def names(profile):
 
 
 FAIL_RUNS = 2              # a scraper that failed this many searches in a row (an error or too slow) ...
-FAIL_PAUSE = 600           # ... is skipped for this many seconds, so an outage does not make every search wait
+FAIL_PAUSE = 120           # ... is skipped for this many seconds, so an outage does not make every search wait
 
 
 def _resting(selection):
@@ -104,6 +104,9 @@ def _run(selection, profile, meta):
     resting = _resting(selection)
     if resting and len(resting) < len(selection):
         selection = [n for n in selection if n not in resting]      # never all of them: then they all get a try
+        for name in resting:                    # still shown on the search screen: with a cross, 'paused'
+            LIVE["order"].append(name)
+            LIVE["rows"][name] = {"state": "error", "count": 0, "rest": True}
     pool = ThreadPoolExecutor(max_workers=max(1, len(selection)))
     jobs = {}
     for name in selection:

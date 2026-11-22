@@ -362,11 +362,11 @@ class Sources(Base):
         source = self.current[position]
         job = source.get("resolve") or {}
         if source.get("preview"):                       # Easynews: a picture with a few frames of the video
-            choice = xbmcgui.Dialog().contextmenu([T("Waarom staat deze hier", "Why is this one here"), T("Voorvertoning (snel)", "Preview (soon)")])
+            choice = xbmcgui.Dialog().contextmenu([T("Waarom staat deze hier", "Why is this one here"), T("Voorvertoning", "Preview")])
             if choice == 0:
                 self.explain()
-            elif choice == 1:                           # Easynews does not hand out the picture yet (HTTP 403 / 400)
-                util.notify(T("Voorvertoning komt snel", "Preview is coming soon"))
+            elif choice == 1:
+                show_preview(source)
             return None
         if job.get("scraper") != "Usenet" or not job.get("link"):
             return self.explain()
@@ -492,6 +492,8 @@ class Busy(Base):
                                        "none": "%s  0" % short, "error": "%s  ✗" % short}.get(state, short)
             if state == "error" and final and row.get("state") == "busy":
                 props["src%d" % number] = "%s  %s" % (short, T("te traag", "too slow"))
+            if row.get("rest"):                 # skipped for a while after failing twice: stays in view with its cross
+                props["src%d" % number] = "%s  ✗ %s" % (short, T("pauze", "paused"))
             props["src%dstate" % number] = state
         counts = dict(live["res"])
         names = sorted([r for r in counts if r], key=lambda r: ORDER.index(r) if r in ORDER else 9)

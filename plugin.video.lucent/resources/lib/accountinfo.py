@@ -2,6 +2,7 @@
 """'Account information' for every service: who you are linked as, your subscription and until when.
 Also checks the connection. E-mail addresses, keys and tokens are never shown or logged."""
 import datetime
+import re
 
 import xbmcgui
 
@@ -118,6 +119,23 @@ def easynews():
     lines = [text]
     if ok:
         lines.insert(0, T("Gebruikersnaam: %s", "Username: %s") % util.setting("easynews_user"))
+        try:
+            _user, plan, expires, status, used, left, loyalty = usenet.easynews_account()
+        except Exception as error:      # noqa: BLE001 - the account pages are a bonus; the check above already said 'connected'
+            util.log("Easynews account pages: %s" % type(error).__name__)
+            return lines
+        if plan:
+            lines.append(T("Abonnement: %s", "Plan: %s") % plan + (" (%s)" % status if status else ""))
+        if expires:
+            lines.append(_until(expires) if re.match(r"\d{4}-\d{2}-\d{2}", expires) else T("Geldig tot %s", "Valid until %s") % expires)
+        if used:
+            lines.append(T("Verbruikt: %s", "Used: %s") % used)
+        if left:
+            lines.append(T("Over: %s", "Left: %s") % left)
+        if loyalty:
+            lines.append(T("Loyaliteit: %s", "Loyalty: %s") % loyalty)
+        if not plan and not used:
+            util.log("Easynews account pages: not read (their layout may have changed)")
     return lines
 
 

@@ -127,12 +127,72 @@ def _en_item(raw):
         bool(raw.get("passwd") or raw.get("virus")), _en_seconds(raw)
 
 
+EN_PAGES = 3                            # 3.0 pages (100 results each) asked at the same time
+EN_EMPTY_WAIT = 0.5                     # an empty answer means 'too many searches at once': wait this long, then once again
+
+
+def _en_ask(url):
+    """One Easynews search page; an empty answer (Easynews' way of saying 'too many at once') is asked once more."""
+    head = {"Authorization": _en_header(), "User-Agent": AGENT, "Accept": "application/json, text/javascript, */*; q=0.9"}
+    for attempt in (1, 2):
+        answer, _ = util.http(url, headers=head, timeout=25)
+        if isinstance(answer, dict):
+            return answer
+        if attempt == 1:
+            time.sleep(EN_EMPTY_WAIT)
+    raise util.HttpError("empty answer")
+
+
+def _en_search3(query):
+    """Easynews 3.0 (/3.0/api/search): 100 results a page and up to 10 searches at once, so the first pages are asked
+    together. The answer is shaped like 2.0's (data, downURL, dlFarm, dlPort), with named fields per file."""
+    def url(page):
+        params = [("gps", query), ("pno", page), ("u", 1), ("safeO", 0), ("s1", "relevance"), ("s1d", "-"), ("fty[]", "VIDEO")]
+        return EASYNEWS + "/3.0/api/search?" + urllib.parse.urlencode(params)
+    first = _en_ask(url(1))
+    pages = min(EN_PAGES, int(first.get("numPages") or 1))
+    rows, seen = [], set()
+
+    def add(answer):
+        for raw in answer.get("data") or []:
+            key = str((raw.get("hash") or raw.get("0") or "") if isinstance(raw, dict) else (raw[0] if raw else ""))
+            if key and key not in seen:
+                seen.add(key)
+                rows.append(raw)
+    add(first)
+    if pages > 1:
+        with ThreadPoolExecutor(max_workers=pages - 1) as pool:
+            for answer in pool.map(lambda page: _en_try(url(page)), range(2, pages + 1)):
+                add(answer or {})
+    return dict(first, data=rows)
+
+
+def _en_try(url):
+    try:
+        return _en_ask(url)
+    except util.HttpError as error:
+        util.log("Easynews: a page left out (%s)" % error)
+        return None
+
+
+def _en_search2(query):
+    params = {"gps": query, "pno": 1, "pby": 250, "u": 1, "safeO": 0, "s1": "relevance", "s1d": "-", "fty[]": "VIDEO", "fly": 2, "sb": 1, "st": "basic", "chxu": 1, "chxgx": 1, "vv": 1}
+    return _en_ask(EASYNEWS + "/2.0/search/solr-search/?" + urllib.parse.urlencode(params))
+
+
 def _en_search(query):
-    key = "easynews" + query
+    """3.0 first; 2.0 when 3.0 fails (an error, or no answer twice), so Easynews keeps working either way."""
+    key = "easynews3" + query
     answer = util.cache_get(key, KEEP_RESULTS)
     if answer is None:
-        params = {"gps": query, "pno": 1, "pby": 250, "u": 1, "safeO": 0, "s1": "relevance", "s1d": "-", "fty[]": "VIDEO", "fly": 2, "sb": 1, "st": "basic", "chxu": 1, "chxgx": 1, "vv": 1}
-        answer, _ = util.http(EASYNEWS + "/2.0/search/solr-search/?" + urllib.parse.urlencode(params), headers={"Authorization": _en_header(), "User-Agent": AGENT}, timeout=25)
+        try:
+            answer = _en_search3(query)
+            version = "3.0"
+        except util.HttpError as error:
+            util.log("Easynews 3.0: %s - asking 2.0" % error)
+            answer = _en_search2(query)
+            version = "2.0"
+        util.log("Easynews %s: %d result(s) for the search" % (version, len(answer.get("data") or [])))
         util.cache_set(key, answer)
     return answer or {}
 
@@ -192,6 +252,8 @@ def _en_fields(answer):
 def _en_langs(value):
     """Two-letter codes of a list of Easynews languages ('eng', 'dut', 'English' ...), in order, without doubles."""
     out = []
+    if isinstance(value, str):
+        value = [part for part in value.split(",")]
     for item in value if isinstance(value, list) else []:
         text = str(item or "").strip().lower()
         if not text:
@@ -210,11 +272,11 @@ def _en_langs(value):
 
 def _en_preview(answer, raw):
     """The address of Easynews' preview picture of a file (a few frames of the video), or ''."""
-    base = str(answer.get("thumbURL") or "")
-    key, stem = str(raw.get("0") or raw.get("hash") or ""), str(raw.get("10") or raw.get("fn") or "")
-    if not base or len(key) < 3 or not stem:
+    base = str(answer.get("thumbURL") or "https://th.easynews.com/thumbnails-")
+    key = str(raw.get("hash") or raw.get("0") or "")
+    if len(key) < 3:
         return ""
-    return "%s%s/pr-%s.jpg/th-%s.jpg" % (base, key[:3], key, urllib.parse.quote(stem, safe="()[]&+,'!"))
+    return "%s%s/pr-%s.jpg" % (base, key[:3], key)        # the short form Fen and POV use: no file name, no login
 
 
 def preview_file(url):
@@ -230,7 +292,8 @@ def preview_file(url):
     path = os.path.join(folder, "%d.jpg" % int(time.time() * 1000))
     data, tried = b"", []
     # the pictures are public for players such as Stremio (no login); with the login as a second try
-    for head in ({"User-Agent": "Mozilla/5.0"}, {"Authorization": _en_header(), "User-Agent": AGENT}):
+    for head in ({"User-Agent": "Mozilla/5.0"}, {"User-Agent": "Mozilla/5.0", "Referer": "https://members.easynews.com/"},
+                 {"Authorization": _en_header(), "User-Agent": AGENT}):
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=head), timeout=15) as response:
                 data = response.read(8 * 1048576)
@@ -358,14 +421,19 @@ def easynews(meta):
             source["meta"] += " · " + label
         if isinstance(raw, dict):
             # what is really inside the file (Easynews reads the tracks), not guessed from the name
-            sound, subs = _en_langs(raw.get("alangs")), _en_langs(raw.get("slangs"))
+            sound = _en_langs(raw.get("audio_tracks") or raw.get("alangs") or raw.get("alang"))
+            subs = _en_langs(raw.get("subtitle_tracks") or raw.get("slangs") or raw.get("slang"))
             mine = mylang.code()
             if mine in sound and mylang.audio_flag() not in source["flags"]:
                 source["flags"].append(mylang.audio_flag())
             if mine in subs and mylang.subs_flag() not in source["flags"]:
                 source["flags"].append(mylang.subs_flag())
-            if len(sound) > 1:
-                source["meta"] += " · " + T("geluid", "audio") + " " + " ".join(c.upper() for c in sound[:4])
+            if len(sound) > 1 or (sound and sound[0] != "en"):
+                # the sound tracks as badges (DE, EN ...), like the language badges of other sources
+                for code in sound[:4]:
+                    flag = "aio_%s" % code.upper()
+                    if code in mylang.LANGS and flag not in source["flags"]:
+                        source["flags"].append(flag)
             _en_tech(raw, source)
             preview = _en_preview(answer, raw)
             if preview:
@@ -385,6 +453,30 @@ def easynews(meta):
     if heavy:
         util.log("Easynews: %d of %d result(s) may be too heavy for %.1f MB/s" % (heavy, len(out), rate / 1048576))
     return out
+
+
+def _cells(html, start, stop="</"):
+    """The texts of the <td> cells after a marker in a page (no HTML library on every box)."""
+    at = html.find(start)
+    if at < 0:
+        return []
+    part = html[at:]
+    cells = re.findall(r"<td[^>]*>(.*?)</td>", part, re.S | re.I)
+    return [re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", c)).strip() for c in cells]
+
+
+def easynews_account():
+    """(user, plan, expires, status, used, left, loyalty) from Easynews' own account pages, the way Fen and Umbrella
+    read them (Easynews has no account API). Empty strings for what could not be read."""
+    import urllib.request as request
+    def page(url):
+        with request.urlopen(request.Request(url, headers={"Authorization": _en_header(), "User-Agent": "Mozilla/5.0"}), timeout=15) as answer:
+            return answer.read(500000).decode("utf-8", "replace")
+    info = _cells(page("https://account.easynews.com/editinfo.php"), 'id="accountForm"')[0:11][1::3]
+    usage = _cells(page("https://account.easynews.com/usageview.php"), 'class="table-responsive"')[0:11][1::3]
+    info += [""] * (4 - len(info))
+    usage += [""] * (3 - len(usage))
+    return info[0], info[1], info[2], info[3], usage[0].replace("Gigs", "GB"), usage[1].replace("Gigs", "GB"), usage[2].replace("Gigs", "GB")
 
 
 def check_easynews():
