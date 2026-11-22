@@ -2106,7 +2106,7 @@ msgid "Clear memory after watching"
 msgstr ""
 
 msgctxt "#32593"
-msgid "A few seconds after a film or episode stops, Lucent lets go of the memory it still holds and empties the Linux cache (CoreELEC, LibreELEC), so the next film and the menus start with free memory. Not when the next episode follows by itself."
+msgid "A few seconds after a film or episode stops, Lucent lets go of the memory it still holds (its Usenet release and buffers), so the next film and the menus start with free memory. Not when the next episode follows by itself."
 msgstr ""
 
 msgctxt "#32594"

@@ -2,6 +2,36 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.35",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T22:15Z",
+   "items": [
+    [
+     "refresh",
+     "Geen crash meer na het stoppen",
+     "Het leegmaken van de Linux-cache na het kijken leverde maar 5 MB op, en Kodi crashte er een keer mee vlak na het stoppen. Dat doet Lucent niet meer; zijn eigen Usenet-geheugen laat Lucent nog wel los.",
+     "No more crash after stopping",
+     "Emptying the Linux cache after watching freed only 5 MB, and Kodi crashed with it once right after stopping. Lucent no longer does it; it still lets go of its own Usenet memory."
+    ],
+    [
+     "subtitles",
+     "Ondertitel van de bron die echt speelt",
+     "Werkt de gekozen bron niet en speelt Lucent een andere, dan wordt de ondertitel voor die andere release klaargezet in plaats van voor de gekozen.",
+     "Subtitle of the source that really plays",
+     "When the chosen source does not work and Lucent plays another, the subtitle is got ready for that other release instead of the chosen one."
+    ],
+    [
+     "search",
+     "Weggehaalde release zakt naar onderen",
+     "Blijkt bij de controle dat de stukjes van een Usenet-release weg zijn, dan gaat hij meteen naar het eind van de lijst in plaats van bovenaan te blijven. Zijn alle geteste stukjes weg, dan zie je hem bij de volgende zoekopdracht niet meer.",
+     "Taken-down release sinks",
+     "When the check finds the pieces of a Usenet release gone, it goes to the end of the list at once instead of staying on top. When every tested piece is gone, you no longer see it at the next search."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.34",
    "label": "RC 1",
    "label_en": "RC 1",

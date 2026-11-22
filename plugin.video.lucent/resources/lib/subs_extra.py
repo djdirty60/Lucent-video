@@ -221,8 +221,10 @@ def ready_ahead(video):
     key = video_key(video)
     store = load("next.json", {})
     code = subs_live.my_code()
-    if key in store and store[key].get("lang") == code and os.path.exists(store[key].get("path", "")):
-        return
+    entry = store.get(key) or {}
+    same_file = not video.get("release") or entry.get("for", video.get("release")) == video.get("release")
+    if entry.get("lang") == code and os.path.exists(entry.get("path", "")) and same_file:
+        return                                  # ready already, for this very release
     HOME.setProperty(READY, key)
     try:
         languages, mine_name = subs_live.search_languages()
@@ -237,6 +239,8 @@ def ready_ahead(video):
         local = subs_live.download(best["file"])
         if local and os.path.exists(local):
             release = _keep(key, code, local, best, store)
+            store[key]["for"] = video.get("release") or ""         # the release it was chosen for
+            save("next.json", store)
             import subs_core
             fit = subs_core.release_match(release, video) if release else 0.0
             log(f"ahead {label(video)}: ready in {time.time() - started:.1f} s ({release or 'no release name'}; fits the file {fit:.2f}"

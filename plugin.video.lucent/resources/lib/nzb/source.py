@@ -290,6 +290,12 @@ def _mark_dead(job):
     util.save_json(DEAD, dead)
 
 
+def mark_gone(job):
+    """Every tested piece of this release is gone (taken down): it is not shown in the next searches."""
+    _mark_dead(job)
+    util.log("usenet: release taken down (every tested piece gone): left out of the next searches")
+
+
 def _dead_now():
     return util.load_json(DEAD, {})
 

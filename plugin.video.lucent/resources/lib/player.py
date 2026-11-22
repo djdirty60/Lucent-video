@@ -554,6 +554,8 @@ def play(params, handle):
     source = first_working(order, 0)
     if not source.get("url"):
         return _fail(handle, util.T("Deze bron kon niet worden gestart", "This source could not be started"))
+    if source is not order[0]:
+        _subs_ahead(meta, source)       # another release plays than the one chosen: its own subtitle
     item = build(meta, source, resume)
     remember_release(meta, source)
     handoff(meta, resume, source, [s for s in order if s is not source][:4], others, lighter_than(source, order), last)

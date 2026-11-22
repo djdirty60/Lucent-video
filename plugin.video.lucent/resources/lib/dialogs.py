@@ -198,6 +198,12 @@ class Sources(Base):
                 if found and (found.get("locked") or found.get("gone")):
                     source["health"] = nzb_source.tracks_text(found)
                     self._show_health(source)
+                    if found.get("gone") and not source.get("gone"):
+                        lost, asked = found["gone"]
+                        source["gone"] = True   # taken down: to the end of the list, like a locked release
+                        if lost >= asked:
+                            nzb_source.mark_gone(source["resolve"])     # every tested piece gone: not shown again
+                        self._rerank()
                     continue                    # never playable, or the sample says it is gone: no need to count
                 result = nzb_source.health(source["resolve"], stop=lambda: self.done, beside=True)
                 if self.done:
@@ -271,7 +277,7 @@ class Sources(Base):
             standing = self.current[position] if 0 <= position < len(self.current) else None
             name, self.tab = self.tab, None
             self.show_tab(name)
-            if standing is not None and standing.get("locked"):
+            if standing is not None and (standing.get("locked") or standing.get("gone")):
                 self.rows.selectItem(min(position, len(self.current) - 1))     # stay on the same row, not with it down
             elif standing is not None:
                 self.rows.selectItem(next(n for n, s in enumerate(self.current) if s is standing))

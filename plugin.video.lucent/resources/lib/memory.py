@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Clearing memory (RAM) after watching: what Lucent itself still holds is let go, and on boxes where Kodi may do it
-(CoreELEC, LibreELEC: Kodi runs as root) the Linux cache is emptied, so the next film and the menus start with free memory.
-The log says how much memory was free before and after, measured, not guessed."""
+"""Clearing memory (RAM) after watching: what Lucent itself still holds (its Usenet release and buffers) is let go, so
+the next film and the menus start with free memory. The log says how much memory was free before and after, measured,
+not guessed."""
 import gc
-import os
 import threading
 import time
 
@@ -24,15 +23,6 @@ def _available():
     except (OSError, ValueError):
         pass
     return None
-
-
-def _write(path, value):
-    try:
-        with open(path, "w") as handle:
-            handle.write(value)
-        return True
-    except OSError:
-        return False
 
 
 def _usenet():
@@ -65,12 +55,8 @@ def tidy():
     if _usenet():
         done.append("Usenet release closed")
     gc.collect()
-    if hasattr(os, "sync"):
-        os.sync()
-    if _write("/proc/sys/vm/drop_caches", "1"):
-        done.append("Linux cache emptied")
-    if _write("/proc/sys/vm/compact_memory", "1"):
-        done.append("memory put together")
+    # rc1.35: no more emptying of the Linux cache or putting memory together: on the Fire TV Cube it freed 5 MB
+    # (749 -> 754 MB) and Kodi crashed seconds after a stop with it (the video decoder uses that memory too)
     after = _available()
     if before is not None and after is not None:
         util.log("memory: %d MB free after watching, %d MB now (%s)" % (before, after, ", ".join(done) or "only Python's own memory"))
