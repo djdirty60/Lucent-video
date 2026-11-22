@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.25" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.26" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -97,7 +97,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.25: Easynews preview: asked first without the login (the pictures are public for players such as Stremio), then with it; the log tells what Easynews answered.
+        <news>1.0.0~rc1.26: Easynews preview shows as coming soon (Easynews does not hand out the picture yet); the log tells how long the picture takes after you choose a source, and what Easynews' expiry, NFO and farm fields look like (file facts only).
+1.0.0~rc1.25: Easynews preview: asked first without the login (the pictures are public for players such as Stremio), then with it; the log tells what Easynews answered.
 1.0.0~rc1.24: Easynews: the sound and subtitle languages that are really inside a file (read by Easynews) give the label for your language, also when the name does not say it; files with several sound tracks show them ("audio EN NL"); Preview in the menu of an Easynews source shows Easynews' picture with frames of the video.
 1.0.0~rc1.23: Easynews works again: the speed measurement of rc1.22 stopped every Easynews search with an error.
 1.0.0~rc1.22: Easynews: the length of each file is compared with the film (far too short: left out; longer or shorter: "Extended +12 min", "Director's Cut", "9 min shorter"); your Easynews speed is measured once a week and a release that needs more gets "may be too heavy" and moves down; the log tells which fields Easynews gives (names only).
@@ -124,7 +125,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.25: Easynews-voorvertoning: eerst zonder login gevraagd (de plaatjes zijn openbaar voor spelers zoals Stremio), daarna met; het logboek zegt wat Easynews antwoordde.
+        <news lang="nl_NL">1.0.0~rc1.26: Easynews-voorvertoning staat op "snel" (Easynews geeft het plaatje nog niet); het logboek zegt hoe lang het beeld duurt na het kiezen van een bron, en hoe Easynews' velden voor bewaartijd, NFO en farm eruitzien (alleen bestandsgegevens).
+1.0.0~rc1.25: Easynews-voorvertoning: eerst zonder login gevraagd (de plaatjes zijn openbaar voor spelers zoals Stremio), daarna met; het logboek zegt wat Easynews antwoordde.
 1.0.0~rc1.24: Easynews: de geluids- en ondertiteltalen die echt in een bestand zitten (gelezen door Easynews) geven het label voor jouw taal, ook als de naam het niet zegt; bestanden met meerdere geluidssporen tonen ze ("geluid EN NL"); Voorvertoning in het menu van een Easynews-bron toont Easynews' plaatje met beelden uit de video.
 1.0.0~rc1.23: Easynews werkt weer: de snelheidsmeting van rc1.22 liet elke Easynews-zoekopdracht met een fout stoppen.
 1.0.0~rc1.22: Easynews: de lengte van elk bestand wordt vergeleken met de film (veel te kort: weggelaten; langer of korter: "Extended +12 min", "Director's Cut", "9 min korter"); je Easynews-snelheid wordt eens per week gemeten en een release die meer nodig heeft krijgt "mogelijk te zwaar" en zakt; het logboek zegt welke velden Easynews meegeeft (alleen de namen).

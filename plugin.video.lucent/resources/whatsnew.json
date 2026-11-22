@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.26",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T18:50Z",
+   "items": [
+    [
+     "info",
+     "Voorbereiding voor meer Easynews",
+     "De voorvertoning komt snel: Easynews geeft het plaatje nog niet vrij. Lucent houdt nu bij hoe snel een film start, als voorbereiding op de snelle start en de keuze van de snelste Easynews-server.",
+     "Getting ready for more Easynews",
+     "The preview is coming soon: Easynews does not hand out the picture yet. Lucent now keeps track of how fast a film starts, to prepare a quick start and picking the fastest Easynews server."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.25",
    "label": "RC 1",
    "label_en": "RC 1",

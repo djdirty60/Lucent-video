@@ -68,6 +68,7 @@ class Watcher(xbmc.Player):
             self.current = None
             return
         util.HOME.clearProperty(player.HANDOFF)
+        util.log("start: picture %.1f s after the choice (%s)" % (time.time() - now.get("started", time.time()), now.get("service") or "?"))
         self.current, self.asked_next, self.following, self.auto_next, self.prefetched = now, False, None, False, False
         try:
             self.position = self.getTime()           # Kodi may already have started at the resume point itself

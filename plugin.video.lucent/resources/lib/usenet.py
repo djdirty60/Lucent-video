@@ -178,10 +178,14 @@ def _en_fields(answer):
     """Once a day: which fields Easynews sends per file (names only, never values), to build on what is really there."""
     rows = [r for r in answer.get("data") or [] if isinstance(r, dict)]
     saved = util.load_json(EN_FIELDS, {})
-    if not rows or time.time() - saved.get("at", 0) < 86400:
+    if not rows or (time.time() - saved.get("at", 0) < 86400 and saved.get("v") == 2):
         return
-    util.save_json(EN_FIELDS, {"at": time.time()})
+    util.save_json(EN_FIELDS, {"at": time.time(), "v": 2})
     util.log("Easynews gives: %s; top: %s" % (", ".join(sorted(rows[0])), ", ".join(sorted(k for k in answer if k != "data")[:40])))
+    # what some fields look like (file facts only, never an address or the login), to build on them
+    sample = rows[0]
+    shown = {k: str(sample.get(k))[:60] for k in ("expires", "nfo", "sb", "ts", "type", "volume", "reposts", "bps", "fps", "fullres") if k in sample}
+    util.log("Easynews sample: %s; dlFarm %s, dlPort %s" % (shown, str(answer.get("dlFarm"))[:20], str(answer.get("dlPort"))[:10]))
 
 
 def _en_langs(value):

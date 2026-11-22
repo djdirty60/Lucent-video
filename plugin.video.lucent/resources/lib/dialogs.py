@@ -362,11 +362,11 @@ class Sources(Base):
         source = self.current[position]
         job = source.get("resolve") or {}
         if source.get("preview"):                       # Easynews: a picture with a few frames of the video
-            choice = xbmcgui.Dialog().contextmenu([T("Waarom staat deze hier", "Why is this one here"), T("Voorvertoning", "Preview")])
+            choice = xbmcgui.Dialog().contextmenu([T("Waarom staat deze hier", "Why is this one here"), T("Voorvertoning (snel)", "Preview (soon)")])
             if choice == 0:
                 self.explain()
-            elif choice == 1:
-                show_preview(source)
+            elif choice == 1:                           # Easynews does not hand out the picture yet (HTTP 403 / 400)
+                util.notify(T("Voorvertoning komt snel", "Preview is coming soon"))
             return None
         if job.get("scraper") != "Usenet" or not job.get("link"):
             return self.explain()

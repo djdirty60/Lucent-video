@@ -241,7 +241,7 @@ def handoff(meta, resume, source, alternates=None, others=None, lighter=None, la
     import learn
     now.update(resume=resume, started=time.time(), alternates=alternates or [], url=source.get("url"), size=source.get("size") or 0,
                learn=learn.key(source), together=others or [], lighter=lighter or [], bedtime_last=bool(last),
-               name=_release_name(source))
+               name=_release_name(source), service=str(source.get("service") or "")[:20])
     util.HOME.setProperty(HANDOFF, json.dumps(now))
     return now
 
