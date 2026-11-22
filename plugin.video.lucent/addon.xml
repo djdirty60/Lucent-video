@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.39" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.40" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -96,7 +96,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.39: Kodi's own "Playback failed - one or more items failed to play" window no longer shows after you close the source list (or when nothing could start: Lucent already says why); AIOStreams instances that send no streamData now get their labels from the release name, and their sources are no longer all marked "not ready to play"; the log says once a day which fields AIOStreams sends.
+        <news>1.0.0~rc1.40: Films has Streaming services (Netflix, Disney+, Prime Video ... of your country), like Networks for series: per service the newest, new, popular and top rated films.
+1.0.0~rc1.39: Kodi's own "Playback failed - one or more items failed to play" window no longer shows after you close the source list (or when nothing could start: Lucent already says why); AIOStreams instances that send no streamData now get their labels from the release name, and their sources are no longer all marked "not ready to play"; the log says once a day which fields AIOStreams sends.
 1.0.0~rc1.38: when a checked Usenet release falls away (taken down, locked, or less than 95% complete), the next release in the list is checked in its place, at most 4 per list and only with room at the indexer.
 1.0.0~rc1.37: a MEL badge of its own: a profile 7 file whose Dolby Vision metadata says minimal enhancement layer shows MEL (was P7); P7 stays for profile 7 that could not be read. A release name with MEL in it shows MEL too.
 1.0.0~rc1.36: FEL or MEL is now read from the Dolby Vision metadata (RPU) of the file, the way the Dolby specification, dovi_tool and CoreELEC tell them apart, instead of from the size of the enhancement layer: The Last of Us S02E01 MULTi VFi REMUX got a FEL badge while CoreELEC played it as MEL. Saved file checks are read once more.
@@ -137,7 +138,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.39: Kodi's eigen venster "Afspelen mislukt - een of meer items konden niet worden afgespeeld" verschijnt niet meer als je de bronnenlijst sluit (of als niets kon starten: Lucent zegt al waarom); AIOStreams-installaties die geen streamData sturen krijgen hun labels nu uit de releasenaam, en hun bronnen staan niet meer allemaal als "niet direct speelbaar"; het logboek zegt eens per dag welke velden AIOStreams stuurt.
+        <news lang="nl_NL">1.0.0~rc1.40: Films heeft Streamingdiensten (Netflix, Disney+, Prime Video ... van jouw land), zoals Netwerken bij series: per dienst de nieuwste, nieuwe, populaire en best beoordeelde films.
+1.0.0~rc1.39: Kodi's eigen venster "Afspelen mislukt - een of meer items konden niet worden afgespeeld" verschijnt niet meer als je de bronnenlijst sluit (of als niets kon starten: Lucent zegt al waarom); AIOStreams-installaties die geen streamData sturen krijgen hun labels nu uit de releasenaam, en hun bronnen staan niet meer allemaal als "niet direct speelbaar"; het logboek zegt eens per dag welke velden AIOStreams stuurt.
 1.0.0~rc1.38: valt een gecontroleerde Usenet-release weg (weggehaald, op slot of minder dan 95% compleet), dan wordt de volgende release in de lijst in zijn plaats gecontroleerd, hooguit 4 per lijst en alleen met ruimte bij de indexer.
 1.0.0~rc1.37: een eigen MEL-badge: een profiel 7-bestand waarvan de Dolby Vision-gegevens minimale extra laag zeggen, toont MEL (was P7); P7 blijft voor profiel 7 dat niet gelezen kon worden. Een releasenaam met MEL erin toont ook MEL.
 1.0.0~rc1.36: FEL of MEL wordt nu gelezen uit de Dolby Vision-gegevens (RPU) van het bestand, zoals de Dolby-specificatie, dovi_tool en CoreELEC ze onderscheiden, in plaats van uit de grootte van de extra laag: The Last of Us S02E01 MULTi VFi REMUX kreeg een FEL-badge terwijl CoreELEC hem als MEL afspeelde. Bewaarde bestandscontroles worden nog een keer gelezen.

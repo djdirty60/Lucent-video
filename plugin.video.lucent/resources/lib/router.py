@@ -193,6 +193,8 @@ def menu(handle, params):
     rows += [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
     rows.append(items.folder(T("Genres", "Genres"), util.url_for(action="genres", type=params.get("type"))))
     rows.append(items.folder(T("Studio's", "Studios") if movie else T("Netwerken", "Networks"), util.url_for(action="studios", type=params.get("type"))))
+    if movie:                                   # films have no TV networks: the streaming services they are on instead
+        rows.append(items.folder(T("Streamingdiensten", "Streaming services"), util.url_for(action="services", type="movie")))
     rows.append(items.folder(T("Per decennium", "By decade"), util.url_for(action="decades", type=params.get("type"))))
     rows.append(items.folder(T("Populaire acteurs", "Popular people"), util.url_for(action="people")))
     rows.append(items.folder(T("Prijswinnaars", "Award winners"), util.url_for(action="awards", type=params.get("type"))))
@@ -316,20 +318,24 @@ def genres(handle, params):
     send(handle, rows)
 
 
-def services(handle, _params):
+def services(handle, params):
     rows = []
+    only = {"type": params["type"]} if params.get("type") in ("movie", "tvshow") else {}
     for provider, name, logo in tmdb.providers():
-        url, item, folder = items.folder(name, util.url_for(action="service", provider=provider, name=name))
+        url, item, folder = items.folder(name, util.url_for(action="service", provider=provider, name=name, **only))
         item.setArt({"icon": logo, "thumb": logo, "poster": logo})
         rows.append((url, item, folder))
     send(handle, rows)
 
 
 def service(handle, params):
+    """One streaming service: newest first, then new, popular and top rated (only films when you came from Films)."""
     import services
-    rows = [items.folder(T("Nieuwste eerst", "Newest first"), util.url_for(action="list", name="provider", provider=params["provider"], type="all"))]
+    only = params.get("type")
+    rows = [items.folder(T("Nieuwste eerst", "Newest first"), util.url_for(action="list", name="provider", provider=params["provider"],
+                                                                         type=only if only in ("movie", "tvshow") else "all"))]
     rows += [items.folder(services.label(kind), util.url_for(action="list", name="service_list", provider=params["provider"], kind=kind))
-             for kind in services.KINDS]
+             for kind in services.KINDS if only not in ("movie", "tvshow") or services.KINDS[kind][1] == only]
     send(handle, rows)
 
 
