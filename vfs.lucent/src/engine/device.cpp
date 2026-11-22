@@ -18,6 +18,8 @@ constexpr int64_t kShare = 6;                   // at most a sixth of the free m
 constexpr int64_t kLeast = 48 * kMB;            // never less than this, whatever the box
 constexpr int64_t kMost64 = 512 * kMB;
 constexpr int64_t kMost32 = 320 * kMB;          // a 32-bit Kodi can only address a few GB in all
+constexpr int64_t kSmallBox = 2560 * kMB;       // a box with this much memory or less in all (Fire TV Cube: 1.9 GB) ...
+constexpr int64_t kSmallMost = 160 * kMB;       // ... keeps at most this: Kodi itself held 1.5 GB during a 4K remux
 }  // namespace
 
 bool ReadDevice(DeviceInfo& device)
@@ -76,6 +78,8 @@ std::string FitToDevice(Plan& plan, const DeviceInfo& device)
   else if (device.available < asked * 3)
     cache = std::max(kLeast, budget);                   // a really tight box: leave Kodi its memory
   // otherwise what Lucent Video asked stays: it fits the film (a remux needs more), and the box has room for it
+  if (device.total <= kSmallBox && cache > kSmallMost)
+    cache = kSmallMost;                                 // 2 GB boxes (Fire TV Cube): Kodi itself needs most of it for 4K
   plan.cache = cache;
   if (cache < asked && plan.prefetch > cache / 2)       // less memory: read less far ahead too
     plan.prefetch = std::max<int64_t>(8 * kMB, cache / 2);

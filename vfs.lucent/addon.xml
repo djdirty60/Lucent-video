@@ -19,7 +19,8 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
-    <news>0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
+    <news>0.1.10: on a box with 2.5 GB of memory or less (such as a Fire TV Cube) the cache stays at most 160 MB, so Kodi keeps room for 4K films.
+0.1.9: installs Lucent Video Check (vfs.lucentcheck) with it: the fast full article check of the source list.
 0.1.8: when a new film starts, a film that was just stopped gives back its memory first. On a box with 2 GB of memory two caches next to each other could fill it, and the system then closed Kodi.
 0.1.7: the cache Lucent Video asks for a heavy film (a remux) is no longer made smaller on a box with enough free memory.
 0.1.6: with a small cache (128 MB) the read-ahead no longer throws out what it just fetched and fetches it again (much less data and processor load, smooth 4K on small boxes).
