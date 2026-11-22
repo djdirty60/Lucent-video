@@ -2,6 +2,43 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.31",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T21:15Z",
+   "items": [
+    [
+     "refresh",
+     "Geheugen leeg na het kijken",
+     "Een paar seconden nadat je stopt met kijken, laat Lucent het geheugen los dat het nog vasthield en leegt het de Linux-cache. Zo beginnen de volgende film en de menu's met vrij geheugen. Volgt de volgende aflevering vanzelf, dan wacht Lucent. Uit te zetten bij Afspelen.",
+     "Memory cleared after watching",
+     "A few seconds after you stop watching, Lucent lets go of the memory it still held and empties the Linux cache. The next film and the menus start with free memory. When the next episode follows by itself, Lucent waits. Can be turned off under Play."
+    ],
+    [
+     "subtitles",
+     "Ondertitel eerder klaar",
+     "Lucent zoekt de ondertitel nu zodra je een bron kiest, niet pas als de bron open is. Een ondertitelsite die twee keer achter elkaar niet te vinden is, wordt een dag overgeslagen. Zo staat de ondertitel er eerder, vaak al als het beeld begint.",
+     "Subtitle ready sooner",
+     "Lucent now searches the subtitle as soon as you choose a source, not after the source is open. A subtitle site that cannot be found twice in a row is skipped for a day. The subtitle is there sooner, often as the picture starts."
+    ],
+    [
+     "play",
+     "Tweede adres van Easynews",
+     "Werkt de link van een Easynews-bestand niet, dan probeert Lucent eerst het tweede adres dat Easynews meestuurt, en pas daarna Usenet.",
+     "Easynews' second address",
+     "When the link of an Easynews file fails, Lucent first tries the second address Easynews sends along, and only then Usenet."
+    ],
+    [
+     "info",
+     "Easynews-snelheid en tip",
+     "Accountinformatie bij Easynews toont je gemeten snelheid. Is die laag, dan zie je een tip: kies bij Easynews' Route Selector een andere regio of poort.",
+     "Easynews speed and tip",
+     "Account information for Easynews shows your measured speed. When it is low you see a tip: choose another region or port in Easynews' Route Selector."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.30",
    "label": "RC 1",
    "label_en": "RC 1",

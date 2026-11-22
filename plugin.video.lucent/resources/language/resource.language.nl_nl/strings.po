@@ -2100,3 +2100,11 @@ msgstr "Zoeken bij Podnapisi (geen account nodig)"
 msgctxt "#32591"
 msgid "Podnapisi.NET is a free subtitle site that needs no account or key. Lucent asks it at the same time as OpenSubtitles and SubDL."
 msgstr "Podnapisi.NET is een gratis ondertitelsite zonder account of sleutel. Lucent vraagt hem tegelijk met OpenSubtitles en SubDL."
+
+msgctxt "#32592"
+msgid "Clear memory after watching"
+msgstr "Geheugen leegmaken na het kijken"
+
+msgctxt "#32593"
+msgid "A few seconds after a film or episode stops, Lucent lets go of the memory it still holds and empties the Linux cache (CoreELEC, LibreELEC), so the next film and the menus start with free memory. Not when the next episode follows by itself."
+msgstr "Een paar seconden nadat een film of aflevering stopt, laat Lucent het geheugen los dat het nog vasthoudt en leegt het de Linux-cache (CoreELEC, LibreELEC), zodat de volgende film en de menu's met vrij geheugen beginnen. Niet als de volgende aflevering vanzelf volgt."

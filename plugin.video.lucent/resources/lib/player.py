@@ -102,6 +102,24 @@ def _easynews_direct(source):
     return source
 
 
+def _easynews_fallback(source):
+    """The Easynews link does not answer: Easynews' own second address for the same file (fallbackURL). True when
+    that one works; the source keeps it."""
+    spare = source.get("en_fallback")
+    if not spare or (source.get("resolve") or {}).get("scraper"):
+        return False
+    url = usenet.fallback_link(spare)
+    if not url:
+        return False
+    first, source["url"] = source["url"], url
+    if link_works(source):
+        util.log("Easynews link failed: its fallback address works (%s)" % (urllib.parse.urlsplit(url.partition("|")[0]).hostname or "?"))
+        return True
+    util.log("Easynews link failed, its fallback address too")
+    source["url"] = first
+    return False
+
+
 def _easynews_over_usenet(source):
     """The Easynews web link does not answer: the same file over Usenet (an NZB from Easynews, played by vfs.lucent
     with your own provider), when a Usenet provider is filled in. True when that works."""
@@ -151,7 +169,7 @@ def _first(sources, index):
             if position != index:
                 util.notify(util.T("Link werkte niet, volgende bron gekozen", "Link failed, using the next source"))
             return _easynews_direct(source)
-        if _easynews_over_usenet(source):
+        if _easynews_fallback(source) or _easynews_over_usenet(source):
             return source
         learn.record(learn.key(source), False)
     for source in sources[index:]:
@@ -529,11 +547,11 @@ def play(params, handle):
     if resume is None:
         return _fail(handle)
 
+    _subs_ahead(meta, order[0])         # the subtitle is searched at once, while the source is still being opened
     source = first_working(order, 0)
     if not source.get("url"):
         return _fail(handle, util.T("Deze bron kon niet worden gestart", "This source could not be started"))
     item = build(meta, source, resume)
-    _subs_ahead(meta, source)
     remember_release(meta, source)
     handoff(meta, resume, source, [s for s in order if s is not source][:4], others, lighter_than(source, order), last)
     bedtime.counted()

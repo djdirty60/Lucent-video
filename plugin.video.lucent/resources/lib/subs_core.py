@@ -474,8 +474,16 @@ def _down():
 
 
 def _mark_down(name):
+    """An hour; a source that cannot be found again right after its hour (Podnapisi on some networks, every hour a
+    wait of 5 s for nothing) is skipped for a day: stored as a time in the future."""
+    try:
+        with open(os.path.join(DATA, DOWN), encoding="utf-8") as fh:
+            before = json.load(fh).get(name, 0)
+    except Exception:  # noqa: BLE001
+        before = 0
     saved = _down()
-    saved[name] = time.time()
+    again = 0 < time.time() - before < 3 * DOWN_KEEP
+    saved[name] = time.time() + (23 * 3600 if again else 0)
     try:
         os.makedirs(DATA, exist_ok=True)
         with open(os.path.join(DATA, DOWN), "w", encoding="utf-8") as fh:
@@ -511,8 +519,8 @@ def search(video, langs, live=None):
         except Exception as error:  # noqa: BLE001
             log(f"{name}: {error}")
             if "Name or service not known" in str(error) or "name resolution" in str(error).lower():
-                _mark_down(name)                     # the address cannot be found here: skip it for an hour
-                log(f"{name}: skipped for an hour (its address cannot be found)")
+                _mark_down(name)                     # the address cannot be found here: skip it for an hour (a day the 2nd time)
+                log(f"{name}: skipped for a while (its address cannot be found)")
             results[name] = []
 
     for name, (fn, _dl, _label) in SOURCES.items():

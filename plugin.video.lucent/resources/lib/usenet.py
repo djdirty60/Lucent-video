@@ -320,9 +320,33 @@ def _en_speed(base, sample_path):
     if got < 1048576 or seconds <= 0:
         return saved.get("rate") or 0
     rate = got / seconds
-    util.save_json(EN_SPEED, {"rate": rate, "at": time.time()})
+    util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time()))
     util.log("Easynews speed: %.1f MB/s (%.1f MB in %.1f s)" % (rate / 1048576, got / 1048576, seconds))
+    if rate < EN_SLOW and time.time() - saved.get("tipped", 0) > 30 * 86400:
+        util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time(), tipped=time.time()))
+        util.notify(T("Easynews: %.1f MB/s. Een snellere server kiezen? Zie Accountinformatie.",
+                      "Easynews: %.1f MB/s. Choose a faster server? See Account information.") % (rate / 1048576))
     return rate
+
+
+EN_SLOW = 10 * 1048576                  # below this a 4K Remux may stop to buffer: a tip about Easynews' Route Selector
+ROUTE = "members.easynews.com/route/"
+
+
+def speed_lines():
+    """For Account information: the measured speed, and when it is low, where to choose another Easynews server."""
+    saved = util.load_json(EN_SPEED, {})
+    if not saved.get("rate"):
+        return []
+    days = int((time.time() - saved.get("at", 0)) // 86400)
+    when = T("vandaag gemeten", "measured today") if days < 1 else T("%d dag(en) geleden gemeten", "measured %d day(s) ago") % days
+    lines = [T("Snelheid: %.1f MB/s (%s)", "Speed: %.1f MB/s (%s)") % (saved["rate"] / 1048576, when)]
+    if saved["rate"] < EN_SLOW:
+        lines.append(T("Tip: kies op %s (Route Selector) een andere regio of poort, vaak gaat het dan sneller. "
+                       "Lucent volgt je keuze vanzelf en meet binnen een week opnieuw.",
+                       "Tip: on %s (Route Selector) choose another region or port, it is often faster then. "
+                       "Lucent follows your choice by itself and measures again within a week.") % ROUTE)
+    return lines
 
 
 def _en_fields(answer):
@@ -338,6 +362,12 @@ def _en_fields(answer):
     shown = {k: str(sample.get(k))[:60] for k in ("acodec", "vcodec", "xres", "yres", "height", "width", "hz", "bps", "fps", "fullres", "meta",
                                                    "disposition") if k in sample}
     util.log("Easynews sample: %s; dlFarm %s, dlPort %s" % (shown, str(answer.get("dlFarm"))[:20], str(answer.get("dlPort"))[:10]))
+    spare = str(sample.get("fallbackURL") or "")
+    if spare:                                   # its shape only: the host and how many parts the path has, never the address
+        parts = urllib.parse.urlsplit(spare)
+        util.log("Easynews fallbackURL: %s, host %s, %d path part(s), %s" % (
+            "absolute" if parts.scheme else "relative", parts.hostname or "-", len([p for p in parts.path.split("/") if p]),
+            "with a query" if parts.query else "no query"))
 
 
 def _en_langs(value):
@@ -517,6 +547,9 @@ def easynews(meta):
             source["meta"] += " · " + label
         if seconds and size:
             source["meta"] += " · %.0f Mbps" % (size * 8.0 / seconds / 1e6)      # the average bitrate of the whole file
+        spare = str(raw.get("fallbackURL") or "") if isinstance(raw, dict) else ""
+        if spare:
+            source["en_fallback"] = spare       # Easynews' second address for this file: tried when the link fails
         sig = str(raw.get("sig") or "") if isinstance(raw, dict) else ""
         source["en_nzb"] = {"hash": key, "fn": stem, "ext": extension.lstrip("."), "sig": sig, "season": meta.get("season"),
                             "episode": meta.get("episode"), "minutes": int(meta.get("runtime") or 0)}
@@ -665,6 +698,20 @@ def direct(url):
         return url
     util.log("Easynews: playing from %s (followed once, no login needed there)" % host)
     return target + ("|" + extra if extra else "")
+
+
+def fallback_link(spare):
+    """The playable address of Easynews' fallbackURL (its second address for a file): absolute or under members, the
+    login inside the address for Easynews' own hosts (Kodi hides it in its log)."""
+    address = urllib.parse.urljoin(EASYNEWS + "/", spare)
+    parts = urllib.parse.urlsplit(address)
+    if not parts.scheme.startswith("http"):
+        return ""
+    if (parts.hostname or "").endswith("easynews.com") and not parts.username:
+        user, password = _en_login()
+        login = "%s:%s@" % (urllib.parse.quote(user, safe=""), urllib.parse.quote(password, safe=""))
+        address = urllib.parse.urlunsplit((parts.scheme, login + parts.netloc, parts.path, parts.query, ""))
+    return address + "|" + urllib.parse.urlencode({"User-Agent": AGENT})
 
 
 def nzb_link(job):

@@ -136,6 +136,7 @@ def easynews():
             lines.append(T("Loyaliteit: %s", "Loyalty: %s") % loyalty)
         if not plan and not used:
             util.log("Easynews account pages: not read (their layout may have changed)")
+        lines += usenet.speed_lines()
     return lines
 
 

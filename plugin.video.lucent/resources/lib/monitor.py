@@ -316,6 +316,9 @@ class Watcher(xbmc.Player):
             return
         self.following, self.auto_next = None, False
         self.finish()
+        if util.flag("memory_tidy"):
+            import memory
+            memory.after_watching()             # RAM let go a few seconds after you stop
 
     def _try_elsewhere(self, now, position):
         threading.Thread(target=player.resume_elsewhere, args=(now, position), daemon=True).start()
@@ -349,6 +352,9 @@ class Watcher(xbmc.Player):
         else:
             self._cinema_end()
         self.finish()
+        if not go and util.flag("memory_tidy"):
+            import memory
+            memory.after_watching()
         if meta and meta.get("bedtime_last"):
             import bedtime
             threading.Thread(target=bedtime.after_last, daemon=True).start()
