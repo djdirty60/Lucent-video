@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.42" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.43" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -96,7 +96,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.42: Films has Networks like Series (Netflix, HBO, Prime Video, Disney+, Apple TV ...), with the films each one streams in your country (or in the US when it is not offered here); TV channels without a streaming service are left out. It replaces the Streaming services row of rc1.40, which the main page already has.
+        <news>1.0.0~rc1.43: Series has Studios like Films (Marvel Studios, Pixar, Warner Bros. ...), with the series each studio made; studios without series are left out.
+1.0.0~rc1.42: Films has Networks like Series (Netflix, HBO, Prime Video, Disney+, Apple TV ...), with the films each one streams in your country (or in the US when it is not offered here); TV channels without a streaming service are left out. It replaces the Streaming services row of rc1.40, which the main page already has.
 1.0.0~rc1.41: a FEL release now always stands above the same release without FEL (also when Dolby Vision stands above FEL in your profile): a group that failed here once or twice no longer pushes it under a plain Dolby Vision remux; a Usenet release taken down no longer counts against its release group; Easynews Blu-ray Dolby Vision files get FEL, MEL or P7 too, read from their first megabytes while the list is open.
 1.0.0~rc1.40: Films has Streaming services (Netflix, Disney+, Prime Video ... of your country), like Networks for series: per service the newest, new, popular and top rated films.
 1.0.0~rc1.39: Kodi's own "Playback failed - one or more items failed to play" window no longer shows after you close the source list (or when nothing could start: Lucent already says why); AIOStreams instances that send no streamData now get their labels from the release name, and their sources are no longer all marked "not ready to play"; the log says once a day which fields AIOStreams sends.
@@ -140,7 +141,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.42: Films heeft Netwerken zoals Series (Netflix, HBO, Prime Video, Disney+, Apple TV ...), met de films die elk netwerk in jouw land streamt (of in de VS als het hier niet beschikbaar is); tv-zenders zonder streamingdienst worden weggelaten. Dit vervangt de regel Streamingdiensten van rc1.40, die de beginpagina al heeft.
+        <news lang="nl_NL">1.0.0~rc1.43: Series heeft Studio's zoals Films (Marvel Studios, Pixar, Warner Bros. ...), met de series die elke studio maakte; studio's zonder series worden weggelaten.
+1.0.0~rc1.42: Films heeft Netwerken zoals Series (Netflix, HBO, Prime Video, Disney+, Apple TV ...), met de films die elk netwerk in jouw land streamt (of in de VS als het hier niet beschikbaar is); tv-zenders zonder streamingdienst worden weggelaten. Dit vervangt de regel Streamingdiensten van rc1.40, die de beginpagina al heeft.
 1.0.0~rc1.41: een FEL-release staat nu altijd boven dezelfde release zonder FEL (ook als Dolby Vision boven FEL staat in je profiel): een groep die hier een of twee keer faalde, drukt hem niet meer onder een gewone Dolby Vision-remux; een weggehaalde Usenet-release telt niet meer mee tegen zijn releasegroep; Easynews Blu-ray-bestanden met Dolby Vision krijgen ook FEL, MEL of P7, gelezen uit hun eerste megabytes terwijl de lijst open is.
 1.0.0~rc1.40: Films heeft Streamingdiensten (Netflix, Disney+, Prime Video ... van jouw land), zoals Netwerken bij series: per dienst de nieuwste, nieuwe, populaire en best beoordeelde films.
 1.0.0~rc1.39: Kodi's eigen venster "Afspelen mislukt - een of meer items konden niet worden afgespeeld" verschijnt niet meer als je de bronnenlijst sluit (of als niets kon starten: Lucent zegt al waarom); AIOStreams-installaties die geen streamData sturen krijgen hun labels nu uit de releasenaam, en hun bronnen staan niet meer allemaal als "niet direct speelbaar"; het logboek zegt eens per dag welke velden AIOStreams stuurt.

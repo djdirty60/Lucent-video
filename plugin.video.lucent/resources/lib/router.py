@@ -195,6 +195,8 @@ def menu(handle, params):
     rows.append(items.folder(T("Studio's", "Studios") if movie else T("Netwerken", "Networks"), util.url_for(action="studios", type=params.get("type"))))
     if movie:                                   # the same networks as for series (Netflix, HBO, Prime Video ...): their films
         rows.append(items.folder(T("Netwerken", "Networks"), util.url_for(action="studios", type="movie", networks="1")))
+    else:                                       # the same studios as for films (Marvel, Pixar, Warner Bros. ...): their series
+        rows.append(items.folder(T("Studio's", "Studios"), util.url_for(action="studios", type="tvshow", studios="1")))
     rows.append(items.folder(T("Per decennium", "By decade"), util.url_for(action="decades", type=params.get("type"))))
     rows.append(items.folder(T("Populaire acteurs", "Popular people"), util.url_for(action="people")))
     rows.append(items.folder(T("Prijswinnaars", "Award winners"), util.url_for(action="awards", type=params.get("type"))))
@@ -230,12 +232,17 @@ def studios(handle, params):
     import browse
     kind = params.get("type", "movie")
     networks = params.get("networks") == "1" and kind == "movie"
+    studios = params.get("studios") == "1" and kind == "tvshow"
     rows = []
-    for number, name, logo in browse.companies("tvshow" if networks else kind):
+    for number, name, logo in browse.companies("tvshow" if networks else ("movie" if studios else kind)):
         if networks and not browse.network_provider(name):
             continue                            # a TV channel (ABC, BBC One ...): no films to stream
+        if studios and not browse.studio_has_series(number):
+            continue                            # a film studio that made no series
         if networks:                            # a network's films: what it streams (TMDB has no network for films)
             url, item, folder = items.folder(name, util.url_for(action="list", name="network_films", network=name))
+        elif studios:                           # a studio's series: TMDB's production companies
+            url, item, folder = items.folder(name, util.url_for(action="list", name="studio_series", id=number))
         else:
             url, item, folder = items.folder(name, util.url_for(action="list", name="company", type=kind, id=number))
         if logo:
@@ -735,6 +742,10 @@ def gather(params):
     elif name == "tonight":
         import prefetch
         titles = prefetch.tonight_titles()
+    elif name == "studio_series":
+        import browse
+        titles, more = browse.studio_series(params["id"], page)
+        content = "tvshows"
     elif name == "network_films":
         import browse
         titles, more = browse.network_films(params["network"], page)

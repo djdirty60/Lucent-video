@@ -99,6 +99,20 @@ def network_films(network, page=1):
                         **{"primary_release_date.lte": today})
 
 
+def studio_series(number, page=1):
+    """The series a film studio made (Marvel Studios, Pixar, Warner Bros. ...): TMDB's production companies."""
+    return tmdb.listing("discover/tv", "tvshow", page, with_companies=number, sort_by="popularity.desc", include_adult="false")
+
+
+def studio_has_series(number):
+    """Has this studio made any series? (TMDB, kept for a month)"""
+    try:
+        data = tmdb.get("discover/tv", ttl=30 * tmdb.DAY, with_companies=number, page=1)
+    except util.HttpError:
+        return True
+    return bool(data.get("total_results"))
+
+
 def company_titles(kind, number, page=1):
     if kind == "movie":
         return tmdb.listing("discover/movie", "movie", page, with_companies=number, sort_by="popularity.desc", include_adult="false")

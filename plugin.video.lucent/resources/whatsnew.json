@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.43",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T00:25Z",
+   "items": [
+    [
+     "movies",
+     "Studio's bij Series",
+     "Series heeft nu Studio's, net als Films: Marvel Studios, Pixar, Warner Bros. en meer, met de series die ze maakten.",
+     "Studios in Series",
+     "Series now has Studios, just like Films: Marvel Studios, Pixar, Warner Bros. and more, with the series they made."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.42",
    "label": "RC 1",
    "label_en": "RC 1",
