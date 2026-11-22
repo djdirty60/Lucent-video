@@ -414,6 +414,31 @@ def _remember_form(base, form):
         util.save_json(FORMATS, saved)
 
 
+REFUSED = "nzb_refused.json"            # per indexer: kinds of question it answers with 'incorrect parameter' (code 200-203)
+BAD_ASK = ("error 200", "error 201", "error 202", "error 203")
+
+
+def _kind(ask):
+    """'movie imdbid=tt', 'tvsearch tvdbid', 'search q': what sort of question this is (never the values)."""
+    parts = [ask.get("t", "?")]
+    for name in ("imdbid", "tvdbid", "q"):
+        if name in ask:
+            parts.append(name + ("=tt" if name == "imdbid" and str(ask[name]).startswith("tt") else ""))
+    return " ".join(parts)
+
+
+def _refused(base):
+    return set(util.load_json(REFUSED, {}).get(base) or [])
+
+
+def _refuse(base, ask):
+    saved = util.load_json(REFUSED, {})
+    kinds = set(saved.get(base) or [])
+    kinds.add(_kind(ask))
+    saved[base] = sorted(kinds)
+    util.save_json(REFUSED, saved)
+
+
 def _queries(meta, base=""):
     """The questions to ask, best first: by id (both IMDb forms), then by name."""
     if meta["kind"] == "movie":
@@ -437,11 +462,13 @@ def search(slot, base, key, meta, text_titles, background=False):
         asks += [{"t": "search", "q": "%s %s" % (t, meta.get("year") or ""), "cat": "2000"} for t in text_titles[:1]]
     else:
         asks += [{"t": "tvsearch", "q": t, "season": int(meta["season"]), "ep": int(meta["episode"]), "cat": "5000"} for t in text_titles[:1]]
+    refused = _refused(base)
+    asks = [ask for ask in asks if _kind(ask) not in refused] or asks
     cache = "nzbsearch" + hashlib.sha1((base + repr(asks)).encode("utf-8")).hexdigest()
     saved = util.cache_get(cache, KEEP)
     if saved is not None:
         return saved
-    rows, error = [], None
+    rows, error, answered = [], None, False
     for ask in asks:
         if not allowed(base, "api", background):
             error = IndexerError("daily limit")
@@ -451,16 +478,20 @@ def search(slot, base, key, meta, text_titles, background=False):
             rows = _rows(_ask(base, key, params), slot)
         except IndexerError as failed:
             error = failed
+            if str(failed) in BAD_ASK:
+                _refuse(base, ask)
+                util.log("usenet: indexer %d does not accept '%s' (%s): not asked that way again" % (slot, _kind(ask), _said["text"] or failed))
             if "key" in str(failed) or "limit" in str(failed) or "suspended" in str(failed):
                 break
             continue
+        answered = True
         if rows:
             if ask.get("imdbid"):
                 _remember_form(base, ask["imdbid"])
             break
-    if meta["kind"] != "movie" and (rows or error is None):
+    if meta["kind"] != "movie" and (rows or answered or error is None):
         rows = rows + _packs(slot, base, key, meta, background)
-    if not rows and error is not None:
+    if not rows and error is not None and not answered:
         raise error
     if rows:
         from . import stats

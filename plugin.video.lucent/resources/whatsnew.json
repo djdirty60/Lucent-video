@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.16",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T16:20Z",
+   "items": [
+    [
+     "search",
+     "Minder verspilde zoekopdrachten bij je indexer",
+     "Sommige indexers snappen een bepaalde zoekvraag niet, bijvoorbeeld het IMDb-nummer met 'tt' ervoor, en geven dan foutcode 201. Lucent onthoudt dat nu en stelt die vraag aan die indexer niet meer. Dat spaart zoekopdrachten van je daglimiet. En vindt een indexer gewoon niets, dan staat dat niet meer als fout in het logboek.",
+     "Fewer wasted searches at your indexer",
+     "Some indexers do not understand a certain kind of search, for example the IMDb id with 'tt' in front, and answer with error code 201. Lucent now remembers that and no longer asks that indexer that way. This saves searches from your daily limit. And when an indexer simply finds nothing, that is no longer logged as an error."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.15",
    "label": "RC 1",
    "label_en": "RC 1",
