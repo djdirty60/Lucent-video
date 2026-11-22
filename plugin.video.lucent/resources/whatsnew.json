@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.22",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T18:30Z",
+   "items": [
+    [
+     "movies",
+     "Easynews kent de versie",
+     "Lucent vergelijkt de lengte van elk Easynews-bestand met de film. Veel te korte bestanden (een deel, een andere video of nep) vallen weg, en een langere versie krijgt een label zoals Extended +14 min of Director's Cut.",
+     "Easynews knows the version",
+     "Lucent compares the length of each Easynews file with the film. Far too short files (a part, another video or a fake) are left out, and a longer version gets a label such as Extended +14 min or Director's Cut."
+    ],
+    [
+     "play",
+     "Easynews: speelt het vloeiend?",
+     "Lucent meet eens per week hoe snel Easynews bij jou is. Een release die meer nodig heeft, krijgt mogelijk te zwaar en zakt binnen zijn resolutie, zodat de eerste keuze vloeiend speelt.",
+     "Easynews: will it play smoothly?",
+     "Lucent measures once a week how fast Easynews is for you. A release that needs more gets may be too heavy and moves down within its resolution, so the first choice plays smoothly."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.21",
    "label": "RC 1",
    "label_en": "RC 1",

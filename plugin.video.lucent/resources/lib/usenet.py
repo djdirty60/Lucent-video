@@ -135,6 +135,71 @@ def _en_search(query):
     return answer or {}
 
 
+EN_SPEED = "easynews_speed.json"        # {"rate": bytes per second of one Easynews download, "at": when measured}
+EN_SPEED_DAYS = 7
+EN_FIELDS = "easynews_fields.json"      # when the names of Easynews' fields were last written in the log (once a day)
+
+
+def _en_speed(base, sample_path):
+    """Bytes per second this box gets from Easynews, measured once a week with the first 4 MB of one result (one
+    connection, as Kodi plays it). 0 when unknown."""
+    saved = util.load_json(EN_SPEED, {})
+    if saved.get("rate") and time.time() - saved.get("at", 0) < EN_SPEED_DAYS * 86400:
+        return saved["rate"]
+    if not sample_path:
+        return saved.get("rate") or 0
+    url, _, extra = ("%s/%s" % (base, sample_path)).partition("|")
+    parts = urllib.parse.urlsplit(url)
+    head = {"User-Agent": AGENT, "Range": "bytes=0-4194303", "Authorization": _en_header()}
+    clean = urllib.parse.urlunsplit((parts.scheme, parts.netloc.rsplit("@", 1)[-1], parts.path, parts.query, ""))
+    started, got = time.time(), 0
+    try:
+        import urllib.request
+        with urllib.request.urlopen(urllib.request.Request(clean, headers=head), timeout=8) as response:
+            while time.time() - started < 6:
+                block = response.read(262144)
+                if not block:
+                    break
+                got += len(block)
+    except OSError as error:
+        util.log("Easynews speed: not measured (%s)" % type(error).__name__)
+        return saved.get("rate") or 0
+    seconds = time.time() - started
+    if got < 1048576 or seconds <= 0:
+        return saved.get("rate") or 0
+    rate = got / seconds
+    util.save_json(EN_SPEED, {"rate": rate, "at": time.time()})
+    util.log("Easynews speed: %.1f MB/s (%.1f MB in %.1f s)" % (rate / 1048576, got / 1048576, seconds))
+    return rate
+
+
+def _en_fields(answer):
+    """Once a day: which fields Easynews sends per file (names only, never values), to build on what is really there."""
+    rows = [r for r in answer.get("data") or [] if isinstance(r, dict)]
+    saved = util.load_json(EN_FIELDS, {})
+    if not rows or time.time() - saved.get("at", 0) < 86400:
+        return
+    util.save_json(EN_FIELDS, {"at": time.time()})
+    util.log("Easynews gives: %s; top: %s" % (", ".join(sorted(rows[0])[:60]), ", ".join(sorted(k for k in answer if k != "data")[:40])))
+
+
+def _version(stem, minutes, runtime):
+    """('Extended +12 min', keep?) from the length of the file against TMDB's running time (films)."""
+    if not minutes or not runtime:
+        return "", True
+    if minutes < runtime * 0.6:
+        return "", False                        # far too short: another video, a part or a fake
+    diff = int(round(minutes - runtime))
+    if abs(diff) < 6:
+        return "", True
+    low = stem.lower()
+    name = next((label for word, label in (("extended", "Extended"), ("director", "Director's Cut"), ("uncut", "Uncut"),
+                                           ("unrated", "Unrated"), ("imax", "IMAX")) if word in low), "")
+    if diff > 0:
+        return ("%s +%d min" % (name, diff)).strip() if name else util.T("%d min langer", "%d min longer") % diff, True
+    return util.T("%d min korter", "%d min shorter") % -diff, True
+
+
 def easynews(meta):
     if not all(_en_login()):
         return None
@@ -147,6 +212,9 @@ def easynews(meta):
     user, password = _en_login()
     base = "%s://%s:%s@%s%s" % (parts.scheme, urllib.parse.quote(user, safe=""), urllib.parse.quote(password, safe=""), parts.netloc, parts.path)
     agent = urllib.parse.urlencode({"User-Agent": AGENT})
+    _en_fields(answer)
+    runtime = int(meta.get("runtime") or 0) if meta["kind"] == "movie" else 0
+    short = 0
     out = []
     for raw in answer.get("data") or []:
         item = _en_item(raw)
@@ -159,9 +227,32 @@ def easynews(meta):
             continue
         if not title_matches(stem, titles, meta):
             continue
+        if seconds and meta["kind"] != "movie" and meta.get("runtime") and seconds < int(meta["runtime"]) * 60 * 0.5:
+            short += 1
+            continue                            # an episode far shorter than it should be: a part or another video
+        label, keep = _version(stem, seconds / 60.0 if seconds else 0, runtime)
+        if not keep:
+            short += 1
+            continue
         name = stem + extension
         path = "%s%s%s/%s" % (key, suffix, extension, urllib.parse.quote(name))
-        out.append(dict(_source(name, size, "EASYNEWS", url="%s/%s|%s" % (base, path, agent)), always=True))
+        source = dict(_source(name, size, "EASYNEWS", url="%s/%s|%s" % (base, path, agent)), always=True, seconds=seconds or 0, _path=path)
+        if label:
+            source["meta"] += " · " + label
+        out.append(source)
+    if short:
+        util.log("Easynews: %d result(s) left out: far shorter than the film or episode" % short)
+    rate = _en_speed(base, out[0]["_path"] if out else "") if out else 0
+    heavy = 0
+    for source in out:
+        source.pop("_path")
+        seconds = source.pop("seconds")
+        if rate and seconds and source["size"] / seconds > rate * 0.9:
+            source["heavy"] = True              # needs more per second than this box gets from Easynews
+            source["meta"] += " · " + T("mogelijk te zwaar", "may be too heavy")
+            heavy += 1
+    if heavy:
+        util.log("Easynews: %d of %d result(s) may be too heavy for %.1f MB/s" % (heavy, len(out), rate / 1048576))
     return out
 
 
