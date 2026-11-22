@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.13",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T15:10Z",
+   "items": [
+    [
+     "subtitles",
+     "AI-ondertitels: sneller en steviger",
+     "De vertaling met AI staat sneller in beeld: het stuk waar je kijkt wordt eerst vertaald en meteen getoond, de rest gaat twee delen tegelijk en wordt tussendoor bijgewerkt. Is de dienst even druk of zit je aan een limiet, dan wacht Lucent kort en probeert het opnieuw in plaats van te stoppen. Een deel dat mislukt, wordt aan het eind nog een keer gevraagd.",
+     "AI subtitles: faster and sturdier",
+     "The AI translation is on screen sooner: the part where you are is translated first and shown at once, the rest goes two parts at a time and is updated along the way. When the service is busy or you hit a limit, Lucent waits a moment and tries again instead of stopping. A part that fails is asked once more at the end."
+    ],
+    [
+     "subtitles",
+     "AI-ondertitels: beter Nederlands",
+     "Bij elk deel krijgt de AI de zinnen ervoor mee, zodat namen en je of u hetzelfde blijven. Regels die alleen een geluid zijn, zoals (zucht), worden weggelaten in plaats van in het Engels getoond.",
+     "AI subtitles: better translations",
+     "With every part the AI gets the lines just before it, so names and formal or informal address stay the same. Lines that are only a sound, such as (sighs), are left out instead of shown in English."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.12",
    "label": "RC 1",
    "label_en": "RC 1",

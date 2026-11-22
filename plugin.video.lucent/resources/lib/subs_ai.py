@@ -33,7 +33,8 @@ PROVIDERS = {
 }
 MODELS = ("gemini-flash-latest", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-2.5-flash")
 CHUNK = 60                   # subtitle lines per request
-FIRST = 2                    # chunks translated before the subtitle is shown
+WORKERS = 2                  # parts asked at the same time after the first (more runs into the free Gemini limit)
+REFRESH = 4                  # parts done before the partly translated subtitle is loaded again
 DIR = subconf.data_dir("subs_ai")
 LANG_NAMES = {"nl": "Dutch", "de": "German", "fr": "French", "es": "Spanish", "it": "Italian", "pt": "Portuguese",
               "da": "Danish", "sv": "Swedish", "no": "Norwegian", "fi": "Finnish", "pl": "Polish", "tr": "Turkish"}
@@ -115,9 +116,12 @@ def keep_sdh():
 
 
 def write_srt(path, cues):
+    """A cue whose translation is empty (only a sound, such as (sighs)) is left out; one not translated yet stays English."""
     out = []
-    for n, c in enumerate(cues, start=1):
-        out.append(f"{n}\n{c['time']}\n{c.get('tr') or c['text']}\n")
+    for c in cues:
+        text = c["text"] if c.get("tr") is None else c["tr"]
+        if text.strip():
+            out.append(f"{len(out) + 1}\n{c['time']}\n{text}\n")
     with open(path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(out))
 
@@ -145,13 +149,20 @@ def has_key():
     return bool(skin_string(PROVIDERS[provider()][1]))
 
 
-def make_prompt(lines, target):
+def make_prompt(lines, target, before=()):
+    """before: the English lines just before this part, only so the model knows who speaks and how (formal or informal
+    address, names): they are not translated."""
+    context = ""
+    if before:
+        context = ("For context only, the lines just before (do NOT translate or return these):\n"
+                   + json.dumps(list(before), ensure_ascii=False) + "\n\n")
     return (f"Translate these film/TV subtitle lines from English into natural, spoken {target}. "
             "Keep it short like real subtitles, keep line breaks (\\n) inside a line, keep names, do not add notes. "
+            "Keep the way people address each other (formal or informal) the same as in the lines before. "
             "Do not translate or add descriptions of sounds or actions such as (sighs) or [music]; give an empty string for a line "
             "that is only such a description. "
             f"Return only a JSON array with exactly {len(lines)} strings, in the same order.\n\n"
-            + json.dumps(lines, ensure_ascii=False))
+            + context + "Lines to translate:\n" + json.dumps(lines, ensure_ascii=False))
 
 
 def json_list(text, count):
@@ -173,11 +184,11 @@ def post(url, body, headers):
         return json.loads(resp.read().decode("utf-8"))
 
 
-def openrouter(key, lines, target):
+def openrouter(key, lines, target, before=()):
     """Thinking (reasoning) off: a subtitle needs no reasoning, and those tokens cost time and money. A model that must
     always think refuses that request (400): then the same request goes again without it."""
     model = skin_string(PROVIDERS["openrouter"][2]) or PROVIDERS["openrouter"][3]
-    body = {"model": model, "temperature": 0.2, "messages": [{"role": "user", "content": make_prompt(lines, target)}],
+    body = {"model": model, "temperature": 0.2, "messages": [{"role": "user", "content": make_prompt(lines, target, before)}],
             "reasoning": {"effort": "none"}}
     head = {"Authorization": f"Bearer {key}", "HTTP-Referer": "https://github.com/djdirty60/Lucent", "X-Title": "Lucent"}
     try:
@@ -192,29 +203,64 @@ def openrouter(key, lines, target):
     return json_list(text, len(lines))
 
 
-def claude(key, lines, target):
+def claude(key, lines, target, before=()):
     model = skin_string(PROVIDERS["claude"][2]) or PROVIDERS["claude"][3]
     data = post("https://api.anthropic.com/v1/messages",
-                {"model": model, "max_tokens": 8000, "messages": [{"role": "user", "content": make_prompt(lines, target)}]},
+                {"model": model, "max_tokens": 8000, "messages": [{"role": "user", "content": make_prompt(lines, target, before)}]},
                 {"x-api-key": key, "anthropic-version": "2023-06-01"})
     text = "".join(b.get("text", "") for b in data.get("content") or [] if b.get("type") == "text")
     return json_list(text, len(lines))
 
 
-def translate(lines, target):
+def translate(lines, target, before=()):
     p = provider()
     key = skin_string(PROVIDERS[p][1])
     if p == "openrouter":
-        return openrouter(key, lines, target)
+        return openrouter(key, lines, target, before)
     if p == "claude":
-        return claude(key, lines, target)
-    return gemini(key, lines, target)
+        return claude(key, lines, target, before)
+    return gemini(key, lines, target, before)
+
+
+BUSY = (429, 500, 502, 503, 504, 529)      # a busy service or a short limit: waiting helps
+FATAL = (400, 401, 402, 403, 404)          # wrong key, no credit, unknown model: waiting does not help
+
+
+def translate_part(lines, target, before=(), tries=3, wait=None):
+    """One part, made sturdy: a busy service (429 / 5xx) is asked again after a pause; an answer with the wrong number
+    of lines is split in two halves (a long part is where models lose count). Fatal errors are passed on."""
+    wait = wait or (lambda seconds: xbmc.Monitor().waitForAbort(seconds))
+    for attempt in range(tries):
+        try:
+            return translate(lines, target, before)
+        except urllib.error.HTTPError as error:
+            if error.code not in BUSY or attempt == tries - 1:
+                raise
+            pause = _retry_after(error) or 10 * (attempt + 1)
+            log(f"service busy (HTTP {error.code}), again in {pause} s")
+            if wait(pause):
+                raise
+        except ValueError as error:                       # wrong number of lines, or no JSON
+            if len(lines) <= 8 or attempt == tries - 1:
+                raise
+            log(f"{error}: asking again in two halves")
+            half = len(lines) // 2
+            return (translate_part(lines[:half], target, before, tries, wait)
+                    + translate_part(lines[half:], target, list(before[-3:]) + lines[max(0, half - 3):half], tries, wait))
+    raise RuntimeError("no answer")
+
+
+def _retry_after(error):
+    try:
+        return max(1, min(60, int(float(error.headers.get("Retry-After") or 0))))
+    except (TypeError, ValueError, AttributeError):
+        return 0
 
 
 # ----------------------------------------------------------------------------- Gemini
-def gemini(key, lines, target):
+def gemini(key, lines, target, before=()):
     """Translate a list of subtitle lines; returns a list of the same length."""
-    prompt = make_prompt(lines, target)
+    prompt = make_prompt(lines, target, before)
     body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json",
                                  "responseSchema": {"type": "ARRAY", "items": {"type": "STRING"}}}}
@@ -299,36 +345,71 @@ def translate_and_load(source_path, code):
     final = os.path.join(DIR, f"{media_key()}.{code}.v2.srt")
     notify(t("Translating… the subtitle appears in a moment", "Vertalen… de ondertitel verschijnt zo"), 5000)
     log(f"{len(cues)} lines, starting at line {first} ({int(now)} s), {len(chunks)} parts")
-    shown = False
     monitor = xbmc.Monitor()
-    for n, chunk in enumerate(chunks, start=1):
-        if monitor.abortRequested() or not player.isPlayingVideo():
-            log("stopped: playback ended")
-            break
+    state = {"shown": False, "since": 0, "fatal": None, "limit": False}
+
+    def context(chunk):
+        first_index = chunk[0]
+        return [cues[i]["text"] for i in range(max(0, first_index - 3), first_index)]
+
+    def run(chunk):
+        if state["fatal"] or monitor.abortRequested() or not player.isPlayingVideo():
+            return False
         try:
-            out = translate([cues[i]["text"] for i in chunk], target)
+            out = translate_part([cues[i]["text"] for i in chunk], target, context(chunk))
         except urllib.error.HTTPError as error:
             log(f"{name} HTTP {error.code}: {error.read()[:200]!r}")
-            if error.code >= 500:
-                continue                                    # the service is busy: try the next part
-            reason = {400: t("the request or model is not accepted", "het verzoek of model wordt niet geaccepteerd"),
-                      401: t("the key is not valid", "de sleutel klopt niet"), 402: t("no credit left", "geen tegoed meer"),
-                      403: t("the key is not allowed", "de sleutel mag dit niet"), 404: t("model not found", "model niet gevonden"),
-                      429: t("limit reached, try again later", "limiet bereikt, probeer het later")}.get(error.code, f"HTTP {error.code}")
-            notify(f"{name}: {reason}", 6000, xbmcgui.NOTIFICATION_WARNING)
-            break
+            if error.code in FATAL:
+                state["fatal"] = error.code
+            elif error.code == 429:
+                state["limit"] = True
+            return False
         except Exception as error:  # noqa: BLE001
-            log(f"part {n}: {error}")
-            continue
+            log(f"part at line {chunk[0]}: {error}")
+            return False
         for i, text in zip(chunk, out):
             cues[i]["tr"] = text
-        if not shown and (n >= FIRST or n == len(chunks)):
-            part = os.path.join(DIR, f"{media_key()}.{code}.part{int(time.time())}.srt")
-            write_srt(part, cues)                           # translated from here on, the rest still English
-            show(part, code)
-            shown = True
+        return True
+
+    def refresh(force=False):
+        """The partly translated subtitle on screen: at the start, and again every few parts, so you do not run into
+        English lines while the rest is still on its way."""
+        if not player.isPlayingVideo() or not (force or state["since"] >= REFRESH):
+            return
+        part = os.path.join(DIR, f"{media_key()}.{code}.part{int(time.time() * 1000)}.srt")
+        write_srt(part, cues)
+        show(part, code)
+        state["since"] = 0
+        if not state["shown"]:
+            state["shown"] = True
             notify(t("AI subtitle on - the rest follows in the background", "AI-ondertitel staat aan - de rest volgt op de achtergrond"))
-    done = sum(1 for c in cues if c.get("tr"))
+
+    # the part where you are first, alone, so the subtitle comes as quickly as possible; then the rest two at a time
+    if chunks and run(chunks[0]):
+        refresh(force=True)
+    rest = chunks[1:]
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        for ok in pool.map(run, rest):
+            if ok:
+                state["since"] += 1
+                refresh()
+    missing = [c for c in chunks if not all(cues[i].get("tr") is not None for i in c)]
+    if missing and not state["fatal"]:
+        log(f"{len(missing)} part(s) failed, one more try")
+        for chunk in missing:
+            run(chunk)
+    if state["fatal"]:
+        reason = {400: t("the request or model is not accepted", "het verzoek of model wordt niet geaccepteerd"),
+                  401: t("the key is not valid", "de sleutel klopt niet"), 402: t("no credit left", "geen tegoed meer"),
+                  403: t("the key is not allowed", "de sleutel mag dit niet"),
+                  404: t("model not found", "model niet gevonden")}.get(state["fatal"], f"HTTP {state['fatal']}")
+        notify(f"{name}: {reason}", 6000, xbmcgui.NOTIFICATION_WARNING)
+    if state["limit"] and not state["fatal"] and any(cues[i].get("tr") is None for c in chunks for i in c):
+        notify(f"{name}: " + t("limit reached, the rest stays English - try again later",
+                               "limiet bereikt, de rest blijft Engels - probeer het later"), 6000, xbmcgui.NOTIFICATION_WARNING)
+    shown = state["shown"]
+    done = sum(1 for c in cues if c.get("tr") is not None)
     if done == len(cues):
         write_srt(final, cues)
         for name in os.listdir(DIR):

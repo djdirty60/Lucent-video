@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.12" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.13" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -95,7 +95,8 @@
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.12: What's new lists every update again (rc1.7 to rc1.12 were missing).
+        <news>1.0.0~rc1.13: AI subtitles: the part where you are first, the rest two parts at a time and updated along the way; a busy service or a limit is waited for instead of stopping; context lines keep names and address the same; sound-only lines are left out.
+1.0.0~rc1.12: What's new lists every update again (rc1.7 to rc1.12 were missing).
 1.0.0~rc1.11: MDBList Next up looks further than the 40 series you watched last (many of those are finished), until it has 40 next episodes.
 1.0.0~rc1.10: MDBList: a long watch history is read to the end (every page), so Next up no longer misses series; the log says how many series were looked at.
 1.0.0~rc1.9: Opening a series where you left off: a short note says where it went and that Back shows all seasons; when finding the next episode takes long, the seasons screen simply stays (skin #37).
@@ -109,7 +110,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.12: Wat is er nieuw toont weer elke update (rc1.7 tot rc1.12 ontbraken).
+        <news lang="nl_NL">1.0.0~rc1.13: AI-ondertitels: eerst het stuk waar je kijkt, de rest twee delen tegelijk en tussendoor bijgewerkt; een drukke dienst of limiet wordt afgewacht in plaats van te stoppen; zinnen ervoor houden namen en je/u gelijk; regels met alleen een geluid worden weggelaten.
+1.0.0~rc1.12: Wat is er nieuw toont weer elke update (rc1.7 tot rc1.12 ontbraken).
 1.0.0~rc1.11: MDBList Volgende aflevering kijkt verder dan de 40 series die je het laatst keek (veel daarvan zijn af), tot er 40 volgende afleveringen zijn.
 1.0.0~rc1.10: MDBList: een lange kijkgeschiedenis wordt tot het eind gelezen (elke pagina), zodat Volgende aflevering geen series meer mist; de log zegt hoeveel series bekeken zijn.
 1.0.0~rc1.9: Een serie openen waar je was: een korte melding zegt waar hij heen ging en dat Terug alle seizoenen toont; duurt het zoeken van de volgende aflevering lang, dan blijft het seizoenenscherm gewoon staan.
