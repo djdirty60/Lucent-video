@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.13" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.14" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -92,9 +92,12 @@
         <summary lang="nl_NL">Films en series voor Lucent, met AIOStreams en Trakt</summary>
         <description lang="en_GB">Browse with TMDB, play through your own AIOStreams address and keep your progress on Trakt.</description>
         <description lang="nl_NL">Bladeren met TMDB, afspelen via je eigen AIOStreams-adres en je voortgang bijhouden op Trakt.</description>
+        <disclaimer lang="en_GB">This product uses the TMDB API but is not endorsed or certified by TMDB. Lucent uses Trakt but is not endorsed or certified by Trakt.</disclaimer>
+        <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.13: AI subtitles: the part where you are first, the rest two parts at a time and updated along the way; a busy service or a limit is waited for instead of stopping; context lines keep names and address the same; sound-only lines are left out.
+        <news>1.0.0~rc1.14: A built-in TMDB key: Lucent works right after installing, no key of your own needed (your own key still goes first). Saved NZBs are kept packed (about 4x smaller), so many more fit and the same NZB is not fetched from the indexer again.
+1.0.0~rc1.13: AI subtitles: the part where you are first, the rest two parts at a time and updated along the way; a busy service or a limit is waited for instead of stopping; context lines keep names and address the same; sound-only lines are left out.
 1.0.0~rc1.12: What's new lists every update again (rc1.7 to rc1.12 were missing).
 1.0.0~rc1.11: MDBList Next up looks further than the 40 series you watched last (many of those are finished), until it has 40 next episodes.
 1.0.0~rc1.10: MDBList: a long watch history is read to the end (every page), so Next up no longer misses series; the log says how many series were looked at.
@@ -109,7 +112,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.13: AI-ondertitels: eerst het stuk waar je kijkt, de rest twee delen tegelijk en tussendoor bijgewerkt; een drukke dienst of limiet wordt afgewacht in plaats van te stoppen; zinnen ervoor houden namen en je/u gelijk; regels met alleen een geluid worden weggelaten.
+        <news lang="nl_NL">1.0.0~rc1.14: Een ingebouwde TMDB-sleutel: Lucent werkt meteen na installeren, zonder eigen sleutel (je eigen sleutel gaat nog steeds voor). Opgeslagen NZB's worden ingepakt bewaard (ongeveer 4x kleiner), zodat er veel meer passen en dezelfde NZB niet opnieuw bij de indexer wordt opgehaald.
+1.0.0~rc1.13: AI-ondertitels: eerst het stuk waar je kijkt, de rest twee delen tegelijk en tussendoor bijgewerkt; een drukke dienst of limiet wordt afgewacht in plaats van te stoppen; zinnen ervoor houden namen en je/u gelijk; regels met alleen een geluid worden weggelaten.
 1.0.0~rc1.12: Wat is er nieuw toont weer elke update (rc1.7 tot rc1.12 ontbraken).
 1.0.0~rc1.11: MDBList Volgende aflevering kijkt verder dan de 40 series die je het laatst keek (veel daarvan zijn af), tot er 40 volgende afleveringen zijn.
 1.0.0~rc1.10: MDBList: een lange kijkgeschiedenis wordt tot het eind gelezen (elke pagina), zodat Volgende aflevering geen series meer mist; de log zegt hoeveel series bekeken zijn.

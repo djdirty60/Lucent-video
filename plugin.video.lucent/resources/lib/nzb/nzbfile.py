@@ -185,7 +185,14 @@ def _segments_careful(block):
 
 
 def parse(data):
-    """NZB bytes -> [Posted] in NZB order."""
+    """NZB bytes -> [Posted] in NZB order. Packed NZBs (gzip: how Lucent keeps them, and how some indexers send them)
+    are unpacked first."""
+    if isinstance(data, bytes) and data[:2] == b"\x1f\x8b":
+        import gzip
+        try:
+            data = gzip.decompress(data)
+        except (OSError, EOFError) as error:
+            raise NzbError("broken packed NZB (%s)" % error) from None
     fast = _fast(data) if isinstance(data, bytes) else None
     if fast:
         return _collect(fast)

@@ -274,6 +274,12 @@ def _saved_nzb(name):
 
 
 def _save_nzb(name, data):
+    """Kept packed (gzip): a Remux NZB of 15 MB becomes a few MB, so many more fit in the space for saved NZBs and the
+    same NZB is not fetched from the indexer again (before rc1.14 only about a dozen Remux NZBs fitted, and the
+    log showed 'the same NZB is fetched again within a day'). nzbfile.parse unpacks it."""
+    import gzip
+    if data[:2] != b"\x1f\x8b":
+        data = gzip.compress(data, 6)
     path = os.path.join(server.folder(), name)
     with open(path + ".tmp", "wb") as handle:
         handle.write(data)

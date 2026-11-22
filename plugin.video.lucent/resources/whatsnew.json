@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.14",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T15:30Z",
+   "items": [
+    [
+     "star",
+     "Werkt meteen, zonder eigen sleutel",
+     "Lucent heeft nu een eigen TMDB-sleutel ingebouwd. Na het installeren zie je dus meteen Films, Series en Zoeken, zonder eerst een sleutel aan te vragen. Heb je zelf een sleutel ingevuld, dan gebruikt Lucent die.",
+     "Works right away, no key of your own",
+     "Lucent now has its own TMDB key built in. After installing you see Movies, Shows and Search right away, without requesting a key first. If you filled in a key of your own, Lucent uses that one."
+    ],
+    [
+     "refresh",
+     "Minder NZB's opnieuw ophalen",
+     "Lucent bewaart opgehaalde NZB's nu ingepakt, ongeveer vier keer kleiner. Daardoor passen er veel meer in de ruimte die ervoor is, en hoeft Lucent dezelfde NZB niet opnieuw bij je indexer op te halen. Dat spaart je daglimiet, en indexers waarschuwen bij herhaald ophalen.",
+     "Fewer NZBs fetched again",
+     "Lucent now keeps fetched NZBs packed, about four times smaller. Many more fit in the space for them, so Lucent does not have to fetch the same NZB from your indexer again. That saves your daily limit, and indexers warn about repeated downloads."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.13",
    "label": "RC 1",
    "label_en": "RC 1",
