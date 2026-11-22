@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.17",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T16:45Z",
+   "items": [
+    [
+     "layout",
+     "Bronnenlijst weer in de goede volgorde",
+     "Mislukten de NZB's van een indexer hier vaak, dan zette Lucent al zijn releases onderaan, zelfs onder slechte releases. Daardoor stond een Dolby Vision-remux van Usenet halverwege de lijst. Nu zakt zo'n release alleen nog onder gelijke bronnen van elders, en een release die volledig gecontroleerd is, blijft gewoon staan.",
+     "Source list in the right order again",
+     "When the NZBs of an indexer often failed here, Lucent put all its releases at the bottom, even below poor releases. So a Dolby Vision remux from Usenet stood halfway down the list. Now such a release only drops below equal sources from elsewhere, and a release with a complete check stays where it is."
+    ],
+    [
+     "settings",
+     "TorBox: sleutel netjes overgenomen",
+     "Zat er bij het plakken van je TorBox-sleutel een onzichtbaar teken of een aanhalingsteken bij, dan laat Lucent dat nu weg. Geeft TorBox even een fout bij het controleren van je sleutel, dan probeert Lucent het nog één keer.",
+     "TorBox: key taken over cleanly",
+     "If an invisible character or a quote came along when you pasted your TorBox key, Lucent now leaves it out. If TorBox briefly fails to check your key, Lucent tries once more."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.16",
    "label": "RC 1",
    "label_en": "RC 1",

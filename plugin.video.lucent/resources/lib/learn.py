@@ -58,24 +58,30 @@ def adjust(sources):
     for source in sources:
         groups.setdefault(source.get("resolution"), len(groups))
 
+    weak = set()
+
     def bucket(source):
         value = score(key(source), data)
         place = 0 if value >= 2 else (2 if value <= -2 else 1)
         job = source.get("resolve") or {}
         if job.get("scraper") == "Usenet":
-            # from the Usenet statistics: an indexer whose NZBs often fail here, or a release known to miss articles
-            if rates.get(job.get("indexer")) is not None and rates[job["indexer"]] < WEAK_INDEXER:
-                place = min(2, place + 1)
             known = health.get(id(source))
             if known and known[0] < known[1] * GAPPY:
-                place = 2
+                place = 2                       # this release itself is known to miss articles
+            elif not known and rates.get(job.get("indexer")) is not None and rates[job["indexer"]] < WEAK_INDEXER:
+                weak.add(id(source))            # only its indexer often failed here: a small step down, see below
         return place
     places = {id(s): bucket(s) for s in sources}
     # failing releases go to the end of their resolution; good ones move up only within their own quality class
     # (same picture and source), so a release that played well never jumps over a better one from your profile
     order = {id(s): n for n, s in enumerate(sources)}
     kept = sorted(sources, key=lambda s: (groups[s.get("resolution")], places[id(s)] == 2, order[id(s)]))
-    return ranking.within_class(kept, lambda s: places[id(s)] == 0, apart=lambda s: places[id(s)] == 2)
+    kept = ranking.within_class(kept, lambda s: places[id(s)] == 0, apart=lambda s: places[id(s)] == 2)
+    if not weak:
+        return kept
+    # an indexer whose NZBs often failed here (taken down, locked) only loses from equal sources elsewhere: never a whole
+    # indexer under the rest of the list (before 1.0.0~rc1.17 all its releases went below even the red-flagged ones)
+    return ranking.within_class(kept, lambda s: id(s) not in weak, apart=lambda s: places[id(s)] == 2)
 
 
 WEAK_INDEXER = 0.80     # an indexer whose NZBs played less often than this (at least 5 times) moves its releases down

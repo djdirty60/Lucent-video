@@ -177,7 +177,16 @@ def check_easynews():
 
 # ------------------------------------------------------------------------ TorBox
 def _tb_key():
-    return util.setting("torbox_key")
+    """The key without anything that cannot be part of it (an invisible character or quotes from pasting)."""
+    return re.sub(r"[^0-9A-Za-z_\-]", "", util.setting("torbox_key"))
+
+
+def tb_key_shape():
+    """'36 characters, the usual form' - what the key looks like, never the key itself (for the log)."""
+    raw, key = util.setting("torbox_key"), _tb_key()
+    form = "the usual form" if re.fullmatch(r"[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}", key) else "not the usual form"
+    removed = len(raw) - len(key)
+    return "%d characters, %s%s" % (len(key), form, ", %d other character(s) left out" % removed if removed else "")
 
 
 def _tb_head():
@@ -207,7 +216,8 @@ def _tb_search(kind, meta):
         try:
             answer, _ = util.http(url, headers=_tb_head(), timeout=25)
         except util.HttpError as error:
-            util.log("TorBox %s search: %s after %.1f s" % (kind, tb_reason(error), time.time() - started))
+            hint = " (the name search-api.torbox.app could not be looked up: DNS)" if str(error) == "HTTP gaierror" else ""
+            util.log("TorBox %s search: %s after %.1f s%s" % (kind, tb_reason(error), time.time() - started, hint))
             return None
         if not isinstance(answer, dict) or not isinstance(answer.get("data") or {}, dict):
             util.log("TorBox %s search: unexpected answer (%s)" % (kind, _shape(answer)))

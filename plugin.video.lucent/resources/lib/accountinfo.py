@@ -124,12 +124,18 @@ def easynews():
 def torbox():
     if not util.setting("torbox_key"):
         return [T("Vul eerst je API-sleutel in.", "Enter your API key first.")]
+    import time
     import usenet
-    try:
-        answer, _ = util.http(usenet.TB_API + "/user/me", headers=usenet._tb_head())
-    except util.HttpError as error:
-        util.log("TorBox account: %s" % usenet.tb_reason(error))
-        return [T("Geen verbinding: %s", "No connection: %s") % usenet.tb_reason(error)]
+    for attempt in (1, 2):
+        try:
+            answer, _ = util.http(usenet.TB_API + "/user/me", headers=usenet._tb_head())
+            break
+        except util.HttpError as error:
+            util.log("TorBox account: %s; key: %s" % (usenet.tb_reason(error), usenet.tb_key_shape()))
+            if attempt == 1 and "AUTH_ERROR" in usenet.tb_reason(error):
+                time.sleep(2)                   # TorBox: 'an error occurred while verifying your token, please try again'
+                continue
+            return [T("Geen verbinding: %s", "No connection: %s") % usenet.tb_reason(error)]
     data = answer.get("data") if isinstance(answer, dict) else None
     if not isinstance(data, dict):
         util.log("TorBox account: unexpected answer (%s)" % usenet._shape(answer))

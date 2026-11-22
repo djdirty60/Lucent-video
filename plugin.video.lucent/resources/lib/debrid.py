@@ -28,7 +28,8 @@ CHECKED = ("torbox", "premiumize")
 
 
 def key(service):
-    return util.setting(dict((s, k) for s, _n, k in SERVICES)[service]).strip()
+    value = util.setting(dict((s, k) for s, _n, k in SERVICES)[service]).strip()
+    return re.sub(r"[^0-9A-Za-z_\-]", "", value) if service == "torbox" else value
 
 
 def label(service):
