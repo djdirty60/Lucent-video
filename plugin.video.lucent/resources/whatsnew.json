@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.25",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T18:40Z",
+   "items": [
+    [
+     "refresh",
+     "Voorvertoning bij Easynews verbeterd",
+     "De voorvertoning van een Easynews-bron gaf een fout. Lucent vraagt het plaatje nu op twee manieren op.",
+     "Easynews preview improved",
+     "The preview of an Easynews source gave an error. Lucent now asks for the picture in two ways."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.24",
    "label": "RC 1",
    "label_en": "RC 1",

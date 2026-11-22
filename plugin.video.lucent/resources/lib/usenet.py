@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 import base64
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
@@ -208,7 +209,7 @@ def _en_preview(answer, raw):
     key, stem = str(raw.get("0") or raw.get("hash") or ""), str(raw.get("10") or raw.get("fn") or "")
     if not base or len(key) < 3 or not stem:
         return ""
-    return "%s%s/pr-%s.jpg/th-%s.jpg" % (base, key[:3], key, urllib.parse.quote(stem))
+    return "%s%s/pr-%s.jpg/th-%s.jpg" % (base, key[:3], key, urllib.parse.quote(stem, safe="()[]&+,'!"))
 
 
 def preview_file(url):
@@ -222,9 +223,23 @@ def preview_file(url):
         except OSError:
             pass
     path = os.path.join(folder, "%d.jpg" % int(time.time() * 1000))
-    request = urllib.request.Request(url, headers={"Authorization": _en_header(), "User-Agent": AGENT})
-    with urllib.request.urlopen(request, timeout=15) as response:
-        data = response.read(8 * 1048576)
+    data, tried = b"", []
+    # the pictures are public for players such as Stremio (no login); with the login as a second try
+    for head in ({"User-Agent": "Mozilla/5.0"}, {"Authorization": _en_header(), "User-Agent": AGENT}):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=head), timeout=15) as response:
+                data = response.read(8 * 1048576)
+                tried.append("%s %d bytes %s" % (response.status, len(data), response.headers.get("Content-Type") or "?"))
+        except urllib.error.HTTPError as error:
+            tried.append("HTTP %s" % error.code)
+            continue
+        except OSError as error:
+            tried.append(type(error).__name__)
+            continue
+        if len(data) >= 500:
+            break
+    host = urllib.parse.urlsplit(url).hostname or "?"
+    util.log("preview from %s: %s" % (host, "; ".join(tried)))      # never the address: it holds the file name only, but keep it short
     if len(data) < 500:
         raise ValueError("no picture")
     with open(path, "wb") as handle:
