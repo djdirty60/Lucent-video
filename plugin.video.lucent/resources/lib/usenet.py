@@ -313,39 +313,51 @@ def _with_login(base):
     return "%s://%s:%s@%s%s" % (parts.scheme, urllib.parse.quote(user, safe=""), urllib.parse.quote(password, safe=""), parts.netloc, parts.path)
 
 
+EN_SPEED_SIZE = 64 * 1048576           # at most this much is read for the measurement (6 s at most)
+EN_SPEED_V = 2                          # rc1.33: measured after the first byte, with up to 64 MB (was 4 MB from the start)
+
+
 def _en_speed(base, sample_path, port=""):
-    """Bytes per second this box gets from Easynews, measured once a week with the first 4 MB of one result (one
-    connection, as Kodi plays it). 0 when unknown."""
+    """Bytes per second this box gets from Easynews, measured once a week with one result (one connection, as Kodi
+    plays it): the clock starts at the first byte, so signing in and the redirect do not count, and up to 64 MB or
+    6 seconds are read. (Before rc1.33 only 4 MB was read with the clock running from the start: '4.0 MB in 0.6 s',
+    6.9 MB/s, while Easynews' own test gave about 39 MB/s.) 0 when unknown."""
     saved = util.load_json(EN_SPEED, {})
-    same = str(saved.get("port", port)) == str(port)        # another port: measured again at once
+    same = str(saved.get("port", port)) == str(port) and saved.get("v") == EN_SPEED_V     # another port: measured again
     if saved.get("rate") and same and time.time() - saved.get("at", 0) < EN_SPEED_DAYS * 86400:
         return saved["rate"]
     if not sample_path:
         return saved.get("rate") or 0
     url, _, extra = ("%s/%s" % (base, sample_path)).partition("|")
     parts = urllib.parse.urlsplit(url)
-    head = {"User-Agent": AGENT, "Range": "bytes=0-4194303", "Authorization": _en_header()}
+    head = {"User-Agent": AGENT, "Range": "bytes=0-%d" % (EN_SPEED_SIZE - 1), "Authorization": _en_header()}
     clean = urllib.parse.urlunsplit((parts.scheme, parts.netloc.rsplit("@", 1)[-1], parts.path, parts.query, ""))
-    started, got = time.time(), 0
+    asked, started, got = time.time(), None, 0
     try:
         with urllib.request.urlopen(urllib.request.Request(clean, headers=head), timeout=8) as response:
-            while time.time() - started < 6:
+            while True:
                 block = response.read(262144)
                 if not block:
                     break
-                got += len(block)
+                if started is None:
+                    started = time.time()       # the first data is in: from here the speed of the file itself
+                else:
+                    got += len(block)
+                if time.time() - started >= 6:
+                    break
     except OSError as error:
         util.log("Easynews speed: not measured (%s)" % type(error).__name__)
         return saved.get("rate") or 0
-    seconds = time.time() - started
-    if got < 1048576 or seconds <= 0:
+    seconds = time.time() - (started or asked)
+    if got < 4 * 1048576 or seconds <= 0.2:
+        util.log("Easynews speed: too little to measure (%.1f MB)" % (got / 1048576))
         return saved.get("rate") or 0
     rate = got / seconds
-    util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time(), port=port))
-    util.log("Easynews speed: %.1f MB/s (%.1f MB in %.1f s, port %s%s)" % (rate / 1048576, got / 1048576, seconds, port or "?",
-                                                                           ", your own" if port_choice() else ""))
+    util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time(), port=port, v=EN_SPEED_V))
+    util.log("Easynews speed: %.1f MB/s (%.1f MB in %.1f s after the first byte, which took %.1f s; port %s%s)" % (
+        rate / 1048576, got / 1048576, seconds, started - asked, port or "?", ", your own" if port_choice() else ""))
     if rate < EN_SLOW and time.time() - saved.get("tipped", 0) > 30 * 86400:
-        util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time(), port=port, tipped=time.time()))
+        util.save_json(EN_SPEED, dict(saved, rate=rate, at=time.time(), port=port, v=EN_SPEED_V, tipped=time.time()))
         util.notify(T("Easynews: %.1f MB/s. Een snellere server kiezen? Zie Accountinformatie.",
                       "Easynews: %.1f MB/s. Choose a faster server? See Account information.") % (rate / 1048576))
     return rate

@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.33",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T21:35Z",
+   "items": [
+    [
+     "refresh",
+     "Easynews-snelheid klopt nu",
+     "Lucent mat de snelheid van Easynews veel te laag: maar 4 MB, en de tijd van het inloggen telde mee. Daardoor stond er 6,9 MB/s terwijl je veel sneller bent. Nu leest Lucent tot 64 MB en begint de klok pas bij de eerste data. De meting wordt meteen opnieuw gedaan, en de melding 'mogelijk te zwaar' klopt weer.",
+     "Easynews speed is right now",
+     "Lucent measured Easynews far too low: only 4 MB, with the sign-in time counted. It showed 6.9 MB/s while you are much faster. Now Lucent reads up to 64 MB and the clock starts at the first data. It is measured again at once, and 'may be too heavy' is right again."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.32",
    "label": "RC 1",
    "label_en": "RC 1",
