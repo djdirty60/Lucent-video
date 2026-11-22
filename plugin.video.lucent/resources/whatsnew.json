@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.18",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T16:40Z",
+   "items": [
+    [
+     "refresh",
+     "TorBox: geen rood kruis meer",
+     "TorBox is gestopt met zijn eigen zoekdienst. Daardoor stond TorBox bij het zoeken steeds met een rood kruis. Lucent zoekt daar nu niet meer. Je TorBox-account blijft gewoon werken voor torrents van AIOStreams en CocoScrapers.",
+     "TorBox: no more red cross",
+     "TorBox stopped its own search service, so TorBox kept showing a red cross when searching. Lucent no longer searches there. Your TorBox account still works for torrents from AIOStreams and CocoScrapers."
+    ],
+    [
+     "play",
+     "Geen verrassingen meer bij TorBox",
+     "TorBox kan een waarschuwing (strike) geven als je een release laat downloaden die ze nog niet hebben. Lucent start zo'n release daarom nooit meer vanzelf. Kies je er zelf een, dan vraagt Lucent eerst of je door wilt gaan. Releases die TorBox al heeft, spelen gewoon zoals altijd.",
+     "No more surprises with TorBox",
+     "TorBox can give a warning (strike) when you have it download a release it does not have yet. So Lucent never starts such a release on its own any more. When you pick one yourself, Lucent first asks whether you want to go on. Releases TorBox already has play as always."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.17",
    "label": "RC 1",
    "label_en": "RC 1",

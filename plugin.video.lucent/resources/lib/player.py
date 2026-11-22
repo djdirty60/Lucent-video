@@ -263,9 +263,33 @@ def same_release_first(meta, sources):
     return sorted(sources, key=lambda s: 0 if (ranking.release_group(s) or "").lower() == last["group"] and s["resolution"] == last["res"] else 1)
 
 
+def torbox_uncached(source):
+    """A release TorBox does not have yet: playing it makes TorBox download it for your account, and TorBox can give a
+    copyright strike for such requests (November 2026). Never started on its own; only after you said yes."""
+    if source.get("cached") is not False:
+        return False
+    service = str(source.get("service") or "").upper()
+    return "TORBOX" in service or (source.get("resolve") or {}).get("service") == "torbox"
+
+
+def ask_torbox_uncached():
+    return xbmcgui.Dialog().yesno("TorBox", util.T(
+        "Deze release staat nog niet bij TorBox. TorBox moet hem eerst zelf downloaden, en dat kan een waarschuwing "
+        "(strike) van TorBox opleveren. Toch doorgaan?",
+        "TorBox does not have this release yet. TorBox has to download it first, and that can give you a warning "
+        "(strike) from TorBox. Go on anyway?"))
+
+
+def _usable(sources):
+    """What may start without asking: cached first (or everything with 'include uncached' on, or when nothing is
+    cached), but never a release TorBox would have to download."""
+    usable = sources if util.flag("include_uncached") or not any(s["cached"] for s in sources) else [s for s in sources if s["cached"]]
+    return [s for s in usable if not torbox_uncached(s)]
+
+
 def would_play(meta, sources):
     """The source play() would start on its own for these sources (the first of the same order), or None."""
-    usable = sources if util.flag("include_uncached") or not any(s["cached"] for s in sources) else [s for s in sources if s["cached"]]
+    usable = _usable(sources)
     usable = [s for s in usable if not cannot_play(s)] or usable
     order = same_release_first(meta, usable)
     return order[0] if order else None
@@ -430,12 +454,12 @@ def play(params, handle):
             if missing:
                 _fail(handle)
                 return _no_finder(missing)
-            return _fail(handle, util.T("Stel eerst een scraper in, zoals AIOStreams, Easynews of TorBox", "Set up a scraper first, such as AIOStreams, Easynews or TorBox"))
+            return _fail(handle, util.T("Stel eerst een scraper in, zoals AIOStreams, Easynews of Usenet", "Set up a scraper first, such as AIOStreams, Easynews or Usenet"))
         return _fail(handle, sources)
     if not sources:
         return _fail(handle, util.T("Geen bronnen over. Kijk naar je filters of probeer een ander profiel.", "No sources left. Check your filters or try another profile."))
 
-    usable = sources if util.flag("include_uncached") or not any(s["cached"] for s in sources) else [s for s in sources if s["cached"]]
+    usable = _usable(sources)
     for source in sources:
         source["cannot"] = cannot_play(source)
     usable = [s for s in usable if not s["cannot"]] or usable
@@ -446,9 +470,14 @@ def play(params, handle):
         if chosen["cannot"] and not xbmcgui.Dialog().yesno("Lucent", util.T("Dit apparaat kan deze bron volgens je instelling niet goed afspelen. Toch proberen?",
                                                                             "This device may not play this source properly, according to your setting. Try anyway?")):
             return _fail(handle)
+        if torbox_uncached(chosen) and not ask_torbox_uncached():
+            return _fail(handle)
         order = [chosen] + [s for s in usable if s is not chosen]
     else:
         order = same_release_first(meta, usable)
+        if not order:
+            return _fail(handle, util.T("Alleen releases die TorBox nog moet downloaden. Kies er zelf een via 'Bron kiezen'.",
+                                        "Only releases TorBox still has to download. Pick one yourself with 'Choose source'."))
     # from the library Kodi itself asks about resuming (asking again would be a second pop-up), unless the skin started
     # it with 'noresume' and asked us to show our own resume screen instead
     library_kodi_asked = params.get("lib") == "1" and not skin_asks
