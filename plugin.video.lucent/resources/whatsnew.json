@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.36",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T22:35Z",
+   "items": [
+    [
+     "star",
+     "FEL-badge klopt nu met CoreELEC",
+     "Lucent leest FEL of MEL nu uit de Dolby Vision-gegevens in het bestand zelf, precies zoals CoreELEC dat doet. Eerst keek Lucent naar de grootte van de extra laag, en daardoor kreeg bijvoorbeeld The Last of Us S02E01 MULTi VFi een FEL-badge terwijl het MEL is.",
+     "FEL badge now agrees with CoreELEC",
+     "Lucent now reads FEL or MEL from the Dolby Vision metadata in the file itself, just as CoreELEC does. Before, it looked at the size of the enhancement layer, so for example The Last of Us S02E01 MULTi VFi got a FEL badge while it is MEL."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.35",
    "label": "RC 1",
    "label_en": "RC 1",

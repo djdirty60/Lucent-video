@@ -435,7 +435,7 @@ DOLBY_BYTES = 12 * 1024 * 1024          # FEL or MEL: the first frames, when the
 TRACKS_BYTES = 3 * 1024 * 1024          # the track list of an MKV is in its first few hundred KB; 3 MB to be safe
 
 
-FILE_FORMAT = 2                         # what a saved file check holds; older ones are read once more
+FILE_FORMAT = 3                         # what a saved file check holds; older ones are read once more (3: FEL/MEL from the RPU)
 
 
 def tracks_known(job):

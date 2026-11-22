@@ -76,6 +76,140 @@ def _video(fields, data):
     return number, nal_size, profile
 
 
+class _Bits:
+    """Reads bits, Exp-Golomb numbers and signed Exp-Golomb numbers from a byte string (MSB first)."""
+
+    def __init__(self, data):
+        self.data, self.at = data, 0
+
+    def bits(self, count):
+        value = 0
+        for _ in range(count):
+            byte = self.data[self.at >> 3]
+            value = (value << 1) | ((byte >> (7 - (self.at & 7))) & 1)
+            self.at += 1
+        return value
+
+    def ue(self):
+        zeros = 0
+        while not self.bits(1):
+            zeros += 1
+            if zeros > 31:
+                raise ValueError("bad Exp-Golomb number")
+        return (1 << zeros) - 1 + self.bits(zeros)
+
+    def se(self):
+        value = self.ue()
+        return (value + 1) // 2 if value & 1 else -(value // 2)
+
+
+def _unescape(payload):
+    """Removes the start code emulation prevention bytes (00 00 03 -> 00 00)."""
+    out, zeros = bytearray(), 0
+    for byte in payload:
+        if zeros >= 2 and byte == 3:
+            zeros = 0
+            continue
+        out.append(byte)
+        zeros = zeros + 1 if byte == 0 else 0
+    return bytes(out)
+
+
+def rpu_layer(nal):
+    """'fel', 'mel' or '' from one Dolby Vision RPU (HEVC NAL type 62), the way the Dolby specification, dovi_tool and
+    CoreELEC tell them apart: MEL when the non-linear quantization (NLQ) of all three components is a no-op (offset 0,
+    vdr_in_max 1, dead zone 0), FEL otherwise. '' for an RPU that refers to an earlier one or is not profile 7."""
+    data = nal
+    if data[:2] == b"\x7c\x01":
+        data = data[2:]
+    data = _unescape(data)
+    if not data or data[0] != 25:                   # rpu_nal_prefix
+        return ""
+    r = _Bits(data[1:])
+    if r.bits(6) != 2:                              # rpu_type
+        return ""
+    rpu_format = r.bits(11)
+    r.bits(4)                                       # vdr_rpu_profile
+    r.bits(4)                                       # vdr_rpu_level
+    if not r.bits(1):                               # vdr_seq_info_present_flag
+        return ""
+    r.bits(1)                                       # chroma_resampling_explicit_filter_flag
+    data_type = r.bits(2)                           # coefficient_data_type
+    denom = r.ue() if data_type == 0 else 32        # coefficient_log2_denom
+    r.bits(2)                                       # vdr_rpu_normalized_idc
+    r.bits(1)                                       # bl_video_full_range_flag
+    if rpu_format & 0x700:
+        return ""
+    bl_depth = r.ue() + 8
+    el_depth = (r.ue() & 0xFF) + 8
+    r.ue()                                          # vdr_bit_depth_minus8
+    r.bits(1)                                       # spatial_resampling_filter_flag
+    r.bits(3)                                       # reserved_zero_3bits
+    r.bits(1)                                       # el_spatial_resampling_filter_flag
+    no_residual = r.bits(1)                         # disable_residual_flag
+    r.bits(1)                                       # vdr_dm_metadata_present_flag
+    if r.bits(1):                                   # use_prev_vdr_rpu_flag: the mapping is in an earlier RPU
+        return ""
+    if no_residual:
+        return ""                                   # no enhancement layer residual at all: not profile 7 FEL/MEL
+    r.ue()                                          # vdr_rpu_id
+    r.ue()                                          # mapping_color_space
+    r.ue()                                          # mapping_chroma_format_idc
+    pieces = []
+    for _cmp in range(3):
+        pivots = r.ue() + 2
+        if pivots > 9:
+            return ""
+        for _ in range(pivots):
+            r.bits(bl_depth)
+        pieces.append(pivots - 1)
+    nlq_method = r.bits(3)
+    if nlq_method != 0:
+        return ""
+    r.bits(bl_depth)
+    r.bits(bl_depth)                                # nlq_pred_pivot_value (2)
+    r.ue()                                          # num_x_partitions_minus1
+    r.ue()                                          # num_y_partitions_minus1
+    for count in pieces:
+        for _ in range(count):
+            method = r.ue()
+            if method == 0:                         # polynomial
+                order = r.ue()
+                if order > 1:
+                    return ""
+                if order == 0 and r.bits(1):        # linear_interp_flag: not seen in practice
+                    return ""
+                for _j in range(order + 2):
+                    if data_type == 0:
+                        r.se()
+                    r.bits(denom)
+            elif method == 1:                       # MMR
+                order = r.bits(2)
+                if order > 2:
+                    return ""
+                if data_type == 0:
+                    r.se()
+                r.bits(denom)
+                for _j in range((order + 1) * 7):
+                    if data_type == 0:
+                        r.se()
+                    r.bits(denom)
+            else:
+                return ""
+    mel = True
+    for _cmp in range(3):
+        offset = r.bits(el_depth)
+        in_max_int = r.ue() if data_type == 0 else 1
+        in_max = r.bits(denom)
+        slope_int = r.ue() if data_type == 0 else 0
+        slope = r.bits(denom)
+        threshold_int = r.ue() if data_type == 0 else 0
+        threshold = r.bits(denom)
+        if offset or in_max_int != 1 or in_max or slope_int or slope or threshold_int or threshold:
+            mel = False
+    return "mel" if mel else "fel"
+
+
 def _frames(data, start, end, number, nal_size, share):
     """Adds the bytes of the enhancement layer (NAL type 63) and of the rest of the video, frame by frame."""
     for ident, bstart, bend, bstop in _children(data, start, end):
@@ -95,8 +229,11 @@ def _frames(data, start, end, number, nal_size, share):
             at += nal_size
             if length <= 0 or at + length > bend:
                 break
-            key = "el" if (data[at] >> 1) & 0x3F == 63 else "bl"
+            kind = (data[at] >> 1) & 0x3F
+            key = "el" if kind == 63 else "bl"
             share[key] += length
+            if kind == 62 and len(share.setdefault("rpu", [])) < 8:
+                share["rpu"].append(bytes(data[at:at + length]))     # the Dolby Vision metadata of this frame
             at += length
         share["frames"] += 1
 
@@ -112,6 +249,17 @@ def dolby(data, number, nal_size, start):
                 break
     except (ValueError, IndexError):
         pass
+    # what the Dolby Vision metadata itself says, as CoreELEC reads it (rc1.36: the size of the enhancement layer called
+    # a MEL release 'FEL': The Last of Us S02E01 MULTi VFi REMUX, CoreELEC played it as 'minimum enhancement layer')
+    said = set()
+    for nal in share.get("rpu") or []:
+        try:
+            said.add(rpu_layer(nal))
+        except (ValueError, IndexError):
+            continue
+    said.discard("")
+    if said:
+        return "fel" if "fel" in said else "mel"
     total = share["el"] + share["bl"]
     if share["frames"] < FRAMES_NEEDED or not total:
         return ""
