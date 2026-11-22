@@ -2,6 +2,137 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.12",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T12:20Z",
+   "items": [
+    [
+     "info",
+     "Wat is er nieuw is weer bij",
+     "De updates van Lucent Video na RC 1.5 stonden niet in dit scherm. Ze staan er nu allemaal in.",
+     "What's new is up to date again",
+     "The Lucent Video updates after RC 1.5 were missing from this screen. They are all here now."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~rc1.11",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T12:04Z",
+   "items": [
+    [
+     "trakt",
+     "MDBList: meer volgende afleveringen",
+     "Volgende aflevering keek alleen naar de 40 series die je het laatst keek, en veel daarvan heb je al uitgekeken. Lucent kijkt nu verder terug, tot er 40 volgende afleveringen zijn. De eerste keer duurt dat iets langer, daarna gaat het snel.",
+     "MDBList: more next episodes",
+     "Next up only looked at the 40 series you watched last, and many of those you have finished. Lucent now looks further back until it has 40 next episodes. The first time takes a little longer, after that it is quick."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~rc1.10",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T10:40Z",
+   "items": [
+    [
+     "trakt",
+     "MDBList: je hele kijkgeschiedenis",
+     "Een lange kijkgeschiedenis bij MDBList werd maar voor een deel gelezen, waardoor series ontbraken bij Volgende aflevering. Lucent leest hem nu tot het eind.",
+     "MDBList: your whole watch history",
+     "A long watch history at MDBList was only partly read, so series were missing from Next up. Lucent now reads it to the end."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~rc1.9",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-21",
+   "at": "2026-11-21T17:41Z",
+   "items": [
+    [
+     "resume",
+     "Serie openen waar je was: met melding",
+     "Opent Lucent een serie meteen bij je volgende aflevering, dan zie je nu kort waar hij heen ging en dat Terug alle seizoenen toont. Duurt het zoeken van die aflevering lang, dan blijft het seizoenenscherm gewoon staan, zodat hij niet springt terwijl je zelf al kiest.",
+     "Opening a series where you left off: with a note",
+     "When Lucent opens a series straight at your next episode, a short note now says where it went and that Back shows all seasons. When finding that episode takes long, the seasons screen simply stays, so it never jumps while you are already choosing."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~rc1.8",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-21",
+   "at": "2026-11-21T13:15Z",
+   "items": [
+    [
+     "layout",
+     "Grootte telt op zijn plek",
+     "In je rangschikking telde Grootte alleen helemaal aan het eind. Nu telt hij op de plek die je hem geeft: bovenaan betekent het grootste bestand eerst.",
+     "Size counts at its place",
+     "In your ranking, Size only counted at the very end. Now it counts at the place you give it: at the top means the largest file first."
+    ],
+    [
+     "play",
+     "Een release zelf laten controleren",
+     "Druk in de bronnenlijst op de menuknop op een Usenet-release en kies Deze release nu controleren. Lucent haalt zo nodig de NZB op en controleert alle stukjes opnieuw.",
+     "Check a release yourself",
+     "In the source list, press the menu button on a Usenet release and choose Check this release now. Lucent fetches the NZB when needed and checks every piece again."
+    ],
+    [
+     "settings",
+     "TorBox: duidelijke foutmeldingen",
+     "Gaat er iets mis met TorBox, dan tonen Accountinformatie en de log nu de reden die TorBox zelf geeft.",
+     "TorBox: clear error messages",
+     "When something goes wrong with TorBox, Account information and the log now show the reason TorBox itself gives."
+    ]
+   ]
+  },
+  {
+   "v": "1.0.0~rc1.7",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-19",
+   "at": "2026-11-19T22:55Z",
+   "items": [
+    [
+     "layout",
+     "Bronnen volgen je rangschikking",
+     "De eerste groep in je rangschikking beslist, daarna de volgende. Geleerde keuzes en Ondertitels eerst verschuiven alleen nog releases die daar gelijk staan.",
+     "Sources follow your ranking",
+     "The first group in your ranking decides, then the next. Learned choices and Subtitles first only move releases that are equal there."
+    ],
+    [
+     "refresh",
+     "Weggehaalde releases meteen zichtbaar",
+     "Is een Usenet-release weggehaald, dan staat er meteen in rood weg onder de naam, zonder lang wachten op de controle.",
+     "Taken-down releases shown at once",
+     "When a Usenet release was taken down, the list shows gone in red under its name at once, without a long wait for the check."
+    ],
+    [
+     "star",
+     "Lucent Video Check: snellere controle",
+     "De nieuwe add-on Lucent Video Check controleert alle stukjes van een Usenet-release veel sneller. Hij komt vanzelf mee met de Lucent Video VFS.",
+     "Lucent Video Check: faster checks",
+     "The new add-on Lucent Video Check checks every piece of a Usenet release much faster. It comes with the Lucent Video VFS by itself."
+    ],
+    [
+     "trakt",
+     "MDBList: gedropte series weg",
+     "Series die je bij MDBList hebt gedropt, staan niet meer bij Volgende aflevering.",
+     "MDBList: dropped series left out",
+     "Series you dropped at MDBList no longer show up in Next up."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.5",
    "label": "RC 1",
    "label_en": "RC 1",
