@@ -136,11 +136,11 @@ EN_PAGES = 3                            # 3.0 pages (100 results each) asked at 
 EN_EMPTY_WAIT = 0.5                     # an empty answer means 'too many searches at once': wait this long, then once again
 
 
-def _en_ask(url):
+def _en_ask(url, timeout=12):
     """One Easynews search page; an empty answer (Easynews' way of saying 'too many at once') is asked once more."""
     head = {"Authorization": _en_header(), "User-Agent": AGENT, "Accept": "application/json, text/javascript, */*; q=0.9"}
     for attempt in (1, 2):
-        answer, _ = util.http(url, headers=head, timeout=25)
+        answer, _ = util.http(url, headers=head, timeout=timeout)     # short: 2.0 must still fit in the search time
         if isinstance(answer, dict):
             return answer
         if attempt == 1:
@@ -148,30 +148,15 @@ def _en_ask(url):
     raise util.HttpError("empty answer")
 
 
-EN_NO_SPAM = "easynews_nospam.json"   # {"at": time}: 3.0 refused the spam filter, asked without it for a day
-
-
 def _en_search3(query, most=EN_PAGES, kind="VIDEO"):
     """Easynews 3.0 (/3.0/api/search): 100 results a page and up to 10 searches at once, so the first pages are asked
-    together. The answer is shaped like 2.0's (data, downURL, dlFarm, dlPort), with named fields per file. With
-    Easynews' own spam filter (spamf=1: leaves out mass reposted junk); refused, it is asked without it for a day."""
-    spam = time.time() - util.load_json(EN_NO_SPAM, {}).get("at", 0) > 86400
-
+    together. The answer is shaped like 2.0's (data, downURL, dlFarm, dlPort), with named fields per file. (No spam
+    filter: in rc1.29 every search with spamf=1 hung until the time-out.)"""
     def url(page):
         # pictures with Easynews' safe filter on: a person's name can bring up anything in the picture groups
         params = [("gps", query), ("pno", page), ("u", 1), ("safeO", 1 if kind == "IMAGE" else 0), ("s1", "relevance"), ("s1d", "-"), ("fty[]", kind)]
-        if spam:
-            params.append(("spamf", 1))
         return EASYNEWS + "/3.0/api/search?" + urllib.parse.urlencode(params)
-    try:
-        first = _en_ask(url(1))
-    except util.HttpError as error:
-        if not spam or getattr(error, "status", 0) not in (400, 422):
-            raise
-        util.log("Easynews 3.0: the spam filter was refused (%s), asked without it" % error)
-        util.save_json(EN_NO_SPAM, {"at": time.time()})
-        spam = False
-        first = _en_ask(url(1))
+    first = _en_ask(url(1))
     pages = min(most, int(first.get("numPages") or 1))
     rows, seen = [], set()
 
@@ -199,7 +184,7 @@ def _en_try(url):
 
 def _en_search2(query):
     params = {"gps": query, "pno": 1, "pby": 250, "u": 1, "safeO": 0, "s1": "relevance", "s1d": "-", "fty[]": "VIDEO", "fly": 2, "sb": 1, "st": "basic", "chxu": 1, "chxgx": 1, "vv": 1,
-              "spamf": 1}
+              }
     return _en_ask(EASYNEWS + "/2.0/search/solr-search/?" + urllib.parse.urlencode(params))
 
 
@@ -587,11 +572,18 @@ def easynews_account():
     """(user, plan, expires, status, used, left, loyalty) from Easynews' own account pages, the way Fen and Umbrella
     read them (Easynews has no account API). Empty strings for what could not be read."""
     import urllib.request as request
-    def page(url):
+    def page(url, marker):
         with request.urlopen(request.Request(url, headers={"Authorization": _en_header(), "User-Agent": "Mozilla/5.0"}), timeout=15) as answer:
-            return answer.read(500000).decode("utf-8", "replace")
-    info = _cells(page("https://account.easynews.com/editinfo.php"), 'id="accountForm"')[0:11][1::3]
-    usage = _cells(page("https://account.easynews.com/usageview.php"), 'class="table-responsive"')[0:11][1::3]
+            html = answer.read(500000).decode("utf-8", "replace")
+            where = urllib.parse.urlsplit(answer.geturl())
+        cells = _cells(html, marker)
+        # what came back (never a value): to see whether Easynews sent its login page or changed its layout
+        util.log("Easynews account page %s: HTTP %s from %s%s, %d KB, marker %s, %d cell(s)" % (
+            url.rsplit("/", 1)[-1], answer.status, where.hostname, where.path, len(html) // 1024,
+            "found" if marker in html else "missing", len(cells)))
+        return cells
+    info = page("https://account.easynews.com/editinfo.php", 'id="accountForm"')[0:11][1::3]
+    usage = page("https://account.easynews.com/usageview.php", 'class="table-responsive"')[0:11][1::3]
     info += [""] * (4 - len(info))
     usage += [""] * (3 - len(usage))
     return info[0], info[1], info[2], info[3], usage[0].replace("Gigs", "GB"), usage[1].replace("Gigs", "GB"), usage[2].replace("Gigs", "GB")
