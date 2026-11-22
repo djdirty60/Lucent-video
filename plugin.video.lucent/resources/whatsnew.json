@@ -2,6 +2,43 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.20",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T18:00Z",
+   "items": [
+    [
+     "subtitles",
+     "Meer ondertitels, zonder account",
+     "Lucent zoekt nu ook bij Podnapisi. Dat werkt meteen, zonder account of sleutel, en vindt vaak ook Nederlandse ondertitels.",
+     "More subtitles, no account",
+     "Lucent now also searches Podnapisi. It works at once, without an account or key."
+    ],
+    [
+     "play",
+     "Geen pauze meer voor een ondertitel",
+     "Lucent zoekt de ondertitel al terwijl de film laadt. Zodra het beeld start staat hij aan, en de film wordt niet meer gepauzeerd om te zoeken.",
+     "No more pause for a subtitle",
+     "Lucent looks for the subtitle while the film loads. It is on as soon as the picture starts, and the film is no longer paused for a search."
+    ],
+    [
+     "subtitles",
+     "Niets in je taal? Jij kiest",
+     "Is er geen ondertitel in je taal, dan vraagt Lucent kort: Engels, AI-vertaling of niets. Of je legt het vast bij Instellingen > Ondertitels.",
+     "Nothing in your language? You choose",
+     "When there is no subtitle in your language, Lucent asks briefly: English, AI translation or nothing. Or set it once under Settings > Subtitles."
+    ],
+    [
+     "settings",
+     "Ondertitels in drie vragen",
+     "Kies in de ondertitel-wizard Snel instellen: je taal, wat er moet gebeuren als er niets in die taal is, en de tijd vanzelf goed zetten. De rest van de instellingen staat uit beeld tot je het niveau Geavanceerd kiest.",
+     "Subtitles in three questions",
+     "Choose Quick setup in the subtitle wizard: your language, what to do when there is nothing in it, and keeping the time right by itself. The other settings are out of sight until you choose the Advanced level."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.19",
    "label": "RC 1",
    "label_en": "RC 1",

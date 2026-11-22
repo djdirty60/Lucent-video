@@ -34,7 +34,7 @@ SUBDL_API = "https://api.subdl.com/api/v1/subtitles"
 SUBDL_DL = "https://dl.subdl.com"
 
 SUB_EXT = (".srt", ".ass", ".ssa", ".sub", ".vtt", ".smi")
-DEFAULTS = {"os_on": "true", "subdl_on": "true", "timeout": "10", "hi_last": "true"}
+DEFAULTS = {"os_on": "true", "subdl_on": "true", "pod_on": "true", "timeout": "10", "hi_last": "true"}
 
 
 def log(text):
@@ -417,7 +417,42 @@ def subdl_download(item):
     return request(SUBDL_DL + item["id"], headers={"Accept": "*/*"}, timeout=20), "subtitle.zip"
 
 
-SOURCES = {"os": (os_search, os_download, "OpenSubtitles"), "subdl": (subdl_search, subdl_download, "SubDL")}
+# ----------------------------------------------------------------------------- Podnapisi (no account, no key)
+POD = "https://www.podnapisi.net"
+
+
+def pod_search(video, langs, timeout):
+    """Podnapisi.NET: free, without an account or key. Searched by name (and year, season and episode)."""
+    if not on("pod_on"):
+        return []
+    name = video.get("query") or (video["show"] if video["show"] else video["title"])
+    if not name:
+        return []
+    params = [("keywords", name)] + [("language", c if c != "pb" else "pt-br") for c in sorted(set(langs))]
+    if video["show"] and not video.get("query"):
+        params += [("seasons", video["season"]), ("episodes", video["episode"]), ("movie_type", "tv-series"), ("movie_type", "mini-series")]
+    elif not video.get("query"):
+        params += [("movie_type", "movie")] + ([("year", video["year"])] if video.get("year") else [])
+    data = get_json(f"{POD}/subtitles/search/advanced?{urllib.parse.urlencode(params)}", timeout=timeout)
+    out = []
+    for row in data.get("data") or []:
+        if not row.get("publish_id"):
+            continue                                    # cannot be downloaded without it
+        lang = str(row.get("language") or "").lower()
+        lang = {"pt-br": "pb"}.get(lang, lang[:2])
+        releases = [r for r in row.get("custom_releases") or [] if r]
+        flags = row.get("flags") or []
+        out.append({"src": "pod", "id": str(row["publish_id"]), "lang": lang, "release": releases[0] if releases else name,
+                    "sync": False, "hi": "hearing_impaired" in flags, "score": 2, "others": releases[1:]})
+    return out
+
+
+def pod_download(item):
+    return request(f"{POD}/subtitles/{item['id']}/download", headers={"Accept": "*/*"}, timeout=20), "subtitle.zip"
+
+
+SOURCES = {"os": (os_search, os_download, "OpenSubtitles"), "subdl": (subdl_search, subdl_download, "SubDL"),
+           "pod": (pod_search, pod_download, "Podnapisi")}
 
 
 # ----------------------------------------------------------------------------- search all

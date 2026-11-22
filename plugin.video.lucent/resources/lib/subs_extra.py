@@ -85,6 +85,15 @@ def episode_key(v):
     return f"{show_key(v)}|{int(v.get('season') or 0)}|{int(v.get('episode') or 0)}"
 
 
+def video_key(v):
+    """An episode by series, season and episode; a film by its IMDb number (else title and year)."""
+    if v.get("show"):
+        return episode_key(v)
+    if str(v.get("imdb") or "").startswith("tt"):
+        return "film|" + v["imdb"]
+    return "film|%s|%s" % (re.sub(r"\W+", " ", (v.get("title") or "").lower()).strip(), v.get("year") or "")
+
+
 def media_key():
     try:
         import subs_ai
@@ -169,6 +178,74 @@ def next_of(v):
         return None
 
 
+READY = "lucent.subs.readying"                  # the video whose subtitle is being got ready right now (before it plays)
+
+
+def _keep(key, code, local, best, store):
+    """Keeps a downloaded subtitle for later (two weeks at most) under key."""
+    os.makedirs(os.path.join(DIR, "next"), exist_ok=True)
+    keep = os.path.join(DIR, "next", re.sub(r"[^\w.-]+", ".", f"{key}.{code}") + os.path.splitext(local)[1])
+    shutil.copyfile(local, keep)
+    release, source = split_label2(best.get("label2", ""))
+    store[key] = {"path": keep, "lang": code, "release": release, "source": source, "at": int(time.time())}
+    for k in [k for k, e in store.items() if time.time() - e.get("at", 0) > 14 * 86400]:
+        try:
+            os.remove(store[k]["path"])
+        except OSError:
+            pass
+        store.pop(k)
+    save("next.json", store)
+    return release
+
+
+def ready_ahead(video):
+    """Lucent Video starts a film or episode: its subtitle is searched and downloaded while the video still loads,
+    so it is on at once when the picture starts (no waiting, no pausing). video: title, year, show, season, episode,
+    imdb, show_imdb, tmdb, show_tmdb and release (the name of the chosen release, for the best fit)."""
+    import subs_live
+    key = video_key(video)
+    store = load("next.json", {})
+    code = subs_live.my_code()
+    if key in store and store[key].get("lang") == code and os.path.exists(store[key].get("path", "")):
+        return
+    HOME.setProperty(READY, key)
+    try:
+        languages, mine_name = subs_live.search_languages()
+        started = time.time()
+        files = own_search(video, languages, mine_name)
+        best = best_of(files, code, preference(video) if video.get("show") else None)
+        if not best:
+            log(f"ahead {label(video)}: nothing in {code} ({time.time() - started:.1f} s)")
+            store[key] = {"none": True, "lang": code, "at": int(time.time())}      # searched already: the start does not wait
+            save("next.json", store)
+            return
+        local = subs_live.download(best["file"])
+        if local and os.path.exists(local):
+            release = _keep(key, code, local, best, store)
+            log(f"ahead {label(video)}: ready in {time.time() - started:.1f} s ({release})")
+    finally:
+        HOME.clearProperty(READY)
+
+
+def wait_ready(most=20):
+    """When the subtitle of the video now playing is still being got ready: wait for it (at most `most` seconds)."""
+    key = video_key(now_video())
+    monitor, end = xbmc.Monitor(), time.time() + most
+    waited = False
+    while HOME.getProperty(READY) == key and time.time() < end:
+        waited = True
+        if monitor.waitForAbort(0.5):
+            break
+    if waited:
+        log("waited for the subtitle that was being got ready")
+
+
+def searched_ahead(code):
+    """True when Lucent already searched for this video before it started (found or not): no pausing for a search."""
+    entry = load("next.json", {}).get(video_key(now_video()))
+    return bool(entry) and entry.get("lang") == code
+
+
 def prefetch():
     """While an episode plays: get the subtitle for the next one ready."""
     import subs_live
@@ -192,27 +269,13 @@ def prefetch():
     local = subs_live.download(best["file"])
     if not local or not os.path.exists(local):
         return
-    os.makedirs(os.path.join(DIR, "next"), exist_ok=True)
-    keep = os.path.join(DIR, "next", re.sub(r"[^\w.-]+", ".", f"{key}.{code}") + os.path.splitext(local)[1])
-    shutil.copyfile(local, keep)
-    release, source = split_label2(best.get("label2", ""))
-    store[key] = {"path": keep, "lang": code, "release": release, "source": source, "at": int(time.time())}
-    for k in [k for k, e in store.items() if time.time() - e.get("at", 0) > 14 * 86400]:   # two weeks at most
-        try:
-            os.remove(store[k]["path"])
-        except OSError:
-            pass
-        store.pop(k)
-    save("next.json", store)
+    release = _keep(key, code, local, best, store)
     log(f"next episode {label(nxt)}: ready ({release})")
 
 
 def prefetched(code):
     """The subtitle that was got ready for the episode now playing ('' when none)."""
-    v = now_video()
-    if not v.get("show"):
-        return None
-    entry = load("next.json", {}).get(episode_key(v))
+    entry = load("next.json", {}).get(video_key(now_video()))
     if entry and entry.get("lang") == code and os.path.exists(entry.get("path", "")):
         return entry
     return None
@@ -277,6 +340,58 @@ def with_offset(path):
     HOME.setProperty("lucent.subs.file", path or "")
     off = get_offset()
     return shifted(path, off) or path
+
+
+# ----------------------------------------------------------------------------- 4b. one-press buttons in the player
+def nudge(amount):
+    """Subtitle earlier (amount < 0) or later, with one press (a button or key on the player screen)."""
+    original = HOME.getProperty("lucent.subs.file")
+    if not original or not os.path.exists(original) or not original.lower().endswith(".srt"):
+        # a subtitle that is part of the film: Kodi's own delay, in steps of 0.1 s
+        for _step in range(int(round(abs(amount) * 10))):
+            xbmc.executebuiltin("Action(%s)" % ("SubtitleDelayMinus" if amount < 0 else "SubtitleDelayPlus"))
+        return
+    new = set_offset(get_offset() + amount)
+    import subs_live
+    subs_live.activate(original, subs_live.my_code(), 5)
+    xbmcgui.Dialog().notification("Lucent", t("Subtitle time", "Ondertiteltijd") + f": {new:+.1f} s".replace(".", ","),
+                                  xbmcgui.NOTIFICATION_INFO, 1500)
+
+
+def other_subtitle():
+    """The next subtitle in your language for this video, with one press: 1 of 5, 2 of 5 ... and round again."""
+    import subs_live
+    v = now_video()
+    code = subs_live.my_code()
+    languages, mine_name = subs_live.search_languages()
+    files = []
+    query = urllib.parse.urlencode({"action": "search", "languages": ",".join(languages), "preferredlanguage": mine_name})
+    for aid, _name in subs_live.subtitle_addons():               # Lucent's own search first, then your other subtitle add-ons
+        try:
+            found = subs_live.rpc("Files.GetDirectory", {"directory": f"plugin://{aid}/?{query}", "media": "files",
+                                                        "properties": ["thumbnail", "art"], "sort": {"method": "none"}}).get("files") or []
+        except Exception:  # noqa: BLE001
+            continue
+        files += [f for f in found if f.get("file") and subs_live.lang_of(f) == code]
+    if not files:
+        return xbmcgui.Dialog().notification("Lucent", t("No other subtitle in your language", "Geen andere ondertitel in je taal"),
+                                             xbmcgui.NOTIFICATION_INFO, 3000)
+    key = video_key(v)
+    try:
+        last_key, last = HOME.getProperty("lucent.subs.alt").split("|#|")
+        at = (int(last) + 1) % len(files) if last_key == key else 1 % len(files)
+    except ValueError:
+        at = 1 % len(files)                     # the first one is usually on already: start with the second
+    HOME.setProperty("lucent.subs.alt", f"{key}|#|{at}")
+    local = subs_live.download(files[at]["file"])
+    if not local:
+        return xbmcgui.Dialog().notification("Lucent", t("Download failed", "Downloaden mislukt"), xbmcgui.NOTIFICATION_WARNING, 3000)
+    release, _source = split_label2(files[at].get("label2", ""))
+    subs_live.activate(local, code, 10)
+    log(f"other subtitle {at + 1} of {len(files)}: {release}")
+    xbmcgui.Dialog().notification("Lucent", t(f"Subtitle {at + 1} of {len(files)}", f"Ondertitel {at + 1} van {len(files)}") +
+                                  (f": {release[:40]}" if release else ""), xbmcgui.NOTIFICATION_INFO, 3000)
+    return None
 
 
 # ----------------------------------------------------------------------------- 4 + 5. the menu in the subtitle list

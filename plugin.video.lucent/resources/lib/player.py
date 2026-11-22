@@ -287,6 +287,25 @@ def _usable(sources):
     return [s for s in usable if not torbox_uncached(s)]
 
 
+def _subs_ahead(meta, source):
+    """The subtitle is searched and downloaded while the video still loads (in its own call, so the start never waits):
+    it is on as soon as the picture starts, without pausing the film for a search."""
+    try:
+        import subconf
+        if not subconf.on("nuvio.autosubs"):
+            return
+        episode = meta["kind"] == "episode"
+        video = {"title": meta.get("title") or "", "year": str(meta.get("year") or ""),
+                 "show": meta.get("show") or "" if episode else "", "season": str(meta.get("season") or "") if episode else "",
+                 "episode": str(meta.get("episode") or "") if episode else "",
+                 "imdb": "" if episode else meta.get("imdb") or "", "tmdb": "" if episode else str(meta.get("tmdb") or ""),
+                 "show_imdb": meta.get("imdb") or "" if episode else "", "show_tmdb": str(meta.get("tmdb") or "") if episode else "",
+                 "release": (source.get("name") or "").rsplit(".", 1)[0]}
+        xbmc.executebuiltin("RunPlugin(%s)" % util.url_for(action="subs_ready", video=json.dumps(video)))
+    except Exception as error:      # noqa: BLE001 - a subtitle is never a reason not to play
+        util.log("subtitle ahead: %s" % type(error).__name__)
+
+
 def would_play(meta, sources):
     """The source play() would start on its own for these sources (the first of the same order), or None."""
     usable = _usable(sources)
@@ -489,6 +508,7 @@ def play(params, handle):
     if not source.get("url"):
         return _fail(handle, util.T("Deze bron kon niet worden gestart", "This source could not be started"))
     item = build(meta, source, resume)
+    _subs_ahead(meta, source)
     remember_release(meta, source)
     handoff(meta, resume, source, [s for s in order if s is not source][:4], others, lighter_than(source, order), last)
     bedtime.counted()

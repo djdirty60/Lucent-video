@@ -33,9 +33,59 @@ def subs_keys():
     return subs_builtin.keys()
 
 
+LANGUAGES = [("Dutch", T("Nederlands", "Dutch")), ("English", T("Engels", "English")), ("German", T("Duits", "German")),
+             ("French", T("Frans", "French")), ("Spanish", T("Spaans", "Spanish")), ("Italian", T("Italiaans", "Italian")),
+             ("Portuguese", T("Portugees", "Portuguese")), ("Turkish", T("Turks", "Turkish")), ("Polish", T("Pools", "Polish"))]
+
+
+def quick_setup():
+    """Subtitles in three questions: which language, what to do when there is none in it, and keep the time right by
+    itself. Lucent then picks the subtitle by itself in the background."""
+    dialog, addon = xbmcgui.Dialog(), xbmcaddon.Addon(util.ADDON_ID)
+    now = rpc("Settings.GetSettingValue", {"setting": "locale.subtitlelanguage"}).get("value") or ""
+    names = [label for _value, label in LANGUAGES]
+    at = next((n for n, (value, _l) in enumerate(LANGUAGES) if value == now), 0)
+    picked = dialog.select(T("1/3  In welke taal wil je ondertitels?", "1/3  Which language do you want subtitles in?"), names, preselect=at)
+    if picked < 0:
+        return
+    rpc("Settings.SetSettingValue", {"setting": "locale.subtitlelanguage", "value": LANGUAGES[picked][0]})
+    try:
+        import subs_live
+        subs_live._MINE.clear()                 # noqa: SLF001 - read the new language at once
+    except Exception:  # noqa: BLE001
+        pass
+    options = [T("Het me vragen (Engels, AI-vertaling of niets)", "Ask me (English, AI translation or nothing)"),
+               T("De Engelse tonen", "Show the English one"), T("De Engelse met AI vertalen", "Translate the English one with AI"),
+               T("Niets tonen", "Show nothing")]
+    try:
+        current = int(addon.getSetting("subs_none") or 0)
+    except ValueError:
+        current = 0
+    none = dialog.select(T("2/3  Als er geen ondertitel in die taal is?", "2/3  When there is no subtitle in that language?"), options,
+                         preselect=current)
+    if none < 0:
+        return
+    addon.setSetting("subs_none", str(none))
+    sync = dialog.yesno(T("3/3  Tijd vanzelf goedzetten", "3/3  Keep the time right by itself"),
+                        T("Loopt een ondertitel voor of achter, dan zet Lucent hem vanzelf gelijk met de film. Aanzetten?",
+                          "When a subtitle runs early or late, Lucent puts it in time with the film by itself. Switch on?"),
+                        T("Nee", "No"), T("Ja", "Yes"))
+    subconf.put("lucent.subs.autosync.off", not sync)
+    subconf.put("nuvio.autosubs", True)                 # Lucent picks the subtitle by itself, without a window
+    subconf.set_mode(2 if none == 2 else 1)
+    subconf.publish()
+    if none == 2:
+        import subs_live
+        if not subs_live.ai_ready() and dialog.yesno(T("AI-vertaling", "AI translation"),
+                                                     T("Er is nog geen AI-sleutel (Gemini is gratis). Nu instellen?",
+                                                       "There is no AI key yet (Gemini is free). Set one now?")):
+            subs_live.enter_key()
+    util.notify(T("Ondertitels ingesteld", "Subtitles set up"))
+
+
 def subs_state():
     os_ok, subdl_ok = subs_keys()
-    parts = [T("Ingebouwd in Lucent Video", "Built into Lucent Video"),
+    parts = [T("Ingebouwd in Lucent Video", "Built into Lucent Video"), "Podnapisi ✓",
              "OpenSubtitles ✓" if os_ok else T("OpenSubtitles: geen account", "OpenSubtitles: no account"),
              "SubDL ✓" if subdl_ok else T("SubDL: geen sleutel", "SubDL: no key")]
     parts.append(util.HOME.getProperty("lucent.video.subs.state") or "")
@@ -44,7 +94,8 @@ def subs_state():
 
 def subs_actions():
     import subs_live
-    out = [(T("Accounts en sleutels", "Accounts and keys"),
+    out = [(T("Snel instellen (3 vragen)", "Quick setup (3 questions)"), quick_setup),
+           (T("Accounts en sleutels", "Accounts and keys"),
             lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.lucent/?action=settings&section=subs)"))]
     out.append((T("Automatisch zoeken", "Search automatically"), subs_live.choose_mode))
     spoken = subconf.text("lucent.audio.label") or T("Kodi beslist", "Kodi decides")
@@ -53,13 +104,15 @@ def subs_actions():
     return out
 
 
-INTRO_SUBS = T("Lucent Video zoekt zelf ondertitels: het vraagt OpenSubtitles en SubDL tegelijk en zet de ondertitels die precies bij je video "
-               "passen bovenaan. Daarvoor maak je twee gratis accounts en vul je ze in bij 'Accounts en sleutels':[CR]"
+INTRO_SUBS = T("Lucent Video zoekt zelf ondertitels: het vraagt Podnapisi, OpenSubtitles en SubDL tegelijk en zet de ondertitels die precies bij je "
+               "video passen bovenaan. Podnapisi werkt meteen, zonder account. Met 'Snel instellen' kies je in drie vragen je taal en wat er gebeurt "
+               "als er geen ondertitel in die taal is. Voor nog meer ondertitels maak je twee gratis accounts en vul je ze in bij 'Accounts en sleutels':[CR]"
                "1. opensubtitles.com: aanmelden, dan Profiel › API consumers › New consumer (de API-sleutel), plus je gebruikersnaam en wachtwoord.[CR]"
                "2. subdl.com: aanmelden, dan Account › API-sleutel.[CR]Optioneel: een AI-sleutel (Gemini is gratis, of OpenRouter of Claude) "
                "vertaalt Engelse ondertitels. Bij 'Gesproken taal' kies je met welk geluid een film start.",
-               "Lucent Video finds subtitles itself: it asks OpenSubtitles and SubDL at the same time and puts the subtitles that fit your video "
-               "exactly first. For that you make two free accounts and fill them in under 'Accounts and keys':[CR]"
+               "Lucent Video finds subtitles itself: it asks Podnapisi, OpenSubtitles and SubDL at the same time and puts the subtitles that fit your "
+               "video exactly first. Podnapisi works at once, without an account. With 'Quick setup' you choose your language and what happens when "
+               "there is no subtitle in it, in three questions. For even more subtitles you make two free accounts and fill them in under 'Accounts and keys':[CR]"
                "1. opensubtitles.com: sign up, then Profile › API consumers › New consumer (the API key), plus your user name and password.[CR]"
                "2. subdl.com: sign up, then Account › API key.[CR]Optional: an AI key (Gemini is free, or OpenRouter or Claude) translates "
                "English subtitles. Under 'Spoken language' you choose which sound a film starts with.")

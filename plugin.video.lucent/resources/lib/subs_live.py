@@ -21,6 +21,7 @@ import urllib.parse
 
 import subconf
 import xbmc
+import xbmcaddon
 import xbmcgui
 
 NL = xbmc.getLanguage(xbmc.ISO_639_1) == "nl"
@@ -850,12 +851,15 @@ def background():
             return
     except Exception as error:  # noqa: BLE001
         log(f"same-language check: {error}")
+    import subs_extra
+    subs_extra.wait_ready()                            # Lucent Video is still getting it ready: no second search
     if use_prefetched(mine) or use_saved_ai(mine):
         return
     sources = subtitle_addons()
     if not sources:
         return
-    hold = Hold(player) if subconf.on("lucent.subs.wait") else None
+    # searched already before the picture started: look once more (with the file itself), but never pause for it
+    hold = Hold(player) if subconf.on("lucent.subs.wait") and not subs_extra.searched_ahead(mine) else None
     try:
         _background_search(player, monitor, started_with, mine, sources)
     finally:
@@ -949,7 +953,7 @@ def _background_search(player, monitor, started_with, mine, sources):
                     import subs_ai
                     subs_ai.translate_and_load(local, mine)
                     return
-        log(f"background: nothing in {mine} - nothing shown")
+        ask_when_none(mine, english)
         return
     local = download(best[0]["file"])
     if not local:
@@ -969,6 +973,56 @@ def _background_search(player, monitor, started_with, mine, sources):
         log(f"two subtitles: {error}")
     ok = activate(local, mine)
     log(f"background: switched on {'and steady' if ok else 'but could not confirm it'}")
+
+
+def ask_when_none(mine, english):
+    """Nothing in your language: a short question instead of silence - the English one, an AI translation, or nothing.
+    It closes by itself after 20 seconds (= nothing); the wish list still tells you when one in your language turns up."""
+    name = full_name(mine, mine.upper())
+    if not english:
+        log(f"background: nothing in {mine} and nothing in English - nothing shown")
+        xbmcgui.Dialog().notification("Lucent", t(f"No {name} subtitle yet - Lucent tells you when there is one",
+                                                  f"Nog geen ondertitel ({name}) - Lucent meldt het zodra er een is"), xbmcgui.NOTIFICATION_INFO, 5000)
+        return
+    ai = mine != "en" and ai_ready()
+    try:
+        choice_set = int(xbmcaddon.Addon("plugin.video.lucent").getSetting("subs_none") or 0)   # 0 ask, 1 English, 2 AI, 3 nothing
+    except ValueError:
+        choice_set = 0
+    if choice_set == 3:
+        log(f"background: nothing in {mine} - nothing shown (your setting)")
+        return
+    if choice_set == 2 and not ai:
+        choice_set = 0                                     # no AI key (or English is yours): ask instead
+    if choice_set in (1, 2):
+        return _take_english(english, mine, choice_set == 2)
+    message = t(f"There is no {name} subtitle for this video yet. Lucent tells you when one turns up.",
+                f"Er is nog geen ondertitel in het {name} voor deze video. Lucent meldt het zodra er een is.")
+    if ai:
+        choice = xbmcgui.Dialog().yesnocustom(t("Subtitle", "Ondertitel"), message, t("AI translation", "AI-vertaling"),
+                                              t("Nothing", "Niets"), t("English", "Engels"), 20000)
+    else:
+        choice = 1 if xbmcgui.Dialog().yesno(t("Subtitle", "Ondertitel"), message, t("Nothing", "Niets"), t("English", "Engels"),
+                                             20000) else 0
+    if choice not in (1, 2):
+        log(f"background: nothing in {mine} - you chose nothing")
+        return
+    _take_english(english, mine, choice == 2)
+
+
+def _take_english(english, mine, translate):
+    local = download(english["file"])
+    if not local:
+        log("background: download of the English one failed")
+        return
+    if translate:
+        log("background: nothing in your language - an AI translation of the English one")
+        import subs_ai
+        subs_ai.translate_and_load(local, mine)
+        return
+    log("background: nothing in your language - the English one")
+    activate(local, "en")
+
 
 def settled(monitor, player):
     """Automatic opening: wait until the film really plays (some add-ons check the first seconds of playback)."""
@@ -994,6 +1048,8 @@ def open_once(auto=False):
     if auto:
         if not settled(xbmc.Monitor(), xbmc.Player()):
             return
+        import subs_extra
+        subs_extra.wait_ready()
         if use_prefetched(my_code()) or use_saved_ai(my_code()):
             return                                         # also when a list of the previous episode is still closing
     if recent and cond("Window.IsVisible(lucent_subtitles.xml)"):

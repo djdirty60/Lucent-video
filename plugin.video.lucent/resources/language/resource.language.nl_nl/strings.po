@@ -2064,3 +2064,39 @@ msgstr "Stopt de koppeling met je TMDB-account op dit apparaat."
 msgctxt "#32582"
 msgid "The TMDB account that is linked."
 msgstr "Het TMDB-account dat gekoppeld is."
+
+msgctxt "#32583"
+msgid "When there is nothing in your language"
+msgstr "Als er niets in je taal is"
+
+msgctxt "#32584"
+msgid "Ask (English, AI translation or nothing)"
+msgstr "Vragen (Engels, AI-vertaling of niets)"
+
+msgctxt "#32585"
+msgid "Show the English one"
+msgstr "Engels tonen"
+
+msgctxt "#32586"
+msgid "AI translation of the English one"
+msgstr "AI-vertaling van de Engelse"
+
+msgctxt "#32587"
+msgid "Nothing"
+msgstr "Niets"
+
+msgctxt "#32588"
+msgid "What Lucent does when it finds no subtitle in your language: ask you (a short question that closes by itself), turn on the English one, translate the English one with AI (needs an AI key), or show nothing. Either way Lucent tells you when one in your language turns up."
+msgstr "Wat Lucent doet als er geen ondertitel in je taal is: het je vragen (een korte vraag die vanzelf sluit), de Engelse aanzetten, de Engelse met AI vertalen (AI-sleutel nodig) of niets tonen. Hoe dan ook meldt Lucent het als er later een in je taal komt."
+
+msgctxt "#32589"
+msgid "Podnapisi"
+msgstr "Podnapisi"
+
+msgctxt "#32590"
+msgid "Search Podnapisi (no account needed)"
+msgstr "Zoeken bij Podnapisi (geen account nodig)"
+
+msgctxt "#32591"
+msgid "Podnapisi.NET is a free subtitle site that needs no account or key. Lucent asks it at the same time as OpenSubtitles and SubDL."
+msgstr "Podnapisi.NET is een gratis ondertitelsite zonder account of sleutel. Lucent vraagt hem tegelijk met OpenSubtitles en SubDL."

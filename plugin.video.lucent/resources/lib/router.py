@@ -900,7 +900,7 @@ def title(handle, params):
 
 SECTIONS = {"general": -100, "account": -99, "trakt": -99, "sources": -98, "conn": -98, "play": -97, "subs": -96, "skip": -95,
             "library": -94, "services": -93, "usenet": -92}
-SUBTITLE_ACTIONS = ("subtitles", "subs_auto", "subs_background", "subs_prefetch", "subs_key", "subs_mode", "subs_audio", "subs_default",
+SUBTITLE_ACTIONS = ("subtitles", "subs_auto", "subs_background", "subs_prefetch", "subs_ready", "subs_earlier", "subs_later", "subs_other", "subs_key", "subs_mode", "subs_audio", "subs_default",
                     "subs_settings", "skip_settings", "subs_setup", "skip_setup", "skip_install", "skip_auto")
 
 
@@ -915,7 +915,7 @@ def _once(name, job):
         util.HOME.clearProperty(name)
 
 
-def subtitle_action(action):
+def subtitle_action(action, params=None):
     """Subtitles, spoken language and skip intro (taken over from the Lucent skin)."""
     import subs_live
     if action == "subtitles":
@@ -927,6 +927,18 @@ def subtitle_action(action):
     if action == "subs_prefetch":
         import subs_extra
         return _once("lucent.subs.prefetch", subs_extra.prefetch)
+    if action in ("subs_earlier", "subs_later"):
+        import subs_extra
+        step = float((params or {}).get("step") or 0.5)
+        return subs_extra.nudge(-step if action == "subs_earlier" else step)
+    if action == "subs_other":
+        import subs_extra
+        return _once("lucent.subs.other", subs_extra.other_subtitle)
+    if action == "subs_ready":
+        import json
+        import subs_extra
+        video = json.loads((params or {}).get("video") or "{}")
+        return _once("lucent.subs.ahead", lambda: subs_extra.ready_ahead(video)) if video else None
     if action == "subs_key":
         return subs_live.enter_key()
     if action == "subs_mode":
@@ -1190,7 +1202,7 @@ def _run(argv):
             import lists
             return lists.open_lists(params.get("type", "movie"), params["tmdb"])
         if action in SUBTITLE_ACTIONS:
-            return subtitle_action(action)
+            return subtitle_action(action, params)
         if action == "hide_languages":
             import hide
             return hide.choose()
