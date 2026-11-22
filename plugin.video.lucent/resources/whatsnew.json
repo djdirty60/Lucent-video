@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.37",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T22:50Z",
+   "items": [
+    [
+     "star",
+     "Eigen MEL-badge",
+     "Een bestand met Dolby Vision profiel 7 en een minimale extra laag krijgt nu een MEL-badge in plaats van P7. Zo zie je in één oogopslag FEL of MEL. P7 zie je alleen nog als Lucent het niet kon lezen.",
+     "A MEL badge of its own",
+     "A file with Dolby Vision profile 7 and a minimal enhancement layer now gets a MEL badge instead of P7. You see FEL or MEL at a glance. P7 only shows when Lucent could not read it."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.36",
    "label": "RC 1",
    "label_en": "RC 1",

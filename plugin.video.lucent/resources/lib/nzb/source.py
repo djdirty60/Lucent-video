@@ -446,9 +446,9 @@ def tracks_known(job):
 
 
 def dovi_flag(found):
-    """The source label for what the file itself says: FEL, or P7 for profile 7 without a real enhancement layer."""
+    """The source label for what the file itself says: FEL, MEL, or P7 for profile 7 when it could not be read."""
     kind = (found or {}).get("dovi")
-    return {"fel": "aio_FEL", "mel": "aio_P7", "p7": "aio_P7"}.get(kind, "")
+    return {"fel": "aio_FEL", "mel": "aio_MEL", "p7": "aio_P7"}.get(kind, "")
 
 
 def tracks(job, stop=lambda: False):
@@ -599,9 +599,9 @@ def file_flags(source, found):
     elif subs_flag in flags and not source.get("subs_online") and (found.get("audio") or found.get("subs") or found.get("forced")):
         flags.remove(subs_flag)                 # the name said so, the file has no full subtitles in your language
     dovi = dovi_flag(found)
-    if dovi == "aio_FEL":
-        flags = [f for f in flags if f != "aio_P7"] + ([] if "aio_FEL" in flags else ["aio_FEL"])
-    elif dovi == "aio_P7" and "aio_FEL" not in flags and "aio_P7" not in flags:
+    if dovi in ("aio_FEL", "aio_MEL"):               # the file says it: that one label, the others go
+        flags = [f for f in flags if f not in ("aio_FEL", "aio_MEL", "aio_P7")] + [dovi]
+    elif dovi == "aio_P7" and not {"aio_FEL", "aio_MEL", "aio_P7"} & set(flags):
         flags.append("aio_P7")
     return flags
 

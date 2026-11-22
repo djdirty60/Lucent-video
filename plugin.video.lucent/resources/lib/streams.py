@@ -64,6 +64,8 @@ def flags_of(parsed, name):
         out = ["DV2" if f == "DV" else f for f in out]
     if FEL.search(name):
         out.append("aio_FEL")
+    elif re.search(r"(?:^|[ ._\-\[(])MEL(?=$|[ ._\-\])])", name, re.I):
+        out.append("aio_MEL")                   # profile 7 with a minimal enhancement layer, as the name says
     elif re.search(r"(?:^|[ ._\-\[(])(?:DV[ ._-]?)?P7(?=$|[ ._\-\])])", name, re.I):
         out.append("aio_P7")
     if "IMAX" in [t.upper() for t in parsed.get("visualTags") or []] or re.search(r"(?:^|[ ._\-\[(])IMAX(?=$|[ ._\-\])])", name, re.I):
@@ -92,14 +94,15 @@ def flags_of(parsed, name):
 # The order badges are shown in, the same for every source (AIOStreams, Usenet, Easynews, TorBox, scraper packs):
 # picture, then source, then codec, then sound, then channels, then language. Like TMDb Movies does, one family each:
 # a release name and the indexer's own details often say the same thing twice ("DTS-HD.MA" and "DTS-HD").
-BADGE_ORDER = ["DV", "DV2", "aio_FEL", "aio_P7", "HDR", "SDR", "3D", "aio_IMAX", "aio_10BIT",
+BADGE_ORDER = ["DV", "DV2", "aio_FEL", "aio_MEL", "aio_P7", "HDR", "SDR", "3D", "aio_IMAX", "aio_10BIT",
                "REMUX", "BLURAY", "WEB", "HDTV", "HD-RIP", "DVDRIP", "SCR", "CAM",
                "HEVC", "AVC", "AV1", "XVID", "DIVX",
                "ATMOS", "TRUEHD", "DTS-X", "DTS-HDMA", "DTS-HD", "DTS", "DD+", "DD", "AAC", "OPUS",
                "7.1", "5.1", "2.0",
                ] + ["aio_%s" % c.upper() for c in mylang.LANGS] + ["aio_MULTI"] + ["aio_%s-SUBS" % c.upper() for c in mylang.LANGS]
 _RANK = {flag: n for n, flag in enumerate(BADGE_ORDER)}
-_FAMILIES = (("DTS-X", "DTS-HDMA", "DTS-HD", "DTS"), ("DD+", "DD"), ("7.1", "5.1", "2.0"), ("DV", "DV2"), ("REMUX", "BLURAY"))
+_FAMILIES = (("DTS-X", "DTS-HDMA", "DTS-HD", "DTS"), ("DD+", "DD"), ("7.1", "5.1", "2.0"), ("DV", "DV2"), ("REMUX", "BLURAY"),
+             ("aio_FEL", "aio_MEL", "aio_P7"))
 
 
 def tidy_flags(flags):

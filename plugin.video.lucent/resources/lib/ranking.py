@@ -12,7 +12,7 @@ import util
 T = util.T
 FILE = "profiles.json"
 MARKS = r"(?:^|[ ._\-\[(])%s(?=$|[ ._\-\])])"
-FROM_FLAG = {"DV": "dv", "DV2": "dv2", "HDR": "hdr", "HLG": "hlg", "SDR": "sdr", "3D": "3d", "aio_FEL": "fel", "aio_P7": "p7", "aio_IMAX": "imax", "aio_10BIT": "10bit",
+FROM_FLAG = {"DV": "dv", "DV2": "dv2", "HDR": "hdr", "HLG": "hlg", "SDR": "sdr", "3D": "3d", "aio_FEL": "fel", "aio_P7": "p7", "aio_MEL": "p7", "aio_IMAX": "imax", "aio_10BIT": "10bit",
              "REMUX": "remux", "BLURAY": "bluray", "WEB": "web", "HDTV": "hdtv", "DVDRIP": "dvd", "CAM": "cam", "SCR": "cam", "ATMOS": "atmos",
              "TRUEHD": "truehd", "DTS-X": "dtsx", "DTS-HDMA": "dtsma", "DTS-HD": "dtshd", "DTS": "dts", "DD+": "ddplus", "DD": "dd", "AAC": "aac", "FLAC": "flac", "PCM": "pcm", "LPCM": "pcm",
              "OPUS": "opus", "7.1": "71", "5.1": "51", "2.0": "20", "aio_MULTI": "multi", "HEVC": "hevc",
