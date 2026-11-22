@@ -246,6 +246,7 @@ def scrobble(state, meta, percent):
         util.cache_drop("mdbtrackplayback")
     if state == "stop" and percent >= 80.0:
         util.cache_drop("mdbtrackchecked")
+        util.cache_drop("mdbtracknextup")
         util.cache_drop("nextup")
 
 
@@ -274,13 +275,27 @@ def dropped_shows():
 
 
 NEXT_WANT = 40          # next episodes wanted for 'Next up'
+NEXT_KEEP = 1800        # seconds the list is kept; watching or marking an episode clears it at once
 NEXT_LOOK = 200         # series looked at, at most (TMDb answers are cached, so later rounds are quick)
+
+
+def warm_next_up():
+    """From the service, now and then while nothing plays: the next episodes made ready in advance, so the 'Next up' row
+    opens at once (the first build looks at up to NEXT_LOOK series and can take a while)."""
+    if not logged_in() or util.cache_get("mdbtracknextup", NEXT_KEEP - 300) is not None:
+        return
+    try:
+        started = time.time()
+        next_up()
+        util.log("MDBList next up made ready in advance (%.1f s)" % (time.time() - started))
+    except Exception as error:      # noqa: BLE001 - a warm-up is never a reason to fail
+        util.log("MDBList next up in advance: %s" % type(error).__name__)
 
 
 def next_up():
     """[(show tmdb id, season, episode)], most recent first: the episode after the last one you saw, when it is out.
     Shows you dropped on MDBList are left out."""
-    saved = util.cache_get("mdbtracknextup", 300)
+    saved = util.cache_get("mdbtracknextup", NEXT_KEEP)
     if saved is not None:
         return [tuple(r) for r in saved]
 

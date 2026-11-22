@@ -2,6 +2,36 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.15",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T16:00Z",
+   "items": [
+    [
+     "refresh",
+     "Een storing maakt zoeken niet meer traag",
+     "Faalt een bron twee zoekopdrachten achter elkaar, bijvoorbeeld als Easynews plat ligt, dan slaat Lucent hem tien minuten over. Je bronnenlijst komt dan net zo snel als anders. Daarna probeert Lucent hem vanzelf weer.",
+     "An outage no longer slows down searching",
+     "When a source fails two searches in a row, for example when Easynews is down, Lucent skips it for ten minutes. Your source list then comes as quickly as usual. After that Lucent tries it again by itself."
+    ],
+    [
+     "trakt",
+     "MDBList: Volgende aflevering staat klaar",
+     "Lucent zet de rij Volgende aflevering van MDBList nu op de achtergrond klaar, zodat hij meteen opent.",
+     "MDBList: Next up is ready",
+     "Lucent now prepares the MDBList Next up row in the background, so it opens at once."
+    ],
+    [
+     "settings",
+     "Opgeruimd",
+     "Een oude controle voor het tonen van de bronnenlijst is weg: die kreeg bijna nooit genoeg tijd en haalde soms voor niets NZB's op. De controle in de lijst zelf doet dit beter, en een weggehaalde release komt bij de volgende keer zoeken niet meer terug. Ook het koppelen met Trakt, Simkl, PunchPlay en WeTrakr sluit nu netjes af.",
+     "Tidied up",
+     "An old check before the source list is gone: it almost never had enough time and sometimes fetched NZBs for nothing. The check in the list itself does this better, and a taken-down release no longer comes back in the next search. Linking Trakt, Simkl, PunchPlay and WeTrakr now also closes cleanly."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.14",
    "label": "RC 1",
    "label_en": "RC 1",

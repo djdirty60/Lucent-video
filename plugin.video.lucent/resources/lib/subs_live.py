@@ -835,7 +835,6 @@ def background():
     """A video started without a subtitle in your language: ask the subtitle add-ons quietly, download the best
     match in your language and switch it on. Nothing in your language: nothing is shown at all - unless
     'and otherwise AI' is chosen and there is an English one: then that one is translated."""
-    import subs_extra
     player, monitor = xbmc.Player(), xbmc.Monitor()
     if not settled(monitor, player):
         return

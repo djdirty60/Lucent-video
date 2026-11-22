@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """The Usenet statistics screen (Settings > Usenet > Statistieken): data per day, providers and indexers."""
-import time
-
 import xbmcgui
 
 import dialogs

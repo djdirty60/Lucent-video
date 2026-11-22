@@ -354,7 +354,7 @@ def login():
     dialog.doModal()
     state["open"] = False
     worker.join(timeout=20)
-    del dialog
+    # no 'del dialog' here: the waiting thread may still close it a moment later; it is freed when both are done
     try:
         os.remove(picture)
     except OSError:

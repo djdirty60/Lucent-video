@@ -234,16 +234,8 @@ def _add_info(source, row):
 # ------------------------------------------------------------------ releases that are gone (taken down)
 DEAD = "nzb_dead.json"
 DEAD_DAYS = 60
-CHECK_TOP = 8               # look among this many best sources
-CHECK_MOST = 4              # check at most this many Usenet releases there
-CHECK_SAMPLE = 8            # articles per release
-CHECK_SECONDS = 3           # the whole check never takes longer than this (the list waits for it)
-CHECK_IDLE_RUNS = 3         # this many checks in a row that could check nothing: skip the check for CHECK_IDLE_HOURS
-CHECK_IDLE_HOURS = 24
 NZB_FRESH = 7 * 86400       # an NZB never changes: one that was fetched is used again for a week (indexers warn
                             # and can close an account when the same NZB is fetched over and over)
-ALIVE = "nzb_alive.json"
-ALIVE_HOURS = 24            # a release found complete is not checked (nor its NZB fetched) again for this long
 
 
 def _from_file(source, job):
@@ -298,127 +290,8 @@ def _mark_dead(job):
     util.save_json(DEAD, dead)
 
 
-def _alive_recent():
-    now = time.time()
-    return {k for k, v in util.load_json(ALIVE, {}).items() if now - v < ALIVE_HOURS * 3600}
-
-
-def _mark_alive(job):
-    alive = util.load_json(ALIVE, {})
-    now = time.time()
-    alive = {k: v for k, v in alive.items() if now - v < ALIVE_HOURS * 3600}
-    alive[_dead_key(job["link"])] = now
-    util.save_json(ALIVE, alive)
-
-
 def _dead_now():
     return util.load_json(DEAD, {})
-
-
-def _sample_ids(chosen):
-    """A few article ids spread over the release: the first, the last and some in between. Only the files they come
-    from are read (a 100 GB release has 120,000 articles; reading them all takes a slow box seconds)."""
-    if not chosen:
-        return []
-    if len(chosen) == 1:
-        flat = [seg[2] for seg in chosen[0].segments]
-        if not flat:
-            return []
-        step = max(1, len(flat) // CHECK_SAMPLE)
-        return list(dict.fromkeys([flat[0], flat[-1]] + flat[::step]))[:CHECK_SAMPLE + 2]
-    step = max(1, len(chosen) // CHECK_SAMPLE)
-    picked = list(dict.fromkeys(chosen[::step] + [chosen[-1]]))
-    ids = []
-    for number, posted in enumerate(picked):
-        segments = posted.segments
-        if not segments:
-            continue
-        if number == 0:
-            ids.append(segments[0][2])
-        ids.append(segments[len(segments) // 2][2])
-        if posted is chosen[-1]:
-            ids.append(segments[-1][2])
-    return list(dict.fromkeys(ids))[:CHECK_SAMPLE + 2]
-
-
-def _alive(job, pool, spare):
-    """True / False (taken down) / None (could not tell) for one release, from a few articles spread over it."""
-    from . import nzbfile, stream
-    name = _nzb_name(job)
-    try:
-        if not _saved_nzb(name):
-            match = next((base for slot, base, _key in newznab.indexers() if slot == job["slot"]), None)
-            if not match or not newznab.grab_room(match):
-                return None
-            _save_nzb(name, newznab.nzb(job))
-        with open(os.path.join(server.folder(), name), "rb") as handle:
-            files = nzbfile.parse(handle.read())
-        _kind, chosen = nzbfile.pick(files, job.get("season"), job.get("episode"), job.get("pack"))
-    except Exception:                           # noqa: BLE001 - hidden names, no room, an odd NZB: simply not checked
-        return None
-    ids = _sample_ids(chosen)
-    if not ids:
-        return None
-    try:
-        answer = stream.Release._stat_spread(pool, ids)                    # noqa: SLF001 - same package
-        missing = [i for i, ok in answer.items() if not ok]
-        if missing and spare:
-            extra = stream.Release._stat_spread(spare, missing)            # noqa: SLF001
-            missing = [i for i in missing if not extra.get(i)]
-    except Exception:                           # noqa: BLE001
-        return None
-    return len(missing) <= len(ids) // 2
-
-
-def prune(ranked, meta):
-    """Before the list is shown (and before automatic start picks one): check the best Usenet releases and leave out
-    the ones that were taken down. Within CHECK_SECONDS; what could not be checked in time simply stays."""
-    from concurrent.futures import wait
-    from . import nntp
-    if not configured() or meta.get("background") or not ranked:
-        return ranked
-    jobs = [s for s in ranked[:CHECK_TOP] if (s.get("resolve") or {}).get("scraper") == "Usenet"][:CHECK_MOST]
-    alive_before = _alive_recent()
-    jobs = [s for s in jobs if _dead_key(s["resolve"]["link"]) not in alive_before]
-    if not jobs:
-        return ranked
-    idle = util.cache_get("nzbcheckidle", CHECK_IDLE_HOURS * 3600) or {}
-    if idle.get("runs", 0) >= CHECK_IDLE_RUNS:
-        util.log("usenet: check of the best releases skipped (the last %d could check nothing, mostly slow NZBs at the "
-                 "indexers); trying again after %d hours" % (CHECK_IDLE_RUNS, CHECK_IDLE_HOURS))
-        return ranked
-    started = time.time()
-    pool = nntp.Pool(server.provider(), limit=8)
-    spare_settings = server.provider(backup=True)
-    spare = nntp.Pool(spare_settings, limit=4) if spare_settings else None
-    run = ThreadPoolExecutor(max_workers=len(jobs))
-    futures = {run.submit(_alive, s["resolve"], pool, spare): s for s in jobs}
-    done, _late = wait(futures, timeout=CHECK_SECONDS)
-    for future in futures:
-        future.cancel()
-    run.shutdown(wait=False)
-    gone = []
-    for future in done:
-        try:
-            alive = future.result()
-        except Exception:                       # noqa: BLE001
-            alive = None
-        if alive is False:
-            gone.append(futures[future])
-            _mark_dead(futures[future]["resolve"])
-            newznab.outcome(futures[future]["resolve"], False)
-        elif alive:
-            _mark_alive(futures[future]["resolve"])
-    def close():                                # in the background: a connection still being made must not hold up the list
-        pool.close()
-        if spare:
-            spare.close()
-    threading.Thread(target=close, daemon=True).start()
-    checked = sum(1 for future in done if future.exception() is None and future.result() is not None)
-    runs = 0 if checked else int((util.cache_get("nzbcheckidle", CHECK_IDLE_HOURS * 3600) or {}).get("runs", 0)) + 1
-    util.cache_set("nzbcheckidle", {"runs": runs})
-    util.log("usenet: checked %d of the best releases in %.1f s: %d taken down, left out" % (checked, time.time() - started, len(gone)))
-    return [s for s in ranked if not any(s is g for g in gone)]
 
 
 def ensure_nzb(job, why):
@@ -625,6 +498,8 @@ def tracks(job, stop=lambda: False):
         if sample:
             # the sample over the release (and the backup) already says far too much is gone, mostly a release that was
             # taken down: the full check is not needed. It would wait on the provider, which answers a gone article slowly.
+            # Remembered as taken down, so the next search leaves it out (what the old check before the list did).
+            _mark_dead(job)
             return {"gone": (int(sample.group(1)), int(sample.group(2)))}
         return None
     finally:

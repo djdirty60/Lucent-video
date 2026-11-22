@@ -608,6 +608,11 @@ def run():
                 threading.Thread(target=kompas.run, daemon=True).start()
             if seconds >= 300 and seconds % 300 == 0 and not watcher.isPlaying() and alerts.due():
                 threading.Thread(target=alerts.run, daemon=True).start()
+            if seconds >= 90 and seconds % 300 == 90 and not watcher.isPlaying():
+                import tracker
+                import mdbtrack
+                if tracker.active() is mdbtrack:                # MDBList 'Next up' ready before you open it
+                    threading.Thread(target=mdbtrack.warm_next_up, daemon=True).start()
             if seconds % 86400 == 900 and not watcher.isPlaying():          # once a day: old saved answers away
                 threading.Thread(target=util.cache_prune, daemon=True).start()
             if seconds >= 45 and seconds % 120 == 45 and not watcher.isPlaying():

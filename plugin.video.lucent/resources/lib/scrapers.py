@@ -3,6 +3,7 @@
 
 Required in each source: url, name, resolution, flags (may be []), size, cached, service, meta. See streams.convert.
 """
+import time
 from concurrent.futures import ThreadPoolExecutor, wait
 
 import coco
@@ -31,6 +32,7 @@ for _pack in coco.PACKS:                     # CocoScrapers, FenomScrapers, Open
 # What the 'Finding sources' screen shows while searching: per scraper busy / done (with count) / error, and the
 # number per resolution so far. Scrapers that are not set up (answer None) are left out.
 LIVE = {"order": [], "rows": {}, "res": {}}
+FAILS = "scraper_fails.json"     # per scraper: failed searches in a row and when the last one was
 
 
 def _reset_live():
@@ -61,9 +63,45 @@ def names(profile):
     return order + [n for n in usable if n not in order]
 
 
+FAIL_RUNS = 2              # a scraper that failed this many searches in a row (an error or too slow) ...
+FAIL_PAUSE = 600           # ... is skipped for this many seconds, so an outage does not make every search wait
+
+
+def _resting(selection):
+    """The scrapers that failed FAIL_RUNS times in a row lately: skipped for now (one try again after FAIL_PAUSE)."""
+    state, now, out = util.load_json(FAILS, {}), time.time(), []
+    for name in selection:
+        row = state.get(name) or {}
+        if row.get("runs", 0) >= FAIL_RUNS and now - row.get("at", 0) < FAIL_PAUSE:
+            out.append(name)
+            util.log("%s: skipped for %d more min (failed %d searches in a row)"
+                     % (name, max(1, (FAIL_PAUSE - (now - row["at"])) // 60), row["runs"]))
+    return out
+
+
+def _remember(selection, jobs):
+    """Counts failed searches per scraper; an answer (also 0 results) resets it."""
+    state, changed = util.load_json(FAILS, {}), False
+    for name in selection:
+        job = jobs.get(name)
+        failed = job is None or not job.done() or job.exception() is not None
+        if failed:
+            row = state.get(name) or {}
+            state[name] = {"runs": row.get("runs", 0) + 1, "at": time.time()}
+            changed = True
+        elif name in state:
+            state.pop(name)
+            changed = True
+    if changed:
+        util.save_json(FAILS, state)
+
+
 def _run(selection, profile, meta):
     """Returns (sources in scraper order, did anything answer?, was an address missing everywhere?)."""
     per = profile["scrapers"].get("per") or {}
+    resting = _resting(selection)
+    if resting and len(resting) < len(selection):
+        selection = [n for n in selection if n not in resting]      # never all of them: then they all get a try
     pool = ThreadPoolExecutor(max_workers=max(1, len(selection)))
     jobs = {}
     for name in selection:
@@ -74,6 +112,7 @@ def _run(selection, profile, meta):
     wait(list(jobs.values()), timeout=max(5, int(profile["scrapers"].get("wait") or 30)))
     pool.shutdown(wait=False)
     _outcome(selection, jobs)
+    _remember(selection, jobs)
     collected, answered, unset = [], False, 0
     for name in selection:
         job = jobs[name]
@@ -190,9 +229,6 @@ def search(meta, again=True):
     import learn
     fitting = subcheck.mark(subtitles, found)          # before ranking, so the order of sources can use NL-SUBS
     ranked = ranking.heavy_last(learn.adjust(ranking.apply(found, profile, meta["kind"], order, meta.get("lang") or "")))
-    if "Usenet" in order:
-        from nzb import source as nzb_source
-        ranked = nzb_source.prune(ranked, meta)         # taken-down Usenet releases never reach the list
     # ranking.apply hands back copies: the sources that fit a subtitle are known by their mark, not by the old objects
     return subcheck.first(ranked, {id(s) for s in ranked if s.get("subs_online")} if fitting else set()), None
 
