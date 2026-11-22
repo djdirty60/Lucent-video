@@ -116,6 +116,7 @@ def context(meta, watched, resumable=False):
         run(util.T("Seizoen klaarzetten", "Get season ready"), action="season_ready", tmdb=meta["tmdb"], season=meta["season"])
     if meta["kind"] in ("tvshow", "episode", "season"):
         run(util.T("Intro vanzelf overslaan: aan/uit", "Skip intro by itself: on/off"), action="introskip", tmdb=meta["tmdb"])
+        run(util.T("Afleveringsvolgorde voor zoeken", "Order of episodes for searching"), action="episode_order", tmdb=meta["tmdb"])
     if meta["kind"] in ("movie", "tvshow"):
         run(util.T("Op kijklijst", "Add to watchlist"), action="watchlist", value=1, **target)
         run(util.T("Van kijklijst af", "Remove from watchlist"), action="watchlist", value=0, **target)
@@ -124,6 +125,12 @@ def context(meta, watched, resumable=False):
         entries.append((util.T("Acteurs", "Cast"), "RunPlugin(%s)" % util.url_for(action="cast_popup", type=meta["kind"], tmdb=meta["tmdb"])))
         entries.append((util.T("Vergelijkbare titels", "Similar titles"), "Container.Update(%s)" % util.url_for(
             action="list", name="similar", type=meta["kind"], tmdb=meta["tmdb"])))
+        entries.append((util.T("Meer over hetzelfde onderwerp", "More on the same subject"), "Container.Update(%s)" % util.url_for(
+            action="list", name="keyword", type=meta["kind"], tmdb=meta["tmdb"])))
+        run(util.T("Recensies", "Reviews"), action="reviews", type=meta["kind"], tmdb=meta["tmdb"])
+        import tmdbacct
+        if tmdbacct.linked():
+            run(util.T("TMDB: kijklijst, favoriet, beoordelen", "TMDB: watchlist, favourite, rating"), action="tmdb_actions", type=meta["kind"], tmdb=meta["tmdb"])
         if meta["kind"] == "tvshow":
             run(util.T("Marathonplanner", "Marathon planner"), action="marathon", tmdb=meta["tmdb"])
         import library

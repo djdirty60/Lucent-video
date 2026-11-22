@@ -10,6 +10,7 @@ import util
 API = "https://api.themoviedb.org/3/"
 IMG = "https://image.tmdb.org/t/p/"
 DAY = 86400
+T = util.T
 
 
 def key():
@@ -176,9 +177,33 @@ def collection_art(set_id):
     return {"poster": _gallery(raw, "posters", "w500"), "fanart": _gallery(raw, "backdrops", "w1280")}
 
 
+def _series_cast(raw):
+    """Everyone who played in any season (TMDB 'aggregate credits'), most episodes first, with the number of episodes:
+    the plain credits only hold the cast of the latest season."""
+    rows = []
+    for c in (raw.get("aggregate_credits") or {}).get("cast") or []:
+        roles = [r.get("character") for r in c.get("roles") or [] if r.get("character")]
+        count = int(c.get("total_episode_count") or 0)
+        role = roles[0] if roles else ""
+        if count:
+            role = "%s (%s)" % (role, T("%d afl.", "%d ep.") % count) if role else T("%d afleveringen", "%d episodes") % count
+        rows.append(({"id": c.get("id"), "name": c.get("name") or "", "role": role, "thumb": image(c.get("profile_path"), "w185")}, count))
+    rows.sort(key=lambda r: -r[1])                     # stable: TMDB's own order among equal counts
+    return [r[0] for r in rows if r[0]["name"]][:40]
+
+
+def series_cast(tmdb_id):
+    """The whole cast of a series at once (also for titles saved before this existed)."""
+    try:
+        return _series_cast({"aggregate_credits": get("tv/%s/aggregate_credits" % tmdb_id, ttl=7 * DAY)})
+    except util.HttpError:
+        return []
+
+
 def _details(kind, tmdb_id):
     api_kind = "movie" if kind == "movie" else "tv"
-    extra = {"append_to_response": "external_ids,images,credits,release_dates,content_ratings,videos,translations",
+    extra = {"append_to_response": "external_ids,images,credits,release_dates,content_ratings,videos,translations"
+                                   + ("" if kind == "movie" else ",aggregate_credits"),
              "include_image_language": "nl,en,null,de,fr,es,it"}
     try:
         raw = get("%s/%s" % (api_kind, tmdb_id), store=False, **extra)
@@ -231,7 +256,8 @@ def _details(kind, tmdb_id):
         "set_id": str((raw.get("belongs_to_collection") or {}).get("id") or ""),
         "lang": raw.get("original_language") or "",
         "digital": _digital(raw) if movie else date,
-        "cast": [{"id": c.get("id"), "name": c["name"], "role": c.get("character") or "", "thumb": image(c.get("profile_path"), "w185")}
+        "cast": _series_cast(raw) if not movie and (raw.get("aggregate_credits") or {}).get("cast") else
+                [{"id": c.get("id"), "name": c["name"], "role": c.get("character") or "", "thumb": image(c.get("profile_path"), "w185")}
                  for c in crew.get("cast") or []][:25],
         "directors": [c["name"] for c in crew.get("crew") or [] if c.get("job") == "Director"],
         "writers": [c["name"] for c in crew.get("crew") or [] if c.get("department") == "Writing"][:6],

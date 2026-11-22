@@ -2036,3 +2036,31 @@ msgstr ""
 msgctxt "#32575"
 msgid "Also searches NZBIndex, a free Usenet search that needs no account or key. It is asked last, after your own indexers. It searches by name only, so it finds fewer releases (not those with a scrambled name) and its titles are taken from the posts themselves. Your own Usenet provider is still needed to play."
 msgstr ""
+
+msgctxt "#32576"
+msgid "TMDB account"
+msgstr ""
+
+msgctxt "#32577"
+msgid "Linked as"
+msgstr ""
+
+msgctxt "#32578"
+msgid "Link TMDB"
+msgstr ""
+
+msgctxt "#32579"
+msgid "Unlink TMDB"
+msgstr ""
+
+msgctxt "#32580"
+msgid "Link your own TMDB account: approve once on your phone (scan the code). Your TMDB watchlist, favourites and ratings then appear under My lists, and a film or series can be put on them or rated from its menu."
+msgstr ""
+
+msgctxt "#32581"
+msgid "Stops the link with your TMDB account on this device."
+msgstr ""
+
+msgctxt "#32582"
+msgid "The TMDB account that is linked."
+msgstr ""

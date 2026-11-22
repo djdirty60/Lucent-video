@@ -297,7 +297,7 @@ def cache_clear():
 
 
 USERS = "users.json"
-PER_USER = {"punchplay_history.lock", "kompas_profile.json", "kompas_ratings.json", "kompas_rows.json", "kompas_shown.json", "kompas_saved.json", "search_history.json", "trakt.json", "simkl.json", "wetrakr.json", "simkl_state.json", "punchplay.json", "punchplay_state.json", "punchplay.lock", "mdbtrack.json", "mdbtrack_state.json", "watched.json", "watchlist.json", "progress.json", "last_release.json"}
+PER_USER = {"tmdb_account.json", "punchplay_history.lock", "kompas_profile.json", "kompas_ratings.json", "kompas_rows.json", "kompas_shown.json", "kompas_saved.json", "search_history.json", "trakt.json", "simkl.json", "wetrakr.json", "simkl_state.json", "punchplay.json", "punchplay_state.json", "punchplay.lock", "mdbtrack.json", "mdbtrack_state.json", "watched.json", "watchlist.json", "progress.json", "last_release.json"}
 
 
 OVERRIDE_USER = None      # set for a moment while marking a title for someone who watched along

@@ -179,7 +179,8 @@ def menu(handle, params):
     else:
         entries = [(T("Trending", "Trending"), "trending_tv"), (T("Populair", "Popular"), "popular_tv"),
                    (T("Nieuwe series", "New series"), "new_tv"),
-                   (T("Best beoordeeld", "Top rated"), "toprated_tv"), (T("Lopende series", "On the air"), "airing_tv"),
+                   (T("Best beoordeeld", "Top rated"), "toprated_tv"), (T("Vandaag op tv", "Airing today"), "today_tv"),
+                   (T("Lopende series", "On the air"), "airing_tv"),
                    (T("Binnenkort", "Coming soon"), "upcoming_tv"), (T("Kalender: nieuwe afleveringen", "Calendar: new episodes"), "calendar"),
                    (T("Nieuwe seizoenen aangekondigd", "New seasons announced"), "new_seasons"),
                    (T("Op tijd voor het nieuwe seizoen", "In time for the new season"), "marathon")]
@@ -193,6 +194,7 @@ def menu(handle, params):
     rows.append(items.folder(T("Genres", "Genres"), util.url_for(action="genres", type=params.get("type"))))
     rows.append(items.folder(T("Studio's", "Studios") if movie else T("Netwerken", "Networks"), util.url_for(action="studios", type=params.get("type"))))
     rows.append(items.folder(T("Per decennium", "By decade"), util.url_for(action="decades", type=params.get("type"))))
+    rows.append(items.folder(T("Populaire acteurs", "Popular people"), util.url_for(action="people")))
     rows.append(items.folder(T("Prijswinnaars", "Award winners"), util.url_for(action="awards", type=params.get("type"))))
     rows.append(items.folder(T("Films zoeken", "Search movies") if movie else T("Series zoeken", "Search shows"),
                              util.url_for(action="search", type="movie" if movie else "tvshow"), "DefaultAddonsSearch.png"))
@@ -212,6 +214,9 @@ def trakt_menu(handle, _params):
         if tracker.name() == "Trakt":
             rows.append(items.folder(T("Lijsten die je leuk vindt", "Liked lists"), util.url_for(action="traktlists", kind="liked")))
             rows.append(items.folder(T("Openbare lijsten", "Public lists"), util.url_for(action="publiclists")))
+    import tmdbacct
+    if tmdbacct.linked():
+        rows.append(items.folder("TMDB", util.url_for(action="tmdbmenu")))
     if mdblist.available():
         rows.append(items.folder("MDBList", util.url_for(action="mdblistmenu")))
     if floppy.available():
@@ -519,10 +524,45 @@ def for_you_titles():
     return tmdb.many(fresh[:40])
 
 
+def _timezone():
+    """Your time zone for 'Airing today' (TMDB counts the day in New York otherwise)."""
+    try:
+        import time as _time
+        offset = -_time.altzone if _time.daylight and _time.localtime().tm_isdst else -_time.timezone
+    except (AttributeError, ValueError):
+        offset = 0
+    return "Europe/Amsterdam" if util.NL else ("UTC" if not offset else "Etc/GMT%+d" % (-offset // 3600))
+
+
+def people(handle, params):
+    """Popular actors and actresses right now: OK opens their films and series."""
+    import tmdbextra
+    page = int(params.get("page") or 1)
+    found, more = tmdbextra.popular_people(page)
+    rows = []
+    for person_id, name, portrait, known in found:
+        url, item, folder = items.folder(name, util.url_for(action="list", name="person", id=person_id))
+        item.setLabel2(known)
+        if portrait:
+            item.setArt({"thumb": portrait, "poster": portrait, "icon": portrait})
+        rows.append((url, item, folder))
+    send(handle, rows, more=util.url_for(action="people", page=page + 1) if more else None)
+
+
+def tmdb_menu(handle, _params):
+    """Your TMDB account: watchlists, favourites and ratings."""
+    import tmdbacct
+    rows = [items.folder(tmdbacct.LABELS[name], util.url_for(action="list", name=name)) for name in tmdbacct.LISTS]
+    send(handle, rows)
+
+
 def cast(handle, params):
     meta = tmdb.details(params.get("type", "movie"), params["tmdb"])
+    people = (meta or {}).get("cast") or []
+    if params.get("type", "movie") != "movie":
+        people = tmdb.series_cast(params["tmdb"]) or people                     # every season, not only the latest
     rows = []
-    for person in (meta or {}).get("cast") or []:
+    for person in people:
         url, item, folder = items.folder(person["name"], util.url_for(action="list", name="person", id=person.get("id")))
         item.setLabel2(person.get("role") or "")
         if person.get("thumb"):
@@ -638,6 +678,18 @@ def gather(params):
         import services
         titles, more = services.titles(params["provider"], params.get("kind", "newmovie"), page)
         content = "movies" if params.get("kind", "").endswith("movie") else "tvshows"
+    elif name == "today_tv":
+        titles, more = tmdb.listing("tv/airing_today", "tvshow", page, timezone=_timezone())
+        content = "tvshows"
+    elif name == "keyword":
+        import tmdbextra
+        kind = "movie" if params.get("type") == "movie" else "tvshow"
+        titles, more = tmdbextra.keyword_titles(kind, params["tmdb"], page)
+        content = "movies" if kind == "movie" else "tvshows"
+    elif name.startswith("tmdb_"):                # your TMDB account (tmdbacct.LISTS)
+        import tmdbacct
+        titles, more = tmdbacct.titles(name, page)
+        content = "movies" if name.endswith("_movie") else "tvshows"
     elif name == "new_tv":
         titles, more = tmdb.new_series(page)
         content = "tvshows"
@@ -919,7 +971,7 @@ def test():
     xbmcgui.Dialog().ok("AIOStreams" if ok else T("Niet gelukt", "Failed"), text)
 
 
-FOLDERS = {"kompasmenu": kompas_menu, "": home, "menu": menu, "tools": tools, "studios": studios, "decades": decades, "awards": awards, "traktmenu": trakt_menu, "traktlists": trakt_lists, "genres": genres,
+FOLDERS = {"people": people, "tmdbmenu": tmdb_menu, "kompasmenu": kompas_menu, "": home, "menu": menu, "tools": tools, "studios": studios, "decades": decades, "awards": awards, "traktmenu": trakt_menu, "traktlists": trakt_lists, "genres": genres,
            "searchmenu": search_menu, "cast": cast, "publiclists": public_lists, "floppylists": floppy_lists, "services": services, "service": service, "mdblistmenu": mdblist_menu, "mdblists": mdblists, "title": title, "list": list_titles, "search": search, "seasons": seasons, "episodes": episodes}
 
 
@@ -1002,6 +1054,21 @@ def _run(argv):
         if action == "test_easynews":
             ok, text = usenet.check_easynews()
             return xbmcgui.Dialog().ok("Easynews" if ok else T("Niet gelukt", "Failed"), text)
+        if action == "auth_tmdb":
+            import tmdbacct
+            return tmdbacct.login()
+        if action == "logout_tmdb":
+            import tmdbacct
+            return tmdbacct.logout()
+        if action == "tmdb_actions":
+            import tmdbacct
+            return tmdbacct.actions(params.get("type", "movie"), params["tmdb"])
+        if action == "reviews":
+            import tmdbextra
+            return tmdbextra.show_reviews(params.get("type", "movie"), params["tmdb"])
+        if action == "episode_order":
+            import tmdbextra
+            return tmdbextra.choose(params["tmdb"])
         if action == "cast_popup":
             import castui
             return castui.open_cast(params.get("type", "movie"), params["tmdb"])

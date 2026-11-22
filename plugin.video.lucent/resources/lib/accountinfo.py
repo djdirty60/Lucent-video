@@ -237,3 +237,7 @@ def publish_names():
     name = (wetrakr.account().get("user") or T("ja", "yes")) if wetrakr.linked() else ""
     if util.setting("wetrakr_user") != name:
         util.ADDON.setSetting("wetrakr_user", name)
+    import tmdbacct
+    name = (tmdbacct.account().get("user") or T("ja", "yes")) if tmdbacct.linked() else ""
+    if util.setting("tmdb_user") != name:
+        util.ADDON.setSetting("tmdb_user", name)

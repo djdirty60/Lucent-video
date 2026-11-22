@@ -191,6 +191,9 @@ def search(meta, again=True):
     """Returns (ranked sources, None) or (None, 'address' or 'failed')."""
     import subcheck
     subtitles = subcheck.start(meta) if not meta.get("no_subcheck") else None
+    if meta.get("kind") == "episode":
+        import tmdbextra                        # the order of episodes you chose for this series (DVD, absolute ...)
+        meta = tmdbextra.for_search(meta)
     profile = ranking.active()
     per = profile["scrapers"].get("per") or {}
     order = [n for n in names(profile) if not per.get(n, {}).get("off")]

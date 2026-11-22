@@ -53,6 +53,8 @@ def open_cast(kind, tmdb_id):
     meta = tmdb.details("movie" if kind == "movie" else "tvshow", tmdb_id)
     if not meta:
         return util.notify(T("Acteurs niet gevonden", "Cast not found"))
+    if kind != "movie":
+        meta = dict(meta, cast=tmdb.series_cast(tmdb_id) or meta.get("cast") or [])     # every season, not only the latest
     import ranking_ui
     ranking_ui.open_screen(Cast, "lucent_cast.xml", meta=meta)
     return None

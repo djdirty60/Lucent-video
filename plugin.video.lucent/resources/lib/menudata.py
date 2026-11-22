@@ -47,6 +47,8 @@ MENU = {
     "list:popular_tv": ("heart", "tv", "De series die nu het meest bekeken worden.", "The most watched series right now."),
     "list:new_tv": ("spark", "tv", "Series die net begonnen zijn.", "Series that just started."),
     "list:toprated_tv": ("star", "tv", "De hoogst gewaardeerde series ooit.", "The highest rated series."),
+    "list:today_tv": ("calendar", "tv", "Series met vandaag een nieuwe aflevering.", "Series with a new episode today."),
+    "people": ("cast", "discover", "Acteurs die nu populair zijn.", "Actors who are popular now."),
     "list:airing_tv": ("broadcast", "tv", "Series waarvan nu nieuwe afleveringen komen.", "Series with new episodes now."),
     "list:upcoming_tv": ("clock", "tv", "Series die binnenkort beginnen.", "Series starting soon."),
     "list:calendar": ("calendar", "tv", "Nieuwe afleveringen van je series, per dag.", "New episodes of your series, by day."),

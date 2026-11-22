@@ -2036,3 +2036,31 @@ msgstr "NZBIndex: gratis zoeken zonder account"
 msgctxt "#32575"
 msgid "Also searches NZBIndex, a free Usenet search that needs no account or key. It is asked last, after your own indexers. It searches by name only, so it finds fewer releases (not those with a scrambled name) and its titles are taken from the posts themselves. Your own Usenet provider is still needed to play."
 msgstr "Zoekt ook bij NZBIndex, een gratis Usenet-zoekmachine zonder account of sleutel. Die wordt als laatste gevraagd, na je eigen indexers. Hij zoekt alleen op naam, dus vindt minder releases (niet die met een versleutelde naam) en de titels komen uit de berichten zelf. Je eigen Usenet-provider blijft nodig om af te spelen."
+
+msgctxt "#32576"
+msgid "TMDB account"
+msgstr "TMDB-account"
+
+msgctxt "#32577"
+msgid "Linked as"
+msgstr "Gekoppeld als"
+
+msgctxt "#32578"
+msgid "Link TMDB"
+msgstr "TMDB koppelen"
+
+msgctxt "#32579"
+msgid "Unlink TMDB"
+msgstr "TMDB ontkoppelen"
+
+msgctxt "#32580"
+msgid "Link your own TMDB account: approve once on your phone (scan the code). Your TMDB watchlist, favourites and ratings then appear under My lists, and a film or series can be put on them or rated from its menu."
+msgstr "Koppel je eigen TMDB-account: één keer goedkeuren op je telefoon (scan de code). Je TMDB-kijklijst, favorieten en beoordelingen staan dan bij Mijn lijsten, en vanuit het menu van een film of serie zet je hem erop of geef je punten."
+
+msgctxt "#32581"
+msgid "Stops the link with your TMDB account on this device."
+msgstr "Stopt de koppeling met je TMDB-account op dit apparaat."
+
+msgctxt "#32582"
+msgid "The TMDB account that is linked."
+msgstr "Het TMDB-account dat gekoppeld is."

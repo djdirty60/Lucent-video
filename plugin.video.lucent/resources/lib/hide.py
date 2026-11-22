@@ -20,7 +20,7 @@ LANGUAGES = [("zh", "Chinees (Mandarijn)", "Chinese (Mandarin)"), ("cn", "Chinee
              ("te", "Telugu", "Telugu"), ("th", "Thai", "Thai"), ("tl", "Filipijns", "Filipino"), ("id", "Indonesisch", "Indonesian"),
              ("tr", "Turks", "Turkish"), ("ru", "Russisch", "Russian"), ("es", "Spaans", "Spanish"), ("pt", "Portugees", "Portuguese")]
 # lists that are about discovering titles; everything else is left alone
-DISCOVER = ("trending_movie", "popular_movie", "toprated_movie", "trending_tv", "popular_tv", "toprated_tv", "airing_tv", "genre",
+DISCOVER = ("trending_movie", "popular_movie", "toprated_movie", "trending_tv", "popular_tv", "toprated_tv", "airing_tv", "today_tv", "keyword", "genre",
             "similar", "foryou", "new_tv", "company", "decade", "award", "provider", "service_list", "person", "kompas_foryou",
             "kompas_because", "kompas_gems", "kompas_new", "kompas_trending", "kompas_saved")
 # 'only what you can watch' leaves these alone

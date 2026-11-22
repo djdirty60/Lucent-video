@@ -2,6 +2,50 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.19",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T17:30Z",
+   "items": [
+    [
+     "home",
+     "Vandaag op tv en populaire acteurs",
+     "Bij Series staat nu Vandaag op tv: series met vandaag een nieuwe aflevering. Bij Films en Series vind je Populaire acteurs; kies er een en je ziet hun films en series.",
+     "Airing today and popular people",
+     "Series now has Airing today: series with a new episode today. Films and Series have Popular people; pick one to see their films and series."
+    ],
+    [
+     "movies",
+     "Meer over hetzelfde onderwerp en recensies",
+     "In het menu van een film of serie staan nu Meer over hetzelfde onderwerp (titels met dezelfde trefwoorden, zoals tijdreizen of een overval) en Recensies van TMDB-gebruikers.",
+     "More on the same subject and reviews",
+     "The menu of a film or series now has More on the same subject (titles with the same keywords, such as time travel or a heist) and Reviews by TMDB users."
+    ],
+    [
+     "info",
+     "De hele cast van een serie",
+     "Bij een serie zie je nu iedereen die ooit meespeelde, van alle seizoenen, met het aantal afleveringen erbij.",
+     "The whole cast of a series",
+     "A series now shows everyone who ever played in it, from every season, with the number of episodes."
+    ],
+    [
+     "search",
+     "Afleveringsvolgorde voor zoeken",
+     "Wijkt de nummering van releases af, zoals bij anime met doorlopende nummers of een dvd-volgorde? Kies in het menu van de serie Afleveringsvolgorde voor zoeken. Lucent zoekt dan met die nummers; bekeken en verder kijken blijven gewoon kloppen.",
+     "Order of episodes for searching",
+     "Do releases use other numbers, as anime with absolute numbers or a DVD order? Choose Order of episodes for searching in the menu of the series. Lucent then searches with those numbers; watched and continue watching stay right."
+    ],
+    [
+     "trakt",
+     "Je eigen TMDB-account",
+     "Koppel bij Instellingen > Accounts je TMDB-account. Je TMDB-kijklijst, favorieten en beoordelingen staan dan bij Mijn lijsten, en vanuit het menu van een titel zet je hem erop of geef je punten.",
+     "Your own TMDB account",
+     "Link your TMDB account under Settings > Accounts. Your TMDB watchlist, favourites and ratings then appear under My lists, and from the menu of a title you put it on them or rate it."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.18",
    "label": "RC 1",
    "label_en": "RC 1",
