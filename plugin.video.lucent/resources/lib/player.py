@@ -113,6 +113,15 @@ def _answers(source, offset=0):
         return False
 
 
+def _taken_down(source):
+    """Was this Usenet release just found taken down (its articles gone)? Then the failure says nothing about its group."""
+    job = source.get("resolve") or {}
+    if job.get("scraper") != "Usenet" or not job.get("link"):
+        return bool(source.get("gone"))
+    from nzb import source as nzb_source
+    return bool(source.get("gone")) or nzb_source._dead_key(job["link"]) in nzb_source._dead_now()      # noqa: SLF001
+
+
 def _easynews_direct(source):
     """An Easynews web link: its CDN address (followed once), so Kodi needs no login for every jump."""
     if source.get("service") == "EASYNEWS" and source.get("url") and not (source.get("resolve") or {}).get("scraper"):
@@ -192,7 +201,8 @@ def _first(sources, index):
             return _easynews_direct(source)
         if _easynews_fallback(source) or _easynews_over_usenet(source):
             return source
-        learn.record(learn.key(source), False)
+        if not _taken_down(source):             # a release taken down from Usenet is not its group's fault
+            learn.record(learn.key(source), False)
     for source in sources[index:]:
         if scrapers.ready(source):
             return source

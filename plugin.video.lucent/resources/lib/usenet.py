@@ -577,7 +577,8 @@ def easynews(meta):
             continue
         name = stem + extension
         path = "%s%s%s/%s" % (key, suffix, extension, urllib.parse.quote(name))
-        source = dict(_source(name, size, "EASYNEWS", url="%s/%s|%s" % (base, path, agent)), always=True, seconds=seconds or 0, _path=path)
+        source = dict(_source(name, size, "EASYNEWS", url="%s/%s|%s" % (base, path, agent)), always=True, seconds=seconds or 0, _path=path,
+                      en_key=path.split("/", 1)[0])
         if original:
             source["en_original"] = "%s/%s|%s" % (original, path, agent)
         if label:
@@ -735,6 +736,43 @@ def direct(url):
         return url
     util.log("Easynews: playing from %s (followed once, no login needed there)" % host)
     return target + ("|" + extra if extra else "")
+
+
+def _read_head(url, size):
+    """The first `size` bytes of an Easynews file (login from the address, in a header; never in the log)."""
+    address, _, _extra = url.partition("|")
+    parts = urllib.parse.urlsplit(address)
+    head = {"User-Agent": AGENT, "Range": "bytes=0-%d" % (size - 1)}
+    if parts.username:
+        login = "%s:%s" % (urllib.parse.unquote(parts.username), urllib.parse.unquote(parts.password or ""))
+        head["Authorization"] = "Basic " + base64.b64encode(login.encode("utf-8")).decode("ascii")
+        address = urllib.parse.urlunsplit((parts.scheme, parts.netloc.rsplit("@", 1)[1], parts.path, parts.query, ""))
+    with urllib.request.urlopen(urllib.request.Request(address, headers=head), timeout=15) as answer:
+        return answer.read(size)
+
+
+def dovi_kind(source):
+    """'fel', 'mel', 'p7' (profile 7, not read) or '' for an Easynews MKV, from its first megabytes, the same way as for
+    Usenet releases (nzb/tracks.py: the Dolby Vision metadata). Kept for two weeks."""
+    from nzb import tracks
+    import hashlib
+    key = "endovi" + hashlib.sha1((source.get("en_key") or source.get("name") or "").encode("utf-8")).hexdigest()[:16]
+    known = util.cache_get(key, 14 * 86400)
+    if known is not None:
+        return known
+    url = source.get("en_original") or source.get("url") or ""
+    data = _read_head(url, 3 * 1048576)
+    found = tracks.read(data) or {}
+    kind = ""
+    if found.get("dv") == 7 and found.get("video"):
+        number, nal_size = found["video"]
+        kind = tracks.dolby(data, number, nal_size, found["after"])
+        if not kind:
+            data = _read_head(url, 12 * 1048576)
+            kind = tracks.dolby(data, number, nal_size, found["after"])
+        kind = kind or "p7"
+    util.cache_set(key, kind)
+    return kind
 
 
 def fallback_link(spare):

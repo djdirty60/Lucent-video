@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.41",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T00:05Z",
+   "items": [
+    [
+     "star",
+     "FEL gaat voor",
+     "Een FEL-release staat nu altijd boven dezelfde soort release zonder FEL. Eerst kon een releasegroep die hier een keer faalde (zoals FraMeSToR, waarvan releases waren weggehaald) onder een gewone Dolby Vision-remux zakken, ook met FEL. Een weggehaalde release telt ook niet meer mee tegen zijn groep.",
+     "FEL comes first",
+     "A FEL release now always stands above the same kind of release without FEL. Before, a release group that failed here once (like FraMeSToR, whose releases had been taken down) could sink under a plain Dolby Vision remux, even with FEL. A taken-down release no longer counts against its group either."
+    ],
+    [
+     "search",
+     "FEL en MEL ook bij Easynews",
+     "Easynews-bestanden van een Blu-ray met Dolby Vision krijgen nu ook een FEL-, MEL- of P7-badge. Lucent leest daarvoor de eerste megabytes van de bovenste vier, terwijl de lijst open is.",
+     "FEL and MEL with Easynews too",
+     "Easynews files from a Blu-ray with Dolby Vision now get a FEL, MEL or P7 badge too. Lucent reads the first megabytes of the top four while the list is open."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.40",
    "label": "RC 1",
    "label_en": "RC 1",

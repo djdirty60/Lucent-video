@@ -521,6 +521,11 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
         # left equal (Dolby Vision + HDR above Dolby Vision alone, 10-bit, IMAX); in Sound they part one place at once
         # (TrueHD Atmos above DD+ Atmos).
         ladder.append(_place(group["id"], group["order"], tags))
+        if group["id"] == "visual" and "fel" in group["order"]:
+            # FEL is Dolby Vision plus: with 'Dolby Vision' above 'FEL' in your order both stand on the same place, yet
+            # the FEL one is the better file. Your choice, so 'played well' or a group that failed once never jumps
+            # over it (rc1.41: a FEL remux of a group that failed here stood under a plain DV remux)
+            ladder.append(0 if "fel" in tags else 1)
         group_points = -round(_points(group["id"], group["order"], tags)[0], 3)
         if group["id"] == "audio":
             ladder.append(group_points)         # one place ('Atmos') holds TrueHD Atmos and DD+ Atmos: the better track first

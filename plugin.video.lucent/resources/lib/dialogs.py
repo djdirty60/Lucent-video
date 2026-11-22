@@ -151,7 +151,34 @@ class Sources(Base):
         ' · ✓ compleet' or ' · 97% compleet' after the line under the name as soon as it is in."""
         threading.Thread(target=self._checks, daemon=True).start()
 
+    def _easynews_dolby(self):
+        """Easynews Dolby Vision files from a Blu-ray (where profile 7 lives): FEL or MEL read from their first
+        megabytes, like the Usenet check, for the top few. The label is set and the order made again."""
+        import usenet
+        todo = [s for s in self.sources if s.get("service") == "EASYNEWS" and "DV" in (s.get("flags") or [])
+                and {"REMUX", "BLURAY"} & set(s.get("flags") or []) and not {"aio_FEL", "aio_MEL"} & set(s.get("flags") or [])][:EASYNEWS_DOLBY]
+        changed = False
+        for source in todo:
+            if self.done:
+                return
+            try:
+                kind = usenet.dovi_kind(source)
+            except Exception as error:      # noqa: BLE001 - only a label
+                util.log("easynews: Dolby Vision not read (%s)" % type(error).__name__)
+                continue
+            label = {"fel": "aio_FEL", "mel": "aio_MEL", "p7": "aio_P7"}.get(kind)
+            if label:
+                source["flags"] = [f for f in source.get("flags") or [] if f not in ("aio_FEL", "aio_MEL", "aio_P7")] + [label]
+                changed = True
+        if changed and not self.done:
+            util.log("easynews: Dolby Vision read for %d file(s)" % len(todo))
+            if not self._rerank():
+                with self._rows_lock:
+                    name, self.tab = self.tab, None
+                    self.show_tab(name)         # same order, new labels
+
     def _checks(self):
+        threading.Thread(target=self._easynews_dolby, daemon=True).start()
         from nzb import source as nzb_source
         todo = []
         for source in self.sources:             # what is already known (a file per release): shown as it is found
@@ -505,6 +532,7 @@ def _with_scraper(source):
 
 EARLY_NZBS = 2                    # NZBs fetched beforehand for the top Usenet releases while the list is open
 EXTRA_CHECKS = 4                  # at most this many releases checked in place of checked ones that fell away
+EASYNEWS_DOLBY = 4                # Easynews Blu-ray Dolby Vision files read for FEL / MEL while the list is open
 SEARCH_DONE = {}                  # when the last search finished (player.py), for the log line when the list is up
 
 
