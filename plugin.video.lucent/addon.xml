@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.23" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.24" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -96,7 +96,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.23: Easynews works again: the speed measurement of rc1.22 stopped every Easynews search with an error.
+        <news>1.0.0~rc1.24: Easynews: the sound and subtitle languages that are really inside a file (read by Easynews) give the label for your language, also when the name does not say it; files with several sound tracks show them ("audio EN NL"); Preview in the menu of an Easynews source shows Easynews' picture with frames of the video.
+1.0.0~rc1.23: Easynews works again: the speed measurement of rc1.22 stopped every Easynews search with an error.
 1.0.0~rc1.22: Easynews: the length of each file is compared with the film (far too short: left out; longer or shorter: "Extended +12 min", "Director's Cut", "9 min shorter"); your Easynews speed is measured once a week and a release that needs more gets "may be too heavy" and moves down; the log tells which fields Easynews gives (names only).
 1.0.0~rc1.21: Source list: a release group that failed here once or twice no longer goes below everything of its resolution (a Dolby Vision remux under plain Blu-rays); it only loses from equal sources. Only after three failures without a success it goes to the end.
 1.0.0~rc1.20: Subtitles made easier: Podnapisi as an extra source without an account; the subtitle is searched while the video loads, so the film is no longer paused for a search; nothing in your language: a short question (English, AI translation or nothing) instead of silence, or your fixed choice in the settings; one-press actions earlier, later and another subtitle (subs_earlier, subs_later, subs_other); Quick setup in three questions, and the advanced subtitle settings moved to the Advanced level.
@@ -121,7 +122,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.23: Easynews werkt weer: de snelheidsmeting van rc1.22 liet elke Easynews-zoekopdracht met een fout stoppen.
+        <news lang="nl_NL">1.0.0~rc1.24: Easynews: de geluids- en ondertiteltalen die echt in een bestand zitten (gelezen door Easynews) geven het label voor jouw taal, ook als de naam het niet zegt; bestanden met meerdere geluidssporen tonen ze ("geluid EN NL"); Voorvertoning in het menu van een Easynews-bron toont Easynews' plaatje met beelden uit de video.
+1.0.0~rc1.23: Easynews werkt weer: de snelheidsmeting van rc1.22 liet elke Easynews-zoekopdracht met een fout stoppen.
 1.0.0~rc1.22: Easynews: de lengte van elk bestand wordt vergeleken met de film (veel te kort: weggelaten; langer of korter: "Extended +12 min", "Director's Cut", "9 min korter"); je Easynews-snelheid wordt eens per week gemeten en een release die meer nodig heeft krijgt "mogelijk te zwaar" en zakt; het logboek zegt welke velden Easynews meegeeft (alleen de namen).
 1.0.0~rc1.21: Bronnenlijst: een release-groep die hier een of twee keer mislukte, zakt niet meer onder alles van zijn resolutie (een Dolby Vision-remux onder gewone Blu-rays); hij verliest alleen van gelijke bronnen. Pas na drie keer mislukt zonder succes gaat hij naar het eind.
 1.0.0~rc1.20: Ondertitels makkelijker: Podnapisi als extra bron zonder account; de ondertitel wordt gezocht terwijl de video laadt, dus de film pauzeert niet meer voor een zoektocht; niets in je taal: een korte vraag (Engels, AI-vertaling of niets) in plaats van stilte, of je vaste keuze in de instellingen; met één druk eerder, later en een andere ondertitel; Snel instellen in drie vragen, en de geavanceerde ondertitelinstellingen staan nu op het niveau Geavanceerd.

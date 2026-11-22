@@ -183,6 +183,55 @@ def _en_fields(answer):
     util.log("Easynews gives: %s; top: %s" % (", ".join(sorted(rows[0])), ", ".join(sorted(k for k in answer if k != "data")[:40])))
 
 
+def _en_langs(value):
+    """Two-letter codes of a list of Easynews languages ('eng', 'dut', 'English' ...), in order, without doubles."""
+    out = []
+    for item in value if isinstance(value, list) else []:
+        text = str(item or "").strip().lower()
+        if not text:
+            continue
+        code = {"dut": "nl", "nld": "nl", "ger": "de", "fre": "fr", "chi": "zh", "cze": "cs", "gre": "el"}.get(text, "")
+        if not code:
+            try:
+                code = (xbmc.convertLanguage(text, xbmc.ISO_639_1) or "").lower()
+            except Exception:       # noqa: BLE001 - Kodi does not know it
+                code = ""
+        code = code if len(code) == 2 else (text if len(text) == 2 else "")
+        if code and code not in out:
+            out.append(code)
+    return out
+
+
+def _en_preview(answer, raw):
+    """The address of Easynews' preview picture of a file (a few frames of the video), or ''."""
+    base = str(answer.get("thumbURL") or "")
+    key, stem = str(raw.get("0") or raw.get("hash") or ""), str(raw.get("10") or raw.get("fn") or "")
+    if not base or len(key) < 3 or not stem:
+        return ""
+    return "%s%s/pr-%s.jpg/th-%s.jpg" % (base, key[:3], key, urllib.parse.quote(stem))
+
+
+def preview_file(url):
+    """Downloads a preview picture with your Easynews login (in a header, never in a log) to a temporary file."""
+    import os
+    folder = os.path.join(util.CACHE, "preview")
+    os.makedirs(folder, exist_ok=True)
+    for name in os.listdir(folder):
+        try:
+            os.remove(os.path.join(folder, name))
+        except OSError:
+            pass
+    path = os.path.join(folder, "%d.jpg" % int(time.time() * 1000))
+    request = urllib.request.Request(url, headers={"Authorization": _en_header(), "User-Agent": AGENT})
+    with urllib.request.urlopen(request, timeout=15) as response:
+        data = response.read(8 * 1048576)
+    if len(data) < 500:
+        raise ValueError("no picture")
+    with open(path, "wb") as handle:
+        handle.write(data)
+    return path
+
+
 def _version(stem, minutes, runtime):
     """('Extended +12 min', keep?) from the length of the file against TMDB's running time (films)."""
     if not minutes or not runtime:
@@ -239,6 +288,19 @@ def easynews(meta):
         source = dict(_source(name, size, "EASYNEWS", url="%s/%s|%s" % (base, path, agent)), always=True, seconds=seconds or 0, _path=path)
         if label:
             source["meta"] += " · " + label
+        if isinstance(raw, dict):
+            # what is really inside the file (Easynews reads the tracks), not guessed from the name
+            sound, subs = _en_langs(raw.get("alangs")), _en_langs(raw.get("slangs"))
+            mine = mylang.code()
+            if mine in sound and mylang.audio_flag() not in source["flags"]:
+                source["flags"].append(mylang.audio_flag())
+            if mine in subs and mylang.subs_flag() not in source["flags"]:
+                source["flags"].append(mylang.subs_flag())
+            if len(sound) > 1:
+                source["meta"] += " · " + T("geluid", "audio") + " " + " ".join(c.upper() for c in sound[:4])
+            preview = _en_preview(answer, raw)
+            if preview:
+                source["preview"] = preview
         out.append(source)
     if short:
         util.log("Easynews: %d result(s) left out: far shorter than the film or episode" % short)

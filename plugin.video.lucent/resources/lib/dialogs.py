@@ -69,6 +69,35 @@ def head_props(meta):
     return props
 
 
+class Preview(xbmcgui.WindowDialog):
+    """A picture over everything (also over the source list); any key closes it."""
+
+    def __init__(self, path, line):
+        super().__init__()
+        import os
+        import xbmcvfs
+        white = os.path.join(xbmcvfs.translatePath(util.ADDON.getAddonInfo("path")), "resources", "skins", "Default", "media", "lucent", "white.png")
+        self.addControl(xbmcgui.ControlImage(0, 0, 1280, 720, white, colorDiffuse="E6000000"))
+        self.addControl(xbmcgui.ControlImage(40, 30, 1200, 620, path, aspectRatio=2))
+        self.addControl(xbmcgui.ControlLabel(40, 662, 1200, 40, line, alignment=0x00000002))
+
+    def onAction(self, _action):
+        self.close()
+
+
+def show_preview(source):
+    import usenet
+    try:
+        path = usenet.preview_file(source["preview"])
+    except Exception as error:      # noqa: BLE001 - a picture is a bonus
+        util.log("preview: %s" % type(error).__name__)
+        return util.notify(T("Geen voorvertoning beschikbaar", "No preview available"))
+    dialog = Preview(path, source.get("name", "")[:120])
+    dialog.doModal()
+    del dialog
+    return None
+
+
 class Sources(Base):
     """Choose a quality on top, then the source. self.result is the chosen source."""
 
@@ -332,6 +361,13 @@ class Sources(Base):
             return
         source = self.current[position]
         job = source.get("resolve") or {}
+        if source.get("preview"):                       # Easynews: a picture with a few frames of the video
+            choice = xbmcgui.Dialog().contextmenu([T("Waarom staat deze hier", "Why is this one here"), T("Voorvertoning", "Preview")])
+            if choice == 0:
+                self.explain()
+            elif choice == 1:
+                show_preview(source)
+            return None
         if job.get("scraper") != "Usenet" or not job.get("link"):
             return self.explain()
         choice = xbmcgui.Dialog().contextmenu([T("Waarom staat deze hier", "Why is this one here"),

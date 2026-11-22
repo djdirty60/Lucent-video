@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.24",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-22",
+   "at": "2026-11-22T18:45Z",
+   "items": [
+    [
+     "subtitles",
+     "Easynews weet welke talen erin zitten",
+     "Easynews leest de geluids- en ondertitelsporen van elk bestand. Zit er Nederlands geluid of een Nederlandse ondertitel in, dan krijgt de release dat label, ook als het niet in de naam staat.",
+     "Easynews knows the languages inside",
+     "Easynews reads the sound and subtitle tracks of every file. When there is sound or a subtitle in your language, the release gets that label, also when the name does not say it."
+    ],
+    [
+     "movies",
+     "Voorvertoning bij Easynews",
+     "Kies in het menu van een Easynews-bron Voorvertoning: je ziet een paar beelden uit de video, zodat je vooraf ziet of het beeld goed is.",
+     "Preview with Easynews",
+     "Choose Preview in the menu of an Easynews source: you see a few frames of the video, so you can tell beforehand whether the picture is good."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.23",
    "label": "RC 1",
    "label_en": "RC 1",
