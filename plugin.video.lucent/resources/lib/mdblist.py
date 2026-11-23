@@ -2,6 +2,7 @@
 """MDBList: smart lists, and scores from IMDb, Rotten Tomatoes, Metacritic and more. Needs your own free API key."""
 from concurrent.futures import ThreadPoolExecutor
 import json
+import time
 import urllib.parse
 
 import util
@@ -60,6 +61,10 @@ def _parse(entry):
     return {"scores": scores, "average": entry.get("score_average") or 0, "trakt": str((entry.get("ids") or {}).get("trakt") or "")}
 
 
+DAY = 86400
+DOWN_WAIT = 30 * 60
+
+
 def _fetch(kind, ids):
     media = "movie" if kind == "movie" else "show"
     for start in range(0, len(ids), BATCH):
@@ -68,11 +73,17 @@ def _fetch(kind, ids):
             answer, _ = util.http(_url("tmdb/%s" % media), data={"ids": part})
         except util.HttpError as error:
             util.log("MDBList: %s" % error)
+            util.cache_set("mdbdown", time.time())      # not asked again for a while: every Home row would wait for it
             return
+        found = set()
         for entry in answer or []:
             tmdb_id = str((entry.get("ids") or {}).get("tmdb") or "")
             if tmdb_id:
+                found.add(tmdb_id)
                 util.cache_set("mdbscore%s%s" % (kind, tmdb_id), _parse(entry))
+        for tmdb_id in part:                            # MDBList does not know it: not asked again for a day
+            if tmdb_id not in found:
+                util.cache_set("mdbscore%s%s" % (kind, tmdb_id), {"miss": time.time()})
 
 
 def enrich(titles):
@@ -82,15 +93,18 @@ def enrich(titles):
     targets = [t for t in titles if t["kind"] in ("movie", "tvshow")]
     missing = {"movie": [], "tvshow": []}
     for meta in targets:
-        if util.cache_get("mdbscore%s%s" % (meta["kind"], meta["tmdb"]), WEEK) is None:
+        known = util.cache_get("mdbscore%s%s" % (meta["kind"], meta["tmdb"]), WEEK)
+        if known is None or (known.get("miss") and time.time() - known["miss"] > DAY):
             missing[meta["kind"]].append(str(meta["tmdb"]))
+    if util.cache_get("mdbdown", DOWN_WAIT):
+        missing = {}                                    # MDBList did not answer a short while ago
     jobs = [(k, v) for k, v in missing.items() if v]
     if jobs:
         with ThreadPoolExecutor(max_workers=2) as pool:
             list(pool.map(lambda job: _fetch(*job), jobs))
     for meta in targets:
         found = util.cache_get("mdbscore%s%s" % (meta["kind"], meta["tmdb"]), WEEK)
-        if found:
+        if found and not found.get("miss"):
             meta["scores"] = {k: tuple(v) for k, v in found["scores"].items()}
             meta["mdb_average"] = found["average"]
             if found.get("trakt"):

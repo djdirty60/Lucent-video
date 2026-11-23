@@ -265,6 +265,7 @@ class Watcher(xbmc.Player):
         meta, self.current = self.current, None
         if not meta:
             return
+        prefetch.soon()                         # Continue watching / next episodes changed: look them up shortly
         percent = self.percent()
         WATCHED_AT = util.watched_at()
         progress = util.load_json(player.LOCAL, {})
@@ -609,7 +610,7 @@ def run():
                 threading.Thread(target=libwatch.periodic, daemon=True).start()
             if seconds >= 600 and seconds % 600 == 0 and not watcher.isPlaying() and newseason.due():
                 threading.Thread(target=newseason.run, daemon=True).start()
-            if seconds >= 240 and seconds % 60 == 0 and not watcher.isPlaying() and prefetch.due():
+            if seconds >= 60 and seconds % 30 == 0 and not watcher.isPlaying() and prefetch.due() and not prefetch.busy():
                 threading.Thread(target=prefetch.run, daemon=True).start()
             if seconds >= 150 and seconds % 600 == 150 and not watcher.isPlaying() and kompas.due():
                 threading.Thread(target=kompas.run, daemon=True).start()

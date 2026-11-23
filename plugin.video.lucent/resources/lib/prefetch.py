@@ -19,10 +19,12 @@ FILE = "prefetch.json"
 TONIGHT = "tonight.json"
 KEEP = 90 * 60          # links stay fresh this long
 EVERY = 15 * 60
-PER_ROUND = 4
+PER_ROUND = 8
+AT_ONCE = 2          # titles looked up side by side (more would weigh on a small box)
+AFTER_WATCHING = 90  # seconds after you stop: Continue watching and your next episodes have just changed
 MISSES = "prefetch_miss.json"     # titles a background search found nothing for: not asked again for a while
 MISS_WAIT = 3 * 3600              # (an indexer at its background limit, or nothing out yet; you pressing play still searches)
-_last = {"at": 0.0}
+_last = {"at": 0.0, "busy": False}
 
 
 def key_of(kind, tmdb_id, season=None, episode=None):
@@ -33,10 +35,19 @@ def due():
     return util.flag("prefetch") and time.time() - _last["at"] > EVERY
 
 
+def busy():
+    return _last["busy"]
+
+
+def soon():
+    """After watching: the next round comes in AFTER_WATCHING seconds instead of up to a quarter of an hour."""
+    _last["at"] = min(_last["at"], time.time() - EVERY + AFTER_WATCHING)
+
+
 def _candidates():
     out = []
     try:
-        paused, following = tracker.paused()[:3], tracker.next_up()[:3]
+        paused, following = tracker.paused()[:4], tracker.next_up()[:4]
     except util.HttpError as error:
         util.log("prefetch: account not reachable (%s)" % error)
         paused, following = [], []
@@ -83,31 +94,52 @@ def _check_usenet(found):
 
 
 def run():
-    _last["at"] = time.time()
+    if _last["busy"]:
+        return
+    _last["at"], _last["busy"] = time.time(), True
+    try:
+        _round()
+    finally:
+        _last["busy"] = False
+
+
+def _round():
     store = {k: v for k, v in util.load_json(FILE, {}).items() if _fresh(v)}
     misses = {k: at for k, at in util.load_json(MISSES, {}).items() if time.time() - at < MISS_WAIT}
     wanted = [(e, False) for e in _candidates()] + [((t["type"], t["tmdb"], t.get("season"), t.get("episode")), True) for t in tonight()]
-    done = skipped = 0
+    skipped, todo = 0, []
     for entry, subtitles in wanted:
         key = key_of(*entry)
-        if done >= PER_ROUND or (key in store and (store[key].get("keep") or time.time() - store[key].get("at", 0) < KEEP - 2 * EVERY)):
+        if len(todo) >= PER_ROUND or any(key == k for k, _e, _s in todo) or (key in store and (store[key].get("keep") or time.time() - store[key].get("at", 0) < KEEP - 2 * EVERY)):
             continue                         # fresh enough; an older one is looked up again before it runs out
         if key in misses and not subtitles:
             skipped += 1                     # found nothing a short while ago: not again yet (tonight's titles are always tried)
             continue
+        todo.append((key, entry, subtitles))
+
+    def one(job):
+        key, entry, subtitles = job
         try:
             found = _fetch(entry, subtitles)
+            if found and subtitles:
+                _check_usenet(found)          # ready for tonight: NZB fetched and every article checked, in advance
         except Exception as error:          # noqa: BLE001 - a failing scraper must never stop the service
             util.log("prefetch: %s" % type(error).__name__)
             found = None
-        done += 1
+        return key, found
+
+    from concurrent.futures import ThreadPoolExecutor
+    started = time.time()
+    with ThreadPoolExecutor(max_workers=AT_ONCE) as pool:
+        results = list(pool.map(one, todo))
+    for key, found in results:
         if found:
-            if subtitles:
-                _check_usenet(found)          # ready for tonight: NZB fetched and every article checked, in advance
             store[key] = found
             misses.pop(key, None)
         else:
             misses[key] = time.time()
+    if todo:
+        util.log("prefetch: %d title(s) looked up in %ds, %d found" % (len(todo), time.time() - started, sum(1 for _k, f in results if f)))
     util.save_json(FILE, store)
     util.save_json(MISSES, misses)
     if skipped:

@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.53",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T20:05Z",
+   "items": [
+    [
+     "home",
+     "Snellere rijen",
+     "Rijen op het hoofdscherm vroegen bij elke keer laden opnieuw scores op bij MDBList voor titles die MDBList niet kent, of als MDBList niet antwoordde. Dat gebeurt nu hooguit eens per dag (of per half uur bij een storing).",
+     "Faster rows",
+     "Home rows asked MDBList for scores again on every load for titles MDBList does not know, or when MDBList did not answer. That now happens at most once a day (or once per half hour when it is down)."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.52",
    "label": "RC 1",
    "label_en": "RC 1",

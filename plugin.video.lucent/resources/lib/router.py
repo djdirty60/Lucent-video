@@ -74,10 +74,13 @@ def _paused_table():
 
 
 def send_titles(handle, titles, content, more=None):
+    clock = time.time()
     titles = kids.keep(titles)
     tracker.enrich(titles)
+    enriched = time.time()
     films, shows = tracker.watched_movies(), tracker.watched_episodes()
     local, paused = _resume_table(), _paused_table()
+    tables = time.time()
     rows = []
     for meta in titles:
         last, counts, seen = "", None, False
@@ -95,7 +98,20 @@ def send_titles(handle, titles, content, more=None):
         if meta["kind"] == "tvshow":
             _progress(row[1], meta, shows.get(meta["tmdb"], {}))
         rows.append(row)
+    built = time.time()
     send(handle, rows, content, more)
+    TIMES.update(enrich=enriched - clock, tables=tables - enriched, build=built - tables, send=time.time() - built)
+
+
+TIMES = {}
+STARTED = None
+
+
+def _row_time(name, how, began):
+    """Measured: how long a Home row took, and where the time went (for the report)."""
+    parts = " ".join("%s %d" % (k, v * 1000) for k, v in TIMES.items())
+    start = " start %d" % ((began - STARTED) * 1000) if STARTED else ""
+    util.log("row %s: %s, %d ms (%s%s)" % (name, how, (time.time() - (STARTED or began)) * 1000, parts, start))
 
 
 def _progress(item, meta, shown):
@@ -714,9 +730,12 @@ def list_titles(handle, params):
     import hide
     size = util.number("widget_size", 20) if params.get("widget") == "1" else 0       # a Home row: as many as you chose
     cut = (lambda rows: rows[:size]) if size else (lambda rows: rows)
+    began = time.time()
     cached = widgets.get(params) if widgets.wanted(params) else None
     if cached:
         send_titles(handle, cut(hide.keep(cached.get("titles") or [], name)), cached.get("content") or "")
+        if params.get("widget") == "1":
+            _row_time(name, "copy", began)
         if widgets.is_old(params, cached, size):
             try:
                 titles, content, _more = gather_row(params, size)
@@ -731,10 +750,13 @@ def list_titles(handle, params):
                 widgets.bump()
         return None
     titles, content, more = gather_row(params, size)
+    TIMES["fetch"] = time.time() - began
     if widgets.wanted(params) and titles:
         widgets.put(params, titles, content, size)
     next_url = util.url_for(**dict(params, page=page + 1)) if more and params.get("widget") != "1" else None     # a Home row has no next page
     send_titles(handle, cut(hide.keep(titles, name)), content, next_url)
+    if params.get("widget") == "1":
+        _row_time(name, "fetched", began)
     return None
 
 
