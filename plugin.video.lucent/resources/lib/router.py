@@ -251,10 +251,10 @@ def studios(handle, params):
     studios = params.get("studios") == "1" and kind == "tvshow"
     rows = []
     found = browse.tv_studios() if studios else browse.companies("tvshow" if networks else kind)
-    if studios:                                 # TV studios: the coloured logos of the logo pack where it has them
-        import services
-        services.offer_coloured_pack()
-        found = [(number, name, services.coloured_logo(name)) for number, name, logo in found]   # TMDB's are black: unreadable
+    import services                             # the coloured logos of Kodi's logo pack where it has them
+    services.offer_coloured_pack()
+    company = studios or (kind == "movie" and not networks)   # TMDB's company logos are black: unreadable, so none
+    found = [(number, name, services.coloured_logo(name) or ("" if company else logo)) for number, name, logo in found]
     for number, name, logo in found:
         if networks and not browse.network_provider(name):
             continue                            # a TV channel (ABC, BBC One ...): no films to stream

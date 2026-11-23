@@ -135,17 +135,32 @@ STUDIO_ALIASES = {"20th Television": ["20th Century Fox Television"], "Sony Pict
                   "FX Productions": ["FX"], "AMC Studios": ["AMC"], "Amazon MGM Studios": ["Amazon Studios"],
                   "Apple Studios": ["Apple TV+"], "Marvel Television": ["Marvel"], "Blumhouse Television": ["Blumhouse Productions"],
                   "Legendary Television": ["Legendary"], "Skydance Television": ["Skydance Media"], "BBC Studios": ["BBC"],
-                  "ITV Studios": ["ITV"]}
+                  "ITV Studios": ["ITV"], "20th Century Studios": ["20th Century Fox"], "Lucasfilm Ltd.": ["Lucasfilm"],
+                  "Prime Video": ["Amazon Prime Video", "Amazon"], "Apple TV": ["Apple TV+"], "Max": ["HBO Max"]}
 
 
 def coloured_logo(name):
     """A studio's coloured logo from resource.images.studios.coloured, or "" when the pack has none (or is missing)."""
-    folder = "special://home/addons/%s/resources/" % PACKS["coloured"]
-    for candidate in [name] + STUDIO_ALIASES.get(name, []):
-        for variant in dict.fromkeys((candidate, candidate.lower())):
-            if _exists(folder + variant + ".png"):
-                return "resource://%s/%s.png" % (PACKS["coloured"], variant)
+    files = _pack_files()
+    for candidate in dict.fromkeys([name] + STUDIO_ALIASES.get(name, []) + _variants(name)):
+        real = files.get(candidate.lower() + ".png")
+        if real:
+            return "resource://%s/%s" % (PACKS["coloured"], real)
     return ""
+
+
+_PACK_FILES = {}
+
+
+def _pack_files():
+    """{lower-case file name: file name} of the coloured pack (its names differ in case: Dreamworks, Fox ...)."""
+    if not _PACK_FILES:
+        try:
+            _dirs, files = xbmcvfs.listdir("special://home/addons/%s/resources/" % PACKS["coloured"])
+        except Exception:                       # noqa: BLE001 - no pack
+            files = []
+        _PACK_FILES.update((f.lower(), f) for f in files)
+    return _PACK_FILES
 
 
 def offer_coloured_pack():
