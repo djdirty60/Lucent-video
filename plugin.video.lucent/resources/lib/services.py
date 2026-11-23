@@ -139,43 +139,31 @@ STUDIO_ALIASES = {"20th Television": ["20th Century Fox Television"], "Sony Pict
                   "Prime Video": ["Amazon Prime Video", "Amazon"], "Apple TV": ["Apple TV+"], "Max": ["HBO Max"]}
 
 
+STUDIO_ART = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "media", "studios")
+
+
 def coloured_logo(name):
-    """A studio's coloured logo from resource.images.studios.coloured, or "" when the pack has none (or is missing)."""
-    files = _pack_files()
+    """A studio's or network's coloured logo, shipped with Lucent (from Kodi's resource.images.studios.coloured,
+    CC BY-SA 3.0); "" when there is none. Kodi's own pack is compiled, so its files cannot be looked up."""
+    files = _studio_files()
     for candidate in dict.fromkeys([name] + STUDIO_ALIASES.get(name, []) + _variants(name)):
         real = files.get(candidate.lower() + ".png")
         if real:
-            return "resource://%s/%s" % (PACKS["coloured"], real)
+            return os.path.join(STUDIO_ART, real)
     return ""
 
 
-_PACK_FILES = {}
+_STUDIO_FILES = {}
 
 
-def _pack_files():
-    """{lower-case file name: file name} of the coloured pack (its names differ in case: Dreamworks, Fox ...)."""
-    if not _PACK_FILES:
+def _studio_files():
+    """{lower-case file name: file name} (their names differ in case: Dreamworks, Fox ...)."""
+    if not _STUDIO_FILES:
         try:
-            _dirs, files = xbmcvfs.listdir("special://home/addons/%s/resources/" % PACKS["coloured"])
-        except Exception:                       # noqa: BLE001 - no pack
-            files = []
-        _PACK_FILES.update((f.lower(), f) for f in files)
-    return _PACK_FILES
-
-
-def offer_coloured_pack():
-    """Ask Kodi once to install the coloured logo pack when it is not there."""
-    if xbmc.getCondVisibility("System.HasAddon(%s)" % PACKS["coloured"]):
-        return
-    mark = os.path.join(util.PROFILE, "coloured_pack_asked")
-    if os.path.exists(mark):
-        return
-    try:
-        os.makedirs(util.PROFILE, exist_ok=True)
-        open(mark, "w").close()
-    except OSError:
-        return
-    xbmc.executebuiltin("InstallAddon(%s)" % PACKS["coloured"])
+            _STUDIO_FILES.update((f.lower(), f) for f in os.listdir(STUDIO_ART) if f.endswith(".png"))
+        except OSError:
+            pass
+    return _STUDIO_FILES
 
 
 def _chosen_in_skin():

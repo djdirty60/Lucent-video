@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.50",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T14:35Z",
+   "items": [
+    [
+     "layout",
+     "Studiologo's echt zichtbaar",
+     "De gekleurde logo's van studio's en netwerken zitten nu in Lucent zelf. In rc1.49 bleven ze leeg, omdat het logopakket van Kodi gecomprimeerd is en Lucent de bestanden daarin niet kon vinden.",
+     "Studio logos really visible",
+     "The coloured logos of studios and networks now ship with Lucent itself. In rc1.49 they stayed empty, because Kodi's logo pack is compiled and Lucent could not find its files."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.49",
    "label": "RC 1",
    "label_en": "RC 1",

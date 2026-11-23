@@ -251,8 +251,7 @@ def studios(handle, params):
     studios = params.get("studios") == "1" and kind == "tvshow"
     rows = []
     found = browse.tv_studios() if studios else browse.companies("tvshow" if networks else kind)
-    import services                             # the coloured logos of Kodi's logo pack where it has them
-    services.offer_coloured_pack()
+    import services                             # coloured logos, shipped with Lucent
     company = studios or (kind == "movie" and not networks)   # TMDB's company logos are black: unreadable, so none
     found = [(number, name, services.coloured_logo(name) or ("" if company else logo)) for number, name, logo in found]
     for number, name, logo in found:
