@@ -251,9 +251,12 @@ def studios(handle, params):
     studios = params.get("studios") == "1" and kind == "tvshow"
     rows = []
     found = browse.tv_studios() if studios else browse.companies("tvshow" if networks else kind)
-    import services                             # coloured logos, shipped with Lucent
-    company = studios or (kind == "movie" and not networks)   # TMDB's company logos are black: unreadable, so none
-    found = [(number, name, services.coloured_logo(name) or ("" if company else logo)) for number, name, logo in found]
+    import logos                                # TMDB's sharp logos, the black ones made white; else the shipped ones
+    import services
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        sharp = list(pool.map(lambda row: logos.readable(row[2]), found))
+    found = [(number, name, logo or services.coloured_logo(name)) for (number, name, _old), logo in zip(found, sharp)]
     for number, name, logo in found:
         if networks and not browse.network_provider(name):
             continue                            # a TV channel (ABC, BBC One ...): no films to stream

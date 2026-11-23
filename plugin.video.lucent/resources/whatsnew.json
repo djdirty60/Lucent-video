@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.51",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T14:55Z",
+   "items": [
+    [
+     "layout",
+     "Scherpe studiologo's",
+     "Studio's en netwerken tonen nu de scherpe logo's van TMDB. Zwarte logo's maakt Lucent één keer wit, zodat je ze op de donkere achtergrond kunt lezen; gekleurde delen blijven in kleur. De oude kleine logo's worden alleen nog gebruikt als TMDB er geen heeft.",
+     "Sharp studio logos",
+     "Studios and networks now show TMDB's sharp logos. Lucent turns black logos white once, so they can be read on the dark background; coloured parts keep their colour. The old small logos are only used where TMDB has none."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.50",
    "label": "RC 1",
    "label_en": "RC 1",
