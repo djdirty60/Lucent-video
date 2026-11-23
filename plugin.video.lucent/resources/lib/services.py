@@ -129,10 +129,13 @@ def wide_logo(name, key=""):
     return ""
 
 
-STUDIO_ALIASES = {"Sony Pictures Television Studios": ["Sony Pictures Television"], "20th Television": ["20th Century Fox Television"],
-                  "ABC Signature": ["ABC Studios", "ABC Signature Studios"], "CBS Studios": ["CBS Television Studios"],
-                  "Amazon MGM Studios": ["Amazon Studios"], "Paramount Television Studios": ["Paramount Television"],
-                  "Lionsgate Television": ["Lionsgate"], "FX Productions": ["FX"], "BBC Studios": ["BBC"], "ITV Studios": ["ITV"]}
+STUDIO_ALIASES = {"20th Television": ["20th Century Fox Television"], "Sony Pictures Television Studios": ["Sony Pictures Television"],
+                  "ABC Signature": ["ABC Studios"], "CBS Studios": ["CBS Productions", "CBS"],
+                  "Paramount Television Studios": ["Paramount Television"], "Lionsgate Television": ["Lionsgate"],
+                  "FX Productions": ["FX"], "AMC Studios": ["AMC"], "Amazon MGM Studios": ["Amazon Studios"],
+                  "Apple Studios": ["Apple TV+"], "Marvel Television": ["Marvel"], "Blumhouse Television": ["Blumhouse Productions"],
+                  "Legendary Television": ["Legendary"], "Skydance Television": ["Skydance Media"], "BBC Studios": ["BBC"],
+                  "ITV Studios": ["ITV"]}
 
 
 def coloured_logo(name):

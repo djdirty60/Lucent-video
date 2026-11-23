@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.48",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T11:55Z",
+   "items": [
+    [
+     "layout",
+     "Studiologo's in kleur",
+     "22 van de tv-studio's krijgen nu een gekleurd logo uit het logopakket. De zwarte logo's van TMDB, die op de donkere achtergrond niet te lezen waren, worden niet meer gebruikt.",
+     "Studio logos in colour",
+     "22 of the TV studios now get a coloured logo from the logo pack. TMDB's black logos, unreadable on the dark background, are no longer used."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.47",
    "label": "RC 1",
    "label_en": "RC 1",

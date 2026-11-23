@@ -254,7 +254,7 @@ def studios(handle, params):
     if studios:                                 # TV studios: the coloured logos of the logo pack where it has them
         import services
         services.offer_coloured_pack()
-        found = [(number, name, services.coloured_logo(name) or logo) for number, name, logo in found]
+        found = [(number, name, services.coloured_logo(name)) for number, name, logo in found]   # TMDB's are black: unreadable
     for number, name, logo in found:
         if networks and not browse.network_provider(name):
             continue                            # a TV channel (ABC, BBC One ...): no films to stream
