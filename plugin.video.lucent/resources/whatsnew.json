@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.54",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T20:25Z",
+   "items": [
+    [
+     "home",
+     "Rijen nog sneller",
+     "Een rij op het hoofdscherm zoekt de scores niet meer opnieuw op als hij uit zijn bewaarde kopie komt, laadt niet meer de hele speler, leest alleen de bekeken-gegevens die hij nodig heeft en start sneller op.",
+     "Rows even faster",
+     "A Home row shown from its saved copy no longer looks up scores again, no longer loads the whole player, only reads the watched data it needs, and starts faster."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.53",
    "label": "RC 1",
    "label_en": "RC 1",

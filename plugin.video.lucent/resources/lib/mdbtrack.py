@@ -4,7 +4,6 @@ you stopped (scrobbling), your watchlist and ratings. It uses your own MDBList A
 the same key the scores and lists use; linking only says 'use MDBList as my account too'.
 
 The answers are turned into Trakt's shape here, so tracker.py and the rest of the add-on need not know."""
-from concurrent.futures import ThreadPoolExecutor
 import time
 import urllib.parse
 
@@ -314,6 +313,7 @@ def next_up():
     # Most recent first, in batches, until there are enough: many of the series you watched last are finished (no next
     # episode). Before rc1.11 only the 40 most recent were looked at, which could leave just 2 (Guguloi: 547 series).
     out, looked = [], 0
+    from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=6) as pool:
         while looked < len(shows) and looked < NEXT_LOOK and len(out) < NEXT_WANT:
             batch = shows[looked:looked + 30]

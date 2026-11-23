@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 """Titles, pictures and episode data from TMDB, in one simple shape."""
-from concurrent.futures import ThreadPoolExecutor
 import datetime
 import urllib.parse
 
 import apikeys
 import util
+
+
+def ThreadPoolExecutor(*args, **kwargs):
+    """concurrent.futures, loaded on first use: it pulls in logging, which slows every Home row's start on a small box."""
+    from concurrent.futures import ThreadPoolExecutor as pool
+    return pool(*args, **kwargs)
+
 
 API = "https://api.themoviedb.org/3/"
 IMG = "https://image.tmdb.org/t/p/"

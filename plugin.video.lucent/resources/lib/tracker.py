@@ -4,7 +4,6 @@
 Everything else in the add-on talks to this file, so the rest does not care which one is used.
 Floppy is separate: it only receives what you watch, next to whichever account is chosen.
 """
-from concurrent.futures import ThreadPoolExecutor
 import time
 
 import floppy
@@ -16,6 +15,13 @@ import tmdb
 import trakt
 import users
 import util
+
+
+def ThreadPoolExecutor(*args, **kwargs):
+    """concurrent.futures, loaded on first use: it pulls in logging, which slows every Home row's start on a small box."""
+    from concurrent.futures import ThreadPoolExecutor as pool
+    return pool(*args, **kwargs)
+
 
 T = util.T
 SEEN = "watched.json"
@@ -372,7 +378,14 @@ def tidy_watchlist(meta):
 
 
 def enrich(titles):
-    """Adds Trakt and MDBList scores where those are available."""
+    """Adds Trakt and MDBList scores where those are available. A title that has had its turn is marked 'scored', so
+    a Home row served from its saved copy does not look its scores up again (the copy is renewed every few hours)."""
+    titles = [t for t in titles if not t.get("scored")]
+    if not titles:
+        return
     mdblist.enrich(titles)                  # one request for 50 titles, the Trakt score included
     if active() is trakt:
         trakt.enrich([t for t in titles if "trakt" not in (t.get("scores") or {})])
+    for meta in titles:
+        if meta.get("kind") in ("movie", "tvshow"):
+            meta["scored"] = 1

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Simkl account. Like Trakt, but its lists are watch states and it wants as few big requests as possible."""
-from concurrent.futures import ThreadPoolExecutor
 import os
 import re
 import threading
@@ -13,6 +12,13 @@ import xbmcgui
 import apikeys
 import tmdb
 import util
+
+
+def ThreadPoolExecutor(*args, **kwargs):
+    """concurrent.futures, loaded on first use: it pulls in logging, which slows every Home row's start on a small box."""
+    from concurrent.futures import ThreadPoolExecutor as pool
+    return pool(*args, **kwargs)
+
 
 API = "https://api.simkl.com/"
 FILE = "simkl.json"

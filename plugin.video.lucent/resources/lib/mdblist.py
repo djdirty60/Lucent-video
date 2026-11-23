@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 """MDBList: smart lists, and scores from IMDb, Rotten Tomatoes, Metacritic and more. Needs your own free API key."""
-from concurrent.futures import ThreadPoolExecutor
 import json
 import time
 import urllib.parse
 
 import util
+
+
+def ThreadPoolExecutor(*args, **kwargs):
+    """concurrent.futures, loaded on first use: it pulls in logging, which slows every Home row's start on a small box."""
+    from concurrent.futures import ThreadPoolExecutor as pool
+    return pool(*args, **kwargs)
+
 
 API = "https://api.mdblist.com/"
 WEEK = 7 * 86400

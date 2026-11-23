@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Every menu and action of the add-on. The Lucent skin can use these same addresses."""
-from concurrent.futures import ThreadPoolExecutor
 import datetime
 import time
 import urllib.parse
@@ -21,6 +20,13 @@ import users
 import util
 
 library, player, report, usenet, streams = (util.lazy(n) for n in ("library", "player", "report", "usenet", "streams"))
+
+
+def ThreadPoolExecutor(*args, **kwargs):
+    """concurrent.futures, loaded on first use: it pulls in logging, which slows every Home row's start on a small box."""
+    from concurrent.futures import ThreadPoolExecutor as pool
+    return pool(*args, **kwargs)
+
 
 T = util.T
 PAGE = 40
@@ -47,9 +53,19 @@ def send(handle, rows, content="", more=None):
     xbmcplugin.endOfDirectory(handle, cacheToDisc=False)
 
 
+PROGRESS = "progress.json"     # player.LOCAL; named here so a Home row does not have to load the whole player
+
+
+def _progress_key(meta):
+    """player.progress_key, without loading the player."""
+    if meta.get("type", meta.get("kind")) == "movie":
+        return "movie:%s" % meta["tmdb"]
+    return "ep:%s:%s:%s" % (meta["tmdb"], meta["season"], meta["episode"])
+
+
 def _resume_table():
     """{key: (position, total)} from this device and from Trakt; Trakt wins."""
-    table = {k: (v.get("position", 0), v.get("total", 0)) for k, v in util.load_json(player.LOCAL, {}).items() if v.get("total")}
+    table = {k: (v.get("position", 0), v.get("total", 0)) for k, v in util.load_json(PROGRESS, {}).items() if v.get("total")}
     return table
 
 
@@ -57,10 +73,10 @@ def _resume_for(meta, table, paused):
     if meta["kind"] not in ("movie", "episode"):
         return None
     runtime = int(meta.get("runtime") or 0) * 60
-    percent = paused.get(player.progress_key(meta))
+    percent = paused.get(_progress_key(meta))
     if percent and runtime:
         return runtime * percent / 100.0, runtime
-    return table.get(player.progress_key(meta))
+    return table.get(_progress_key(meta))
 
 
 def _paused_table():
@@ -78,8 +94,11 @@ def send_titles(handle, titles, content, more=None):
     titles = kids.keep(titles)
     tracker.enrich(titles)
     enriched = time.time()
-    films, shows = tracker.watched_movies(), tracker.watched_episodes()
-    local, paused = _resume_table(), _paused_table()
+    kinds = {meta["kind"] for meta in titles}     # only the tables this row needs: each can mean a big file or a call
+    films = tracker.watched_movies() if "movie" in kinds else {}
+    shows = tracker.watched_episodes() if kinds & {"episode", "tvshow"} else {}
+    playable = kinds & {"movie", "episode"}
+    local, paused = (_resume_table(), _paused_table()) if playable else ({}, {})
     tables = time.time()
     rows = []
     for meta in titles:
@@ -742,6 +761,7 @@ def list_titles(handle, params):
             except Exception as error:      # noqa: BLE001 - the copy stays; try again next time
                 util.log("row %s not refreshed: %s" % (name, type(error).__name__))
                 return None
+            tracker.enrich(titles)          # the copy keeps the scores, so showing it never looks them up
             changed = not widgets.same(cached, titles, content)
             yours = widgets.emptied_by_you(params, cached)
             if titles or not cached.get("titles") or yours:
@@ -752,6 +772,7 @@ def list_titles(handle, params):
     titles, content, more = gather_row(params, size)
     TIMES["fetch"] = time.time() - began
     if widgets.wanted(params) and titles:
+        tracker.enrich(titles)              # before the copy is saved: then the copy has the scores too
         widgets.put(params, titles, content, size)
     next_url = util.url_for(**dict(params, page=page + 1)) if more and params.get("widget") != "1" else None     # a Home row has no next page
     send_titles(handle, cut(hide.keep(titles, name)), content, next_url)
