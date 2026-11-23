@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.52",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T16:20Z",
+   "items": [
+    [
+     "info",
+     "Accountinformatie werkt weer",
+     "Op sommige kastjes (zoals de Shield) gaf Accountinformatie bij TorBox 'Het antwoord kon niet worden gelezen'. De oorzaak was het lezen van de vervaldatum; dat gebeurt nu op een manier die in Kodi altijd werkt.",
+     "Account information works again",
+     "On some boxes (such as the Shield) Account information for TorBox said 'The answer could not be read'. The cause was reading the expiry date; that is now done in a way that always works in Kodi."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.51",
    "label": "RC 1",
    "label_en": "RC 1",

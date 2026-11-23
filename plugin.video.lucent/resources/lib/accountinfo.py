@@ -2,6 +2,7 @@
 """'Account information' for every service: who you are linked as, your subscription and until when.
 Also checks the connection. E-mail addresses, keys and tokens are never shown or logged."""
 import datetime
+import os
 import re
 
 import xbmcgui
@@ -11,16 +12,24 @@ import util
 T = util.T
 
 
-def _date(value):
-    """An ISO date, a unix time or '' -> '12 maart 2027' style, or ''."""
-    if not value:
-        return ""
+def _when(value):
+    """A unix time or an ISO date (2027-03-12...) -> datetime, or None. No strptime: in Kodi's Python it can fail
+    with "'NoneType' object is not callable" after the first call (seen on Android)."""
+    if value in (None, ""):
+        return None
     try:
         if isinstance(value, (int, float)) or str(value).isdigit():
-            when = datetime.datetime.utcfromtimestamp(int(value))
-        else:
-            when = datetime.datetime.strptime(str(value)[:10], "%Y-%m-%d")
-    except (ValueError, OverflowError, OSError):
+            return datetime.datetime.utcfromtimestamp(int(value))
+        year, month, day = (int(p) for p in str(value)[:10].split("-"))
+        return datetime.datetime(year, month, day)
+    except (ValueError, TypeError, OverflowError, OSError):
+        return None
+
+
+def _date(value):
+    """An ISO date, a unix time or '' -> '12 maart 2027' style, or ''."""
+    when = _when(value)
+    if not when:
         return ""
     months = T("januari februari maart april mei juni juli augustus september oktober november december",
                "January February March April May June July August September October November December").split()
@@ -28,14 +37,8 @@ def _date(value):
 
 
 def _days_left(value):
-    try:
-        if isinstance(value, (int, float)) or str(value).isdigit():
-            when = datetime.datetime.utcfromtimestamp(int(value))
-        else:
-            when = datetime.datetime.strptime(str(value)[:10], "%Y-%m-%d")
-    except (ValueError, OverflowError, OSError):
-        return None
-    return (when - datetime.datetime.utcnow()).days
+    when = _when(value)
+    return None if when is None else (when - datetime.datetime.utcnow()).days
 
 
 def _until(value):
@@ -235,7 +238,10 @@ def show(service):
         lines = read()
     except util.HttpError as error:
         lines = [T("Geen verbinding: %s", "No connection: %s") % error]
-    except (KeyError, ValueError, TypeError):
+    except (KeyError, ValueError, TypeError, AttributeError) as error:
+        import traceback
+        where = traceback.extract_tb(error.__traceback__)[-1]
+        util.log("account %s: %s at %s:%d" % (service, type(error).__name__, os.path.basename(where.filename), where.lineno))
         lines = [T("Het antwoord van %s kon niet worden gelezen.", "The answer from %s could not be read.") % name]
     xbmcgui.Dialog().ok(T("Accountinformatie · %s", "Account information · %s") % name, "\n".join(l for l in lines if l))
 

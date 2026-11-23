@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.51" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.52" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -97,7 +97,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.51: sharp studio and network logos: TMDB's high-quality logos, with black ones turned white once so they can be read on the dark skin; the small shipped logos only where TMDB has none.
+        <news>1.0.0~rc1.52: Account information (TorBox and others) no longer says 'The answer could not be read' on some boxes: dates are read without Python's strptime, which can fail inside Kodi. Such an error now also logs where it happened.
+1.0.0~rc1.51: sharp studio and network logos: TMDB's high-quality logos, with black ones turned white once so they can be read on the dark skin; the small shipped logos only where TMDB has none.
 1.0.0~rc1.50: the coloured studio and network logos now ship with Lucent itself (Kodi's logo pack is compiled, so Lucent could not find its files and showed no logos).
 1.0.0~rc1.49: coloured logos also for Films > Studios, Films > Networks and Series > Networks (Marvel Studios, Pixar, Netflix, HBO ...); logo names are matched regardless of capitals.
 1.0.0~rc1.48: coloured logos for 22 of the TV studios (20th Television, ABC Signature, CBS Studios, Sony, Paramount ... now found in the pack); the black TMDB logos are no longer used.
@@ -150,7 +151,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.51: scherpe studio- en netwerklogo's: de logo's van TMDB in hoge kwaliteit, waarbij zwarte logo's één keer wit worden gemaakt zodat ze op de donkere skin te lezen zijn; de kleine meegeleverde logo's alleen als TMDB er geen heeft.
+        <news lang="nl_NL">1.0.0~rc1.52: Accountinformatie (TorBox en andere) zegt op sommige kastjes niet meer 'Het antwoord kon niet worden gelezen': datums worden gelezen zonder strptime van Python, dat binnen Kodi kan mislukken. Zo'n fout logt nu ook waar hij gebeurde.
+1.0.0~rc1.51: scherpe studio- en netwerklogo's: de logo's van TMDB in hoge kwaliteit, waarbij zwarte logo's één keer wit worden gemaakt zodat ze op de donkere skin te lezen zijn; de kleine meegeleverde logo's alleen als TMDB er geen heeft.
 1.0.0~rc1.50: de gekleurde studio- en netwerklogo's zitten nu in Lucent zelf (het logopakket van Kodi is gecomprimeerd, waardoor Lucent de bestanden niet vond en geen logo's toonde).
 1.0.0~rc1.49: gekleurde logo's ook bij Films > Studio's, Films > Netwerken en Series > Netwerken (Marvel Studios, Pixar, Netflix, HBO ...); logonamen worden gevonden ongeacht hoofdletters.
 1.0.0~rc1.48: gekleurde logo's voor 22 tv-studio's (20th Television, ABC Signature, CBS Studios, Sony, Paramount ... nu gevonden in het pakket); de zwarte TMDB-logo's worden niet meer gebruikt.

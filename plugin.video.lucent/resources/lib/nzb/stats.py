@@ -149,7 +149,7 @@ def summary(days_back=30):
         chosen = sorted(days)
         span = []
         if chosen:
-            start = time.mktime(time.strptime(chosen[0], "%Y-%m-%d"))
+            start = time.mktime(tuple(int(p) for p in chosen[0].split("-")) + (0, 0, 0, 0, 0, -1))
             n = 0
             while True:
                 day = _day(start + n * 86400 + 3600)
