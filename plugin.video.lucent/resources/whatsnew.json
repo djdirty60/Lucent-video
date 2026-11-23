@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.46",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T09:30Z",
+   "items": [
+    [
+     "library",
+     "Tv-studio's bij series",
+     "Series > Studio's toont nu tv-studio's zoals HBO, Warner Bros. Television, 20th Television, Sony Pictures Television en BBC Studios, in plaats van filmstudio's.",
+     "TV studios for series",
+     "Series > Studios now shows TV studios such as HBO, Warner Bros. Television, 20th Television, Sony Pictures Television and BBC Studios, instead of film studios."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.45",
    "label": "RC 1",
    "label_en": "RC 1",

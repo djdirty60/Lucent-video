@@ -195,7 +195,7 @@ def menu(handle, params):
     rows.append(items.folder(T("Studio's", "Studios") if movie else T("Netwerken", "Networks"), util.url_for(action="studios", type=params.get("type"))))
     if movie:                                   # the same networks as for series (Netflix, HBO, Prime Video ...): their films
         rows.append(items.folder(T("Netwerken", "Networks"), util.url_for(action="studios", type="movie", networks="1")))
-    else:                                       # the same studios as for films (Marvel, Pixar, Warner Bros. ...): their series
+    else:                                       # TV studios (Warner Bros. Television, HBO, BBC Studios ...): their series
         rows.append(items.folder(T("Studio's", "Studios"), util.url_for(action="studios", type="tvshow", studios="1")))
     import discover
     if movie:
@@ -250,14 +250,13 @@ def studios(handle, params):
     networks = params.get("networks") == "1" and kind == "movie"
     studios = params.get("studios") == "1" and kind == "tvshow"
     rows = []
-    for number, name, logo in browse.companies("tvshow" if networks else ("movie" if studios else kind)):
+    found = browse.tv_studios() if studios else browse.companies("tvshow" if networks else kind)
+    for number, name, logo in found:
         if networks and not browse.network_provider(name):
             continue                            # a TV channel (ABC, BBC One ...): no films to stream
-        if studios and not browse.studio_has_series(number):
-            continue                            # a film studio that made no series
         if networks:                            # a network's films: what it streams (TMDB has no network for films)
             url, item, folder = items.folder(name, util.url_for(action="list", name="network_films", network=name))
-        elif studios:                           # a studio's series: TMDB's production companies
+        elif studios:                           # a TV studio's series: TMDB's production companies
             url, item, folder = items.folder(name, util.url_for(action="list", name="studio_series", id=number))
         else:
             url, item, folder = items.folder(name, util.url_for(action="list", name="company", type=kind, id=number))

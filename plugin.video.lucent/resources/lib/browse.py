@@ -99,18 +99,54 @@ def network_films(network, page=1):
                         **{"primary_release_date.lte": today})
 
 
-def studio_series(number, page=1):
-    """The series a film studio made (Marvel Studios, Pixar, Warner Bros. ...): TMDB's production companies."""
-    return tmdb.listing("discover/tv", "tvshow", page, with_companies=number, sort_by="popularity.desc", include_adult="false")
+TV_STUDIOS = ["HBO", "Warner Bros. Television", "20th Television", "Universal Television", "Sony Pictures Television Studios",
+              "ABC Signature", "CBS Studios", "Paramount Television Studios", "Lionsgate Television", "FX Productions",
+              "AMC Studios", "Amazon MGM Studios", "Apple Studios", "Netflix", "Marvel Television", "Bad Robot",
+              "Blumhouse Television", "Legendary Television", "Skydance Television", "Amblin Television", "BBC Studios",
+              "ITV Studios", "Carnival Films", "Left Bank Pictures", "Fremantle", "Banijay"]
 
 
-def studio_has_series(number):
-    """Has this studio made any series? (TMDB, kept for a month)"""
+def _series_count(number):
     try:
-        data = tmdb.get("discover/tv", ttl=30 * tmdb.DAY, with_companies=number, page=1)
+        return tmdb.get("discover/tv", ttl=30 * tmdb.DAY, with_companies=number, page=1).get("total_results") or 0
     except util.HttpError:
-        return True
-    return bool(data.get("total_results"))
+        return 0
+
+
+def tv_studio(name):
+    """(id, name, logo) of a TV studio by its name: TMDB has several companies with the same name, the one with the
+    most series counts (looked up once a month). None when it has no series."""
+    try:
+        rows = tmdb.get("search/company", ttl=30 * tmdb.DAY, query=name).get("results") or []
+    except util.HttpError:
+        return None
+    same = [r for r in rows if (r.get("name") or "").lower() == name.lower()][:3]
+    if not same:
+        return None
+    counts = [(_series_count(r["id"]), r) for r in same]
+    count, best = max(counts, key=lambda c: c[0])
+    if not count:
+        return None
+    logo = best.get("logo_path") or next((r.get("logo_path") for r in same if r.get("logo_path")), None)
+    return best["id"], best.get("name") or name, tmdb.image(logo, "w500")
+
+
+def tv_studios():
+    """The TV studios of the list that made series, in this order."""
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        found = list(pool.map(tv_studio, TV_STUDIOS))
+    seen, out = set(), []
+    for row in found:
+        if row and row[0] not in seen:
+            seen.add(row[0])
+            out.append(row)
+    return out
+
+
+def studio_series(number, page=1):
+    """The series a TV studio made (Warner Bros. Television, HBO, BBC Studios ...): TMDB's production companies."""
+    return tmdb.listing("discover/tv", "tvshow", page, with_companies=number, sort_by="popularity.desc", include_adult="false")
 
 
 def company_titles(kind, number, page=1):
