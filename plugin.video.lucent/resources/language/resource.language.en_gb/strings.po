@@ -2116,3 +2116,11 @@ msgstr ""
 msgctxt "#32595"
 msgid "Your own port for Easynews downloads, for example 444. Easynews' Route Selector does not always keep your choice; Lucent puts this port in every Easynews address itself. When a link with your port fails, Lucent tries the port Easynews sends. Empty: the port Easynews sends."
 msgstr ""
+
+msgctxt "#32596"
+msgid "Views per kind (Lucent skin)"
+msgstr ""
+
+msgctxt "#32597"
+msgid "Which view the Lucent skin uses for films, series, seasons, episodes, sets and menus. The skin remembers this per kind, so it counts everywhere, also in your library. 'As you last picked it': the skin keeps the view you last chose for that kind."
+msgstr ""

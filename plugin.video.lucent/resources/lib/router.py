@@ -51,6 +51,9 @@ def send(handle, rows, content="", more=None):
     else:                                       # a menu: in the order Lucent gives, no 'Date' or 'Name' sorting
         xbmcplugin.addSortMethod(handle, xbmcplugin.SORT_METHOD_NONE)
     xbmcplugin.endOfDirectory(handle, cacheToDisc=False)
+    if handle >= 0 and xbmc.getCondVisibility("Skin.HasSetting(lucent.view.remember.off)"):
+        import views                            # Settings > General > Views, when the skin does not do it itself
+        views.apply(content)
 
 
 PROGRESS = "progress.json"     # player.LOCAL; named here so a Home row does not have to load the whole player
@@ -1348,6 +1351,9 @@ def _run(argv):
         if action == "wetrakr_logout":
             import wetrakr
             return wetrakr.logout()
+        if action == "views_choose":
+            import views
+            return views.choose()
         if action == "lists_choose":
             import lists
             return lists.choose()

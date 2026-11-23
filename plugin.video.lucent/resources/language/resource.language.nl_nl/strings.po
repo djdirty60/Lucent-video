@@ -2116,3 +2116,11 @@ msgstr "Easynews-poort (leeg = automatisch)"
 msgctxt "#32595"
 msgid "Your own port for Easynews downloads, for example 444. Easynews' Route Selector does not always keep your choice; Lucent puts this port in every Easynews address itself. When a link with your port fails, Lucent tries the port Easynews sends. Empty: the port Easynews sends."
 msgstr "Je eigen poort voor Easynews-downloads, bijvoorbeeld 444. De Route Selector van Easynews onthoudt je keuze niet altijd; Lucent zet deze poort zelf in elk Easynews-adres. Werkt een link met jouw poort niet, dan probeert Lucent de poort die Easynews stuurt. Leeg: de poort die Easynews stuurt."
+
+msgctxt "#32596"
+msgid "Views per kind (Lucent skin)"
+msgstr "Weergave per soort (Lucent-skin)"
+
+msgctxt "#32597"
+msgid "Which view the Lucent skin uses for films, series, seasons, episodes, sets and menus. The skin remembers this per kind, so it counts everywhere, also in your library. 'As you last picked it': the skin keeps the view you last chose for that kind."
+msgstr "Welke weergave de Lucent-skin gebruikt voor films, series, seizoenen, afleveringen, sets en menu's. De skin onthoudt dit per soort, dus het geldt overal, ook in je bibliotheek. 'Zoals je hem laatst koos': de skin houdt de weergave die je voor die soort het laatst koos."

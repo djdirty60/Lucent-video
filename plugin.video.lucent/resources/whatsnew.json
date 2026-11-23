@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.55",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T20:30Z",
+   "items": [
+    [
+     "settings",
+     "Weergave per soort",
+     "In Instellingen > Algemeen kies je nu per soort welke weergave de Lucent-skin gebruikt: films, series, seizoenen, afleveringen, sets, video's en menu's. Je ziet alleen de weergaven die bij die soort passen.",
+     "View per kind",
+     "In Settings > General you now choose per kind which view the Lucent skin uses: films, series, seasons, episodes, sets, videos and menus. Only views that fit that kind are listed."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.54",
    "label": "RC 1",
    "label_en": "RC 1",
