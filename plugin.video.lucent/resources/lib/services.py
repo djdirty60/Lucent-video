@@ -11,6 +11,7 @@ Rows for the skin (all with &widget=1):
 The services are the ones chosen in the skin: first addon_data/plugin.video.lucent/services.json, then Lucent Library's
 old services.json; without a choice Lucent's standard list. A service your country does not have (Hulu, Peacock ... outside the US) is read for the US.
 """
+import os
 import time
 import urllib.parse
 
@@ -126,6 +127,37 @@ def wide_logo(name, key=""):
         if exact:
             return tmdb.image(exact[0]["logo_path"], "w500")
     return ""
+
+
+STUDIO_ALIASES = {"Sony Pictures Television Studios": ["Sony Pictures Television"], "20th Television": ["20th Century Fox Television"],
+                  "ABC Signature": ["ABC Studios", "ABC Signature Studios"], "CBS Studios": ["CBS Television Studios"],
+                  "Amazon MGM Studios": ["Amazon Studios"], "Paramount Television Studios": ["Paramount Television"],
+                  "Lionsgate Television": ["Lionsgate"], "FX Productions": ["FX"], "BBC Studios": ["BBC"], "ITV Studios": ["ITV"]}
+
+
+def coloured_logo(name):
+    """A studio's coloured logo from resource.images.studios.coloured, or "" when the pack has none (or is missing)."""
+    folder = "special://home/addons/%s/resources/" % PACKS["coloured"]
+    for candidate in [name] + STUDIO_ALIASES.get(name, []):
+        for variant in dict.fromkeys((candidate, candidate.lower())):
+            if _exists(folder + variant + ".png"):
+                return "resource://%s/%s.png" % (PACKS["coloured"], variant)
+    return ""
+
+
+def offer_coloured_pack():
+    """Ask Kodi once to install the coloured logo pack when it is not there."""
+    if xbmc.getCondVisibility("System.HasAddon(%s)" % PACKS["coloured"]):
+        return
+    mark = os.path.join(util.PROFILE, "coloured_pack_asked")
+    if os.path.exists(mark):
+        return
+    try:
+        os.makedirs(util.PROFILE, exist_ok=True)
+        open(mark, "w").close()
+    except OSError:
+        return
+    xbmc.executebuiltin("InstallAddon(%s)" % PACKS["coloured"])
 
 
 def _chosen_in_skin():

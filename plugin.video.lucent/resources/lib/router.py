@@ -251,6 +251,10 @@ def studios(handle, params):
     studios = params.get("studios") == "1" and kind == "tvshow"
     rows = []
     found = browse.tv_studios() if studios else browse.companies("tvshow" if networks else kind)
+    if studios:                                 # TV studios: the coloured logos of the logo pack where it has them
+        import services
+        services.offer_coloured_pack()
+        found = [(number, name, services.coloured_logo(name) or logo) for number, name, logo in found]
     for number, name, logo in found:
         if networks and not browse.network_provider(name):
             continue                            # a TV channel (ABC, BBC One ...): no films to stream

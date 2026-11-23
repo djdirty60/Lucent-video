@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.47",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-23",
+   "at": "2026-11-23T11:45Z",
+   "items": [
+    [
+     "layout",
+     "Gekleurde studiologo's",
+     "Series > Studio's toont nu de gekleurde logo's uit het logopakket van Kodi. Staat dat pakket er nog niet op, dan vraagt Kodi één keer of hij het mag installeren. Heeft het pakket een studio niet, dan blijft het TMDB-logo.",
+     "Coloured studio logos",
+     "Series > Studios now shows the coloured logos of Kodi's logo pack. When the pack is not installed yet, Kodi asks once to install it. Where the pack lacks a studio, TMDB's logo stays."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.46",
    "label": "RC 1",
    "label_en": "RC 1",

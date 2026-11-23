@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.46" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.47" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -96,7 +96,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.46: Series > Studios now shows TV studios (HBO, Warner Bros. Television, 20th Television, BBC Studios ...) instead of film studios.
+        <news>1.0.0~rc1.47: Series > Studios uses the coloured logos of resource.images.studios.coloured (Kodi offers to install it once), TMDB's logo where the pack has none.
+1.0.0~rc1.46: Series > Studios now shows TV studios (HBO, Warner Bros. Television, 20th Television, BBC Studios ...) instead of film studios.
 1.0.0~rc1.45: new lists. Films: Just out digitally (the last two months), Film series (Harry Potter, Star Wars, Mission: Impossible ... in order), Most anticipated (Trakt), Short films, Long sit, By country (Dutch, Korean, Nordic), Anime films, and a seasonal list (Christmas films now, Halloween in October). Series: Finished series, Most anticipated, By country (Dutch, Korean, Nordic crime), Anime series.
 1.0.0~rc1.44: after reading FEL / MEL of Easynews files the source list is no longer built again from the background (Kodi crashed 12 seconds after it once): the new label is set on its row, and the list is only built again when the order really changes.
 1.0.0~rc1.43: Series has Studios like Films (Marvel Studios, Pixar, Warner Bros. ...), with the series each studio made; studios without series are left out.
@@ -144,7 +145,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.46: Series > Studio's toont nu tv-studio's (HBO, Warner Bros. Television, 20th Television, BBC Studios ...) in plaats van filmstudio's.
+        <news lang="nl_NL">1.0.0~rc1.47: Series > Studio's gebruikt de gekleurde logo's van resource.images.studios.coloured (Kodi biedt eenmalig aan hem te installeren), het TMDB-logo waar het pakket er geen heeft.
+1.0.0~rc1.46: Series > Studio's toont nu tv-studio's (HBO, Warner Bros. Television, 20th Television, BBC Studios ...) in plaats van filmstudio's.
 1.0.0~rc1.45: nieuwe lijsten. Films: Net digitaal verschenen (de laatste twee maanden), Filmreeksen (Harry Potter, Star Wars, Mission: Impossible ... op volgorde), Meest verwacht (Trakt), Korte films, Lange zit, Per land (Nederlands, Koreaans, Scandinavisch), Anime-films, en een seizoenslijst (nu Kerstfilms, Halloween in oktober). Series: Afgeronde series, Meest verwacht, Per land (Nederlands, Koreaans, Scandinavische crime), Anime-series.
 1.0.0~rc1.44: na het lezen van FEL / MEL van Easynews-bestanden wordt de bronnenlijst niet meer vanaf de achtergrond opnieuw opgebouwd (Kodi crashte er een keer 12 seconden na): het nieuwe label komt op zijn regel, en de lijst wordt alleen opnieuw opgebouwd als de volgorde echt verandert.
 1.0.0~rc1.43: Series heeft Studio's zoals Films (Marvel Studios, Pixar, Warner Bros. ...), met de series die elke studio maakte; studio's zonder series worden weggelaten.
