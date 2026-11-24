@@ -753,9 +753,10 @@ def list_titles(handle, params):
     size = util.number("widget_size", 20) if params.get("widget") == "1" else 0       # a Home row: as many as you chose
     cut = (lambda rows: rows[:size]) if size else (lambda rows: rows)
     began = time.time()
+    first = [_order_row(params)] if _wants_order_row(name, page, params) else None
     cached = widgets.get(params) if widgets.wanted(params) else None
     if cached:
-        send_titles(handle, cut(hide.keep(cached.get("titles") or [], name)), cached.get("content") or "")
+        send_titles(handle, cut(hide.keep(cached.get("titles") or [], name)), cached.get("content") or "", first=first)
         if params.get("widget") == "1":
             _row_time(name, "copy", began)
         if widgets.is_old(params, cached, size):
@@ -785,9 +786,6 @@ def list_titles(handle, params):
         tracker.enrich(titles)              # before the copy is saved: then the copy has the scores too
         widgets.put(params, titles, content, size)
     next_url = util.url_for(**dict(params, page=page + 1)) if more and params.get("widget") != "1" else None     # a Home row has no next page
-    first = None
-    if name == "traktlist" and page == 1 and params.get("widget") != "1" and tracker.active() is trakt:
-        first = [_order_row(params)]                # 'Order: ...' at the top: choose how this list is sorted
     send_titles(handle, cut(hide.keep(titles, name)), content, next_url, first)
     if params.get("widget") == "1":
         _row_time(name, "fetched", began)
@@ -797,6 +795,14 @@ def list_titles(handle, params):
 ORDER_NAMES = {"own": T("Zoals de lijst", "As the list is"), "added_new": T("Laatst toegevoegd", "Recently added"),
                "added_old": T("Eerst toegevoegd", "First added"), "title": T("Titel (A-Z)", "Title (A-Z)"),
                "year_new": T("Jaar (nieuw eerst)", "Year (newest first)"), "year_old": T("Jaar (oud eerst)", "Year (oldest first)")}
+
+
+def _wants_order_row(name, page, params):
+    """'Order: ...' at the top of a Trakt list (issue #5): in the list itself, also when it was opened in full from a
+    Home row (the skin then opens the row's own address, with &widget=1, in the Videos window), never in the row."""
+    if name != "traktlist" or page != 1 or tracker.active() is not trakt:
+        return False
+    return params.get("widget") != "1" or xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsVisible(videos)")
 
 
 def _order_row(params):
@@ -816,6 +822,9 @@ def traktlist_order(params):
     if pick < 0:
         return
     trakt.set_list_order(params["user"], params["id"], keys[pick])
+    import widgets
+    widgets.drop({"action": "list", "name": "traktlist", "user": params["user"], "id": params["id"]})
+    widgets.bump()                                   # a Home row of this list follows the new order too
     xbmc.executebuiltin("Container.Refresh")
 
 

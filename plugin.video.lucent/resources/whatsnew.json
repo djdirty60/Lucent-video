@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.61",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T17:45Z",
+   "items": [
+    [
+     "trakt",
+     "Volgorde ook vanaf het hoofdscherm",
+     "Open je een Trakt-lijst volledig vanaf een rij op het hoofdscherm, dan staat 'Volgorde' er nu ook bovenaan. Een nieuwe volgorde geldt meteen, ook in die rij.",
+     "Order from Home too",
+     "When you open a Trakt list in full from a Home row, 'Order' is now at the top there too. A new order applies at once, also in that row."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.60",
    "label": "RC 1",
    "label_en": "RC 1",

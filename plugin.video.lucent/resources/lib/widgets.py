@@ -92,6 +92,14 @@ def after_watching():
     mark_old(account_only=True)
 
 
+def drop(params):
+    """Forget the saved copy of one row (its order changed): the next time it is fetched fresh."""
+    try:
+        os.remove(os.path.join(_folder(), _key(params) + ".json"))
+    except OSError:
+        pass
+
+
 def mark_old(account_only=False):
     marks = util.load_json(MARKS, {})
     marks["account" if account_only else "all"] = time.time()
