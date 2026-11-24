@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.66" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.67" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -97,7 +97,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.66: far fewer MDBList requests: after watching, the Home rows no longer each ask MDBList where you stopped (up to about 24 requests per stop); one asks and the others use its answer, and where you stopped is written into Lucent's own copy at once. The same for watch history and watchlist.
+        <news>1.0.0~rc1.67: the MEL badge in the source list is blue now, so it no longer looks like the purple FEL badge.
+1.0.0~rc1.66: far fewer MDBList requests: after watching, the Home rows no longer each ask MDBList where you stopped (up to about 24 requests per stop); one asks and the others use its answer, and where you stopped is written into Lucent's own copy at once. The same for watch history and watchlist.
 1.0.0~rc1.65: twin series (same name and year): a Usenet release without a service in its name is also recognised by its running time when TMDB leaves out the other series' episode length; a file far longer than this series' episodes goes to the bottom. Other series are not affected.
 1.0.0~rc1.64: hidden languages now also count in Coming soon, In cinemas and the newer lists (Just out digitally, Finished series, Most anticipated, Networks, Studios ...); Korean and anime lists you open on purpose keep their titles.
 1.0.0~rc1.63: twin series (same name and year): service names written out (Netflix, Amazon, Disney ...) count too, and a Usenet release whose running time fits the other series' episodes is put at the bottom with 'its length fits the other series'.
@@ -165,7 +166,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.66: veel minder MDBList-verzoeken: na het kijken vraagt niet meer elke rij op het hoofdscherm apart aan MDBList waar je stopte (tot zo'n 24 verzoeken per keer stoppen); één rij vraagt het en de rest gebruikt dat antwoord, en waar je stopte schrijft Lucent meteen zelf bij. Hetzelfde voor kijkgeschiedenis en kijklijst.
+        <news lang="nl_NL">1.0.0~rc1.67: het MEL-label in de bronnenlijst is nu blauw, zodat het niet meer op het paarse FEL-label lijkt.
+1.0.0~rc1.66: veel minder MDBList-verzoeken: na het kijken vraagt niet meer elke rij op het hoofdscherm apart aan MDBList waar je stopte (tot zo'n 24 verzoeken per keer stoppen); één rij vraagt het en de rest gebruikt dat antwoord, en waar je stopte schrijft Lucent meteen zelf bij. Hetzelfde voor kijkgeschiedenis en kijklijst.
 1.0.0~rc1.65: tweelingseries (zelfde naam en jaar): een Usenet-release zonder dienst in de naam wordt ook aan de lengte herkend als TMDB de afleveringslengte van de andere serie niet invult; een bestand dat veel langer is dan de afleveringen van deze serie gaat onderaan. Andere series merken hier niets van.
 1.0.0~rc1.64: verborgen talen tellen nu ook in Binnenkort, In de bioscoop en de nieuwere lijsten (Net digitaal verschenen, Afgeronde series, Meest verwacht, Netwerken, Studio's ...); Koreaanse en anime-lijsten die je zelf opent houden hun titels.
 1.0.0~rc1.63: tweelingseries (zelfde naam en jaar): voluit geschreven diensten (Netflix, Amazon, Disney ...) tellen ook mee, en een Usenet-release waarvan de lengte bij de afleveringen van de andere serie past, gaat onderaan met 'lengte past bij de andere serie'.

@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.67",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T19:45Z",
+   "items": [
+    [
+     "settings",
+     "MEL-label in het blauw",
+     "Het MEL-label in de bronnenlijst is nu blauw, zodat je het niet meer verwart met het paarse FEL-label.",
+     "MEL badge in blue",
+     "The MEL badge in the source list is now blue, so you no longer mix it up with the purple FEL badge."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.66",
    "label": "RC 1",
    "label_en": "RC 1",
