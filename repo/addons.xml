@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.64" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.65" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -97,7 +97,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.64: hidden languages now also count in Coming soon, In cinemas and the newer lists (Just out digitally, Finished series, Most anticipated, Networks, Studios ...); Korean and anime lists you open on purpose keep their titles.
+        <news>1.0.0~rc1.65: twin series (same name and year): a Usenet release without a service in its name is also recognised by its running time when TMDB leaves out the other series' episode length; a file far longer than this series' episodes goes to the bottom. Other series are not affected.
+1.0.0~rc1.64: hidden languages now also count in Coming soon, In cinemas and the newer lists (Just out digitally, Finished series, Most anticipated, Networks, Studios ...); Korean and anime lists you open on purpose keep their titles.
 1.0.0~rc1.63: twin series (same name and year): service names written out (Netflix, Amazon, Disney ...) count too, and a Usenet release whose running time fits the other series' episodes is put at the bottom with 'its length fits the other series'.
 1.0.0~rc1.62: two series with the same name and year (The Stranger 2020: British on Netflix, American on Quibi): releases tagged with the other series' service (NF, QIBI ...) are left out. Fewer MDBList requests when MDBList is your account (history and watchlist every 30 minutes, dropped shows every 6 hours, where you stopped every 10 minutes; at once after watching), and the log counts them per day.
 1.0.0~rc1.61: 'Order: ...' also appears when a Trakt list is opened in full from a Home row; a new order is used at once, also in that Home row (issue #5).
@@ -163,7 +164,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.64: verborgen talen tellen nu ook in Binnenkort, In de bioscoop en de nieuwere lijsten (Net digitaal verschenen, Afgeronde series, Meest verwacht, Netwerken, Studio's ...); Koreaanse en anime-lijsten die je zelf opent houden hun titels.
+        <news lang="nl_NL">1.0.0~rc1.65: tweelingseries (zelfde naam en jaar): een Usenet-release zonder dienst in de naam wordt ook aan de lengte herkend als TMDB de afleveringslengte van de andere serie niet invult; een bestand dat veel langer is dan de afleveringen van deze serie gaat onderaan. Andere series merken hier niets van.
+1.0.0~rc1.64: verborgen talen tellen nu ook in Binnenkort, In de bioscoop en de nieuwere lijsten (Net digitaal verschenen, Afgeronde series, Meest verwacht, Netwerken, Studio's ...); Koreaanse en anime-lijsten die je zelf opent houden hun titels.
 1.0.0~rc1.63: tweelingseries (zelfde naam en jaar): voluit geschreven diensten (Netflix, Amazon, Disney ...) tellen ook mee, en een Usenet-release waarvan de lengte bij de afleveringen van de andere serie past, gaat onderaan met 'lengte past bij de andere serie'.
 1.0.0~rc1.62: twee series met dezelfde naam en hetzelfde jaar (The Stranger 2020: Brits op Netflix, Amerikaans op Quibi): releases met de dienst van de andere serie in de naam (NF, QIBI ...) vallen weg. Minder MDBList-verzoeken als MDBList je account is (geschiedenis en kijklijst elke 30 minuten, gestopte series elke 6 uur, waar je stopte elke 10 minuten; na het kijken meteen), en het log telt ze per dag.
 1.0.0~rc1.61: 'Volgorde: ...' staat er ook als een Trakt-lijst volledig wordt geopend vanaf een rij op het hoofdscherm; een nieuwe volgorde geldt meteen, ook in die rij (issue #5).

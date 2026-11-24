@@ -647,9 +647,12 @@ def other_series(source, found):
         return False
     length = seconds / 60.0
     theirs = [m for m in source["twin"] if m] if isinstance(source["twin"], list) else []
-    if not theirs or abs(length - minutes) <= max(5, minutes * 0.3):
-        return False                            # close to this series' length, or the other series' length unknown
-    far = min(abs(length - m) for m in theirs) < abs(length - minutes)      # nearer to the other series' episodes
+    if abs(length - minutes) <= max(5, minutes * 0.3):
+        return False                            # close to this series' length
+    if theirs:
+        far = min(abs(length - m) for m in theirs) < abs(length - minutes)      # nearer to the other series' episodes
+    else:
+        far = length > minutes * 2 + 5          # the other series' length unknown: only a file far too long
     if far:
         util.log("twins: %s lasts %d min, this series' episodes %d min: the other series" % (source.get("name", "")[:70], int(length), minutes))
     return far

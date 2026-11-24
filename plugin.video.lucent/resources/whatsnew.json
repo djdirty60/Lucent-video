@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.65",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T19:25Z",
+   "items": [
+    [
+     "search",
+     "Tweelingseries: lengte beter herkend",
+     "Bij twee series met dezelfde naam en hetzelfde jaar wordt een release zonder dienst in de naam nu ook herkend aan de lengte, ook als TMDB de afleveringslengte van de andere serie niet invult. Een bestand dat veel langer is dan de afleveringen van deze serie gaat onderaan. Andere series merken hier niets van.",
+     "Twin series: length recognised better",
+     "For two series with the same name and year, a release without a service in its name is now also recognised by its length, even when TMDB leaves out the other series' episode length. A file far longer than this series' episodes goes to the bottom. Other series are not affected."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.64",
    "label": "RC 1",
    "label_en": "RC 1",

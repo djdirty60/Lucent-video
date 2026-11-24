@@ -31,11 +31,22 @@ def _services(networks):
     return {tag for tag, words in TAGS.items() if any(word in name for name in networks for word in words)}
 
 
+def _lengths(data):
+    """A series' episode lengths in minutes; TMDB often leaves episode_run_time empty, then the last aired episode."""
+    found = [int(m) for m in data.get("episode_run_time") or [] if m]
+    if not found:
+        for key in ("last_episode_to_air", "next_episode_to_air"):
+            runtime = int((data.get(key) or {}).get("runtime") or 0)
+            if runtime:
+                found.append(runtime)
+    return found
+
+
 def foreign_tags(meta):
     """The service tags that point to a twin of this series and not to the series itself (empty: no twin)."""
     if meta.get("kind") not in ("episode", "tvshow"):
         return set()
-    key = "twins2%s" % meta.get("tmdb")      # 2: with the other series' lengths
+    key = "twins3%s" % meta.get("tmdb")      # 3: lengths also from the last aired episode
     saved = util.cache_get(key, 7 * 86400)
     if saved is not None:
         return set(saved)
@@ -58,7 +69,7 @@ def foreign_tags(meta):
             theirs = _networks(other["id"])
             if theirs:
                 foreign |= _services(theirs[1]) - mine_tags
-                lengths += [int(m) for m in theirs[0].get("episode_run_time") or [] if m]
+                lengths += _lengths(theirs[0])
         if others:
             util.cache_set("twinlengths%s" % meta.get("tmdb"), lengths)
         if others:
