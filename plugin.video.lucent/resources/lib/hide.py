@@ -22,7 +22,15 @@ LANGUAGES = [("zh", "Chinees (Mandarijn)", "Chinese (Mandarin)"), ("cn", "Chinee
 # lists that are about discovering titles; everything else is left alone
 DISCOVER = ("trending_movie", "popular_movie", "toprated_movie", "trending_tv", "popular_tv", "toprated_tv", "airing_tv", "today_tv", "keyword", "genre",
             "similar", "foryou", "new_tv", "company", "decade", "award", "provider", "service_list", "person", "kompas_foryou",
-            "kompas_because", "kompas_gems", "kompas_new", "kompas_trending", "kompas_saved")
+            "kompas_because", "kompas_gems", "kompas_new", "kompas_trending", "kompas_saved",
+            "nowplaying_movie", "upcoming_movie", "upcoming_tv", "discover", "anticipated", "studio_series", "network_films")
+# a list you open for one language on purpose (Korean series, Anime ...): never emptied by the hidden languages
+CHOSEN = {"korean_tv", "korean_movie", "anime_tv", "anime_movie"}
+
+
+def list_name(name, params):
+    """The name hide.keep goes by: a 'by country' or anime list keeps its own language even when you hide it elsewhere."""
+    return "discover_chosen" if name == "discover" and params.get("key") in CHOSEN else name
 # 'only what you can watch' leaves these alone
 NOT_YET = ("coming_watchlist", "upcoming_movie", "upcoming_tv", "nowplaying_movie", "calendar", "new_seasons", "marathon", "continue", "continue_movie",
            "continue_episode", "nextup", "tonight", "alerts", "lib_newseasons", "lib_newepisodes", "search")

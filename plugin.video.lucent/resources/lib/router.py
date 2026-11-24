@@ -756,7 +756,7 @@ def list_titles(handle, params):
     first = [_order_row(params)] if _wants_order_row(name, page, params) else None
     cached = widgets.get(params) if widgets.wanted(params) else None
     if cached:
-        send_titles(handle, cut(hide.keep(cached.get("titles") or [], name)), cached.get("content") or "", first=first)
+        send_titles(handle, cut(hide.keep(cached.get("titles") or [], hide.list_name(name, params))), cached.get("content") or "", first=first)
         if params.get("widget") == "1":
             _row_time(name, "copy", began)
         if widgets.is_old(params, cached, size):
@@ -780,13 +780,13 @@ def list_titles(handle, params):
         if not saved or not saved.get("titles"):
             raise
         util.log("list %s: %s, its saved copy shown" % (name, type(error).__name__))
-        return send_titles(handle, hide.keep(saved["titles"], name), saved.get("content") or "")
+        return send_titles(handle, hide.keep(saved["titles"], hide.list_name(name, params)), saved.get("content") or "")
     TIMES["fetch"] = time.time() - began
     if widgets.wanted(params) and titles:
         tracker.enrich(titles)              # before the copy is saved: then the copy has the scores too
         widgets.put(params, titles, content, size)
     next_url = util.url_for(**dict(params, page=page + 1)) if more and params.get("widget") != "1" else None     # a Home row has no next page
-    send_titles(handle, cut(hide.keep(titles, name)), content, next_url, first)
+    send_titles(handle, cut(hide.keep(titles, hide.list_name(name, params))), content, next_url, first)
     if params.get("widget") == "1":
         _row_time(name, "fetched", began)
     return None
@@ -836,7 +836,7 @@ def gather_row(params, size):
     import hide
     name, page = params.get("name", ""), int(params.get("page") or 1)
     seen = {(t.get("kind"), str(t.get("tmdb")), t.get("season"), t.get("episode")) for t in titles}
-    while more and len(hide.keep(titles, name)) < size and page < 6:
+    while more and len(hide.keep(titles, hide.list_name(name, params))) < size and page < 6:
         page += 1
         extra, _content, more = gather(dict(params, page=page))
         for meta in extra:
