@@ -28,7 +28,24 @@ def available():
     return bool(key())
 
 
+CALLS = "mdblist_calls.json"     # {"day": "2026-11-24", "n": 12, "by": {"sync": 5}}: MDBList's free plan allows 1000 a day
+
+
+def counted(kind):
+    """Counts one MDBList request; every 25th of a day goes into the log, with what they were for."""
+    day = time.strftime("%Y-%m-%d", time.gmtime())
+    data = util.load_json(CALLS, {})
+    if data.get("day") != day:
+        data = {"day": day, "n": 0, "by": {}}
+    data["n"] += 1
+    data["by"][kind] = data["by"].get(kind, 0) + 1
+    util.save_json(CALLS, data)
+    if data["n"] % 25 == 0:
+        util.log("MDBList: %d requests today (UTC) by Lucent: %s" % (data["n"], ", ".join("%s %d" % kv for kv in sorted(data["by"].items(), key=lambda kv: -kv[1]))))
+
+
 def _url(path, **params):
+    counted(path.split("/")[0])
     params["apikey"] = key()
     return API + path + "?" + urllib.parse.urlencode(params)
 

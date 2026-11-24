@@ -232,6 +232,8 @@ def search(meta, again=True):
                     return search(meta, again=False)
                 return None, "failed"
         return None, "address" if unset else "failed"
+    import twins
+    found = twins.drop(found, meta)                    # another series with the same name and year (The Stranger 2020)
     import learn
     fitting = subcheck.mark(subtitles, found)          # before ranking, so the order of sources can use NL-SUBS
     ranked = ranking.heavy_last(learn.adjust(ranking.apply(found, profile, meta["kind"], order, meta.get("lang") or "")))

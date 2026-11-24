@@ -16,7 +16,7 @@ API = "https://api.mdblist.com/"
 FILE = "mdbtrack.json"              # {"user": name}: linked as your account
 STATE = "mdbtrack_state.json"       # the watched history, kept between runs
 HAS_LISTS = False                   # your MDBList lists are already under MDBList in the menu
-CHECK_EVERY = 300                   # watched history again at most every five minutes (or when asked)
+CHECK_EVERY = 1800                  # watched history again at most every half hour (after watching in Lucent: at once)
 PAGE = 1000
 
 
@@ -33,6 +33,7 @@ def call(path, data=None, method=None, **params):
     """One request. The key goes in the address, as MDBList wants; errors never hold the address (util.http)."""
     params["apikey"] = mdblist.key()
     url = API + path + "?" + urllib.parse.urlencode(params)
+    mdblist.counted(path.split("/")[0])
     answer, _ = util.http(url, data=data, method=method or ("POST" if data is not None else None), timeout=20)
     return answer
 
@@ -180,7 +181,7 @@ def watched_episodes():
 
 
 # ----------------------------------------------------------------------------------------- where you stopped
-def _playback(ttl=60):
+def _playback(ttl=600):
     saved = util.cache_get("mdbtrackplayback", ttl)
     if saved is None:
         saved = call("sync/playback") or []
@@ -251,7 +252,7 @@ def scrobble(state, meta, percent):
 
 def dropped_shows():
     """{show tmdb id} you dropped on MDBList (GET /sync/dropped, offset-paged). Empty when MDBList does not answer."""
-    saved = util.cache_get("mdbtrackdropped", 300)
+    saved = util.cache_get("mdbtrackdropped", 6 * 3600)
     if saved is not None:
         return set(saved)
     out, offset = set(), 0
@@ -327,7 +328,7 @@ def next_up():
 
 # ----------------------------------------------------------------------------------------- watchlist
 def _watchlist():
-    saved = util.cache_get("mdbtrackwatchlist", 300)
+    saved = util.cache_get("mdbtrackwatchlist", 1800)
     if saved is not None:
         return saved
     data = _pages("watchlist/items")

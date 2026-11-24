@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.62",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T18:05Z",
+   "items": [
+    [
+     "search",
+     "Series met dezelfde naam (2)",
+     "Heeft een serie een tweeling met dezelfde naam en hetzelfde jaar (zoals The Stranger uit 2020, Brits en Amerikaans), dan vallen releases weg met de streamingdienst van de andere serie in de naam, zoals NF of QIBI.",
+     "Series with the same name (2)",
+     "When a series has a twin with the same name and year (like The Stranger from 2020, British and American), releases carrying the other series' streaming service in their name, like NF or QIBI, are left out."
+    ],
+    [
+     "settings",
+     "Minder MDBList-verzoeken",
+     "Is MDBList je account, dan vraagt Lucent je geschiedenis en kijklijst nog elk half uur op, gestopte series elke 6 uur en waar je stopte elke 10 minuten. Na het kijken meteen. Het log telt de verzoeken per dag.",
+     "Fewer MDBList requests",
+     "With MDBList as your account, Lucent now asks for your history and watchlist every half hour, dropped shows every 6 hours and where you stopped every 10 minutes. Right after watching at once. The log counts the requests per day."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.61",
    "label": "RC 1",
    "label_en": "RC 1",
