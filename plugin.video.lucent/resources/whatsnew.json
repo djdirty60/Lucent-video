@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.66",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T19:30Z",
+   "items": [
+    [
+     "settings",
+     "Veel minder MDBList-verzoeken",
+     "Na het kijken ververst Kodi alle rijen tegelijk, en elke rij vroeg MDBList apart waar je gestopt was (tot zo'n 24 verzoeken per keer stoppen). Nu vraagt maar één rij het en wachten de andere op dat antwoord. Waar je stopte, schrijft Lucent meteen zelf bij, zonder het opnieuw op te vragen. Hetzelfde geldt voor je kijkgeschiedenis en kijklijst.",
+     "Far fewer MDBList requests",
+     "After watching, Kodi refreshes all rows at once, and each row asked MDBList separately where you stopped (up to about 24 requests per stop). Now only one row asks and the others wait for that answer. Lucent writes where you stopped into its own copy at once, without asking again. The same goes for your watch history and watchlist."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.65",
    "label": "RC 1",
    "label_en": "RC 1",

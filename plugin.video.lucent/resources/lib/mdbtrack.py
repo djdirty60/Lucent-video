@@ -139,7 +139,17 @@ def _history(force=False):
     saved = util.load_json(STATE, {})
     if saved.get("rows") is not None and not force and util.cache_get("mdbtrackchecked", CHECK_EVERY) is not None:
         return saved["rows"]
-    rows = _rows(_pages("sync/watched"))
+    if not force and saved.get("rows") is not None and util.cache_get("mdbtrackcheckedbusy", 20) is not None:
+        for _ in range(40):                     # another process is fetching the history right now: use its answer
+            time.sleep(0.25)
+            if util.cache_get("mdbtrackchecked", CHECK_EVERY) is not None:
+                return util.load_json(STATE, {}).get("rows") or saved["rows"]
+        return saved["rows"]
+    util.cache_set("mdbtrackcheckedbusy", 1)
+    try:
+        rows = _rows(_pages("sync/watched"))
+    finally:
+        util.cache_drop("mdbtrackcheckedbusy")
     util.save_json(STATE, {"rows": rows, "at": int(time.time())})
     util.cache_set("mdbtrackchecked", 1)
     return rows
@@ -181,13 +191,66 @@ def watched_episodes():
 
 
 # ----------------------------------------------------------------------------------------- where you stopped
-def _playback(ttl=600):
-    saved = util.cache_get("mdbtrackplayback", ttl)
-    if saved is None:
-        saved = call("sync/playback") or []
-        saved = saved if isinstance(saved, list) else saved.get("items") or saved.get("playback") or []
-        util.cache_set("mdbtrackplayback", saved)
+def _shared(key, ttl, fetch):
+    """A saved MDBList answer, fetched by one process at a time. After watching, Kodi refreshes every Home row at once,
+    each in its own process; before rc1.66 each of them asked MDBList the same thing (Guguloi: 24 requests per stop)."""
+    saved = util.cache_get(key, ttl)
+    if saved is not None:
+        return saved
+    if util.cache_get(key + "busy", 20) is not None:          # another process is asking right now: wait for its answer
+        for _ in range(40):
+            time.sleep(0.25)
+            saved = util.cache_get(key, ttl)
+            if saved is not None:
+                return saved
+        old = util.cache_get(key, 30 * 86400)                 # still nothing: the older copy rather than one more request
+        if old is not None:
+            return old
+    util.cache_set(key + "busy", 1)
+    try:
+        saved = fetch()
+        util.cache_set(key, saved)
+    finally:
+        util.cache_drop(key + "busy")
     return saved
+
+
+def _fetch_playback():
+    saved = call("sync/playback") or []
+    return saved if isinstance(saved, list) else saved.get("items") or saved.get("playback") or []
+
+
+def _playback(ttl=600):
+    return _shared("mdbtrackplayback", ttl, _fetch_playback)
+
+
+def _same(row, meta):
+    kind = str(row.get("type") or "").lower()
+    if meta["kind"] == "movie":
+        return kind == "movie" and _tmdb((row.get("movie") or {}).get("ids")) == str(meta["tmdb"])
+    episode = row.get("episode") or {}
+    show = row.get("show") or episode.get("show") or {}
+    return (kind == "episode" and _tmdb(show.get("ids")) == str(meta["tmdb"])
+            and str(episode.get("season")) == str(meta.get("season")) and str(episode.get("number")) == str(meta.get("episode")))
+
+
+def _local_playback(meta, percent):
+    """Where you stopped, written into the saved copy right away: what Lucent just sent needs no new request.
+    percent None: the point is gone (cleared, or watched from 80%)."""
+    rows = util.cache_get("mdbtrackplayback", 30 * 86400)
+    if rows is None:
+        return                                  # nothing saved yet: the next look asks MDBList anyway
+    rows = [r for r in rows if not _same(r, meta)]
+    if percent is not None and 0 < percent < 80.0:
+        now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        row = {"progress": round(percent, 2), "paused_at": now}
+        if meta["kind"] == "movie":
+            row.update(type="movie", movie={"ids": {"tmdb": int(meta["tmdb"])}, "title": meta.get("title") or ""})
+        else:
+            row.update(type="episode", show={"ids": {"tmdb": int(meta["tmdb"])}, "title": meta.get("showtitle") or meta.get("title") or ""},
+                       episode={"season": int(meta["season"]), "number": int(meta["episode"])})
+        rows.insert(0, row)
+    util.cache_set("mdbtrackplayback", rows)
 
 
 def paused():
@@ -232,7 +295,7 @@ def forget_playback(meta):
     except util.HttpError as error:
         util.log("MDBList clear: %s" % error)
         return False
-    util.cache_drop("mdbtrackplayback")
+    _local_playback(meta, None)
     return True
 
 
@@ -243,7 +306,7 @@ def scrobble(state, meta, percent):
     body = dict(_item(meta), progress=round(max(0.0, min(100.0, float(percent))), 2))
     call("scrobble/%s" % state, data=body)
     if state != "start":
-        util.cache_drop("mdbtrackplayback")
+        _local_playback(meta, None if percent >= 80.0 else percent)
     if state == "stop" and percent >= 80.0:
         util.cache_drop("mdbtrackchecked")
         util.cache_drop("mdbtracknextup")
@@ -328,9 +391,10 @@ def next_up():
 
 # ----------------------------------------------------------------------------------------- watchlist
 def _watchlist():
-    saved = util.cache_get("mdbtrackwatchlist", 1800)
-    if saved is not None:
-        return saved
+    return _shared("mdbtrackwatchlist", 1800, _fetch_watchlist)
+
+
+def _fetch_watchlist():
     data = _pages("watchlist/items")
     rows = []
     for kind, key in (("movie", "movies"), ("tvshow", "shows")):
@@ -345,7 +409,6 @@ def _watchlist():
         if tmdb_id:
             rows.append({"kind": kind, "tmdb": tmdb_id, "title": entry.get("title") or "", "year": str(entry.get("release_year") or ""),
                          "added": entry.get("watchlist_at") or ""})
-    util.cache_set("mdbtrackwatchlist", rows)
     return rows
 
 
