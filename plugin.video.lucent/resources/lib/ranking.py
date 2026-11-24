@@ -63,6 +63,8 @@ def tags_of(source):
         tags.add("hdr")                     # Dolby Vision from a Blu-ray (profile 7) always has an HDR10 base layer
     if tags & {"hdr10plus"}:
         tags.add("hdr")
+    if tags & {"atmos", "dtsx"} and not tags & {"71", "51", "20"}:
+        tags.add("71")                      # Atmos / DTS:X without a channel count in the name: as good as 7.1 (rc1.68)
     tags.add({"4K": "4k", "1440p": "1440p", "1080p": "1080p", "720p": "720p"}.get(source.get("resolution"), "sd"))
     tags.add("cached" if source.get("cached") else "uncached")
     if 0 < (source.get("size") or 0) < 1073741824:
@@ -498,6 +500,8 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
                     size_at = len(ladder)       # learned choices and subtitles-first may still part sources that
                     #                             only differ in size (see 'equal' below); as first group size is binding
                 (key if number == 1 else ladder).append(_size_key(group["order"][0], source))
+                if number > 1:
+                    ladder.append(-(source.get("posted") or 0))     # same size: the newer release first
                 if number == 1 and source.get("size"):
                     why.append((RULES[group["order"][0]][0], T("Regel %d", "Rule %d") % number))
             continue
@@ -543,9 +547,11 @@ def _order_key(source, tags, profile, scraper_order, kind="movie"):
         key[2], key[1] = key[1], key[2]         # ready to play before resolution
         equal = list(key)
         if size_at is not None:
-            tie.insert(0, ladder[size_at])      # this profile keeps its own order: size parts equal sources, as before
+            tie[:0] = ladder[size_at:size_at + 2]   # this profile keeps its own order: size, then newer, part equal sources
     else:
-        equal = key + [v for n, v in enumerate(ladder) if n != size_at]
+        # rc1.68: size (and then the newer release) counts in 'equal' too: 'played well' or 'failed once' only parts
+        # sources your groups left equal, size included (Wilfried: equal badges, the bigger file goes first)
+        equal = key + list(ladder)
         key += ladder
     # equal: what your own groups decide; extras such as 'played well' may only change the order among sources that
     # are equal here

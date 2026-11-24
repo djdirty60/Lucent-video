@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.68",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T20:15Z",
+   "items": [
+    [
+     "settings",
+     "Groter en nieuwer eerst",
+     "Bij bronnen met dezelfde labels staat het grootste bestand nu altijd bovenaan, en bij dezelfde grootte de nieuwste release. Een release-groep die eerder goed of slecht speelde, gaat daar niet meer overheen. Een bron met Atmos of DTS:X zonder kanaal-aantal in de naam telt als 7.1.",
+     "Bigger and newer first",
+     "Among sources with the same badges the biggest file now always comes first, and with the same size the newest release. A release group that played well or badly before no longer jumps over that. A source with Atmos or DTS:X without a channel count in its name counts as 7.1."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.67",
    "label": "RC 1",
    "label_en": "RC 1",

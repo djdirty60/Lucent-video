@@ -132,6 +132,21 @@ def _en_item(raw):
         bool(raw.get("passwd") or raw.get("virus")), _en_seconds(raw)
 
 
+def _en_posted(raw):
+    """When Easynews says the file was posted (unix time), or 0."""
+    for key in ("ts", "timestamp"):
+        try:
+            value = int(float(raw.get(key) or 0))
+        except (TypeError, ValueError):
+            value = 0
+        if value > 0:
+            return value
+    try:
+        return int(time.mktime(time.strptime(str(raw.get("5") or "")[:19], "%Y-%m-%d %H:%M:%S")))
+    except (ValueError, OverflowError):
+        return 0
+
+
 EN_PAGES = 3                            # 3.0 pages (100 results each) asked at the same time
 EN_EMPTY_WAIT = 0.5                     # an empty answer means 'too many searches at once': wait this long, then once again
 
@@ -607,6 +622,9 @@ def easynews(meta):
                     if code in mylang.LANGS and flag not in source["flags"]:
                         source["flags"].append(flag)
             _en_tech(raw, source)
+            posted = _en_posted(raw)
+            if posted:
+                source["posted"] = posted       # newer first among equal sources of the same size (ranking.py)
             preview = _en_preview(answer, raw)
             if preview:
                 source["preview"] = preview
@@ -853,6 +871,9 @@ def free_sources(query):
             source["meta"] += " · %d min" % (seconds // 60)
         if isinstance(raw, dict):
             _en_tech(raw, source)
+            posted = _en_posted(raw)
+            if posted:
+                source["posted"] = posted       # newer first among equal sources of the same size (ranking.py)
             source["preview"] = _en_preview(answer, raw)
         out.append(source)
     util.log("Easynews search: %d file(s) for your own words" % len(out))

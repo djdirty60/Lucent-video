@@ -93,8 +93,8 @@ remux_sub = src("Film.2160p.UHD.BluRay.REMUX.DV.HDR.HEVC.TrueHD.Atmos.7.1-RSUB",
 expect("Geleerd +5 zonder NL-subs blijft onder gelijke Remux met NL-subs (Taal op 6)",
        [remux_nosub, remux_sub], profile("best", BEST), ["RSUB", "RMX"])
 twin = src("Film.2160p.UHD.BluRay.REMUX.DV.HDR.HEVC.TrueHD.Atmos.7.1-OTHER", 70, flags=["DV", "HDR", "REMUX", "TRUEHD", "ATMOS", "7.1"])
-expect("Geleerd +5 gaat wel voor op een release die je profiel gelijk vindt (ook al is die groter)",
-       [twin, remux_nosub], profile("best", BEST), ["RMX", "OTHER"])
+expect("Geleerd +5 gaat niet voor op een gelijke release die groter is (rc1.68: groter eerst)",
+       [twin, remux_nosub], profile("best", BEST), ["OTHER", "RMX"])
 _learned.clear()
 _learned["rmx|4K|usenet"] = {"good": 0, "bad": 3, "at": 1}
 expect("Een release die steeds mislukte zakt naar het eind van zijn resolutie",

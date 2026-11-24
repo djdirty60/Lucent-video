@@ -173,6 +173,10 @@ def fetch(meta):
             if not pack:
                 source = usenet._source(name, row["size"], SERVICE, resolve=job)          # noqa: SLF001 - same add-on
                 _add_info(source, row)
+                try:
+                    source["posted"] = int(email.utils.parsedate_to_datetime(row.get("posted") or "").timestamp())
+                except (TypeError, ValueError, IndexError):
+                    pass                            # newer first among equal sources of the same size (ranking.py)
                 if not _from_file(source, job):
                     locked += 1                     # found locked or packed before: never playable, not shown
                     continue
