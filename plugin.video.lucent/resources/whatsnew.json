@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.59",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T16:20Z",
+   "items": [
+    [
+     "play",
+     "Soepeler spoelen en geluid wisselen",
+     "Lucent geeft Kodi nu het adres van de server waar het bestand echt staat, in plaats van de doorverwijslink van AIOStreams. Spoelen en wisselen van geluidsspoor hoeven dan niet steeds eerst langs AIOStreams.",
+     "Smoother seeking and sound switching",
+     "Lucent now gives Kodi the address of the server the file really comes from, instead of AIOStreams' redirect link. Seeking and switching sound tracks no longer go past AIOStreams every time."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.58",
    "label": "RC 1",
    "label_en": "RC 1",

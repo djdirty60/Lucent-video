@@ -227,9 +227,36 @@ def ask_resume(meta):
     return None if answer is None else (position if answer else 0)
 
 
+def followed(url):
+    """The address a playback link redirects to (AIOStreams' /playback/ link -> the debrid CDN), so Kodi talks to the
+    file's own server. Otherwise every jump Kodi makes - and a sound-track switch is one: Kodi reads the file again
+    from just before where you are - first went through the redirecting server again (skin issue #39: stutter on
+    switching sound with Lucent, not with an add-on that hands over the CDN link). The link itself when nothing
+    redirects, the target is no file (200/206), or it does not answer within a few seconds."""
+    address, bar, extra = url.partition("|")
+    if not address.startswith(("http://", "https://")) or urllib.parse.urlsplit(address).hostname in ("127.0.0.1", "localhost"):
+        return url                              # vfs.lucent, or Lucent's own local Usenet server: nothing to follow
+    head = dict(urllib.parse.parse_qsl(extra))
+    head.setdefault("User-Agent", "Lucent-Video/0.1")
+    head["Range"] = "bytes=0-0"
+    try:
+        with urllib.request.urlopen(urllib.request.Request(address, headers=head), timeout=6) as response:
+            final, status = response.geturl(), response.status
+    except (urllib.error.URLError, OSError, ValueError) as error:
+        util.log("playback link not followed (%s): played as it is" % type(error).__name__)
+        return url
+    before, after = urllib.parse.urlsplit(address).hostname, urllib.parse.urlsplit(final).hostname
+    if status not in (200, 206) or not after or after == before:
+        return url
+    util.log("playback link followed: %s -> %s (Kodi reads the file there directly)" % (before, after))
+    return final + bar + extra
+
+
 def build(meta, source, resume=0):
     """The item Kodi plays. With a resume point Kodi opens the video at that place itself, before the picture starts:
     jumping there afterwards (while the TV switches its refresh rate) can leave the picture standing still."""
+    if not source.get("followed") and "easynews" not in str(source.get("service") or "").lower():
+        source["url"], source["followed"] = followed(source["url"]), True
     url = source["url"]
     item = xbmcgui.ListItem(meta["title"], path=url, offscreen=True)
     item.setArt(items.art_of(meta))
