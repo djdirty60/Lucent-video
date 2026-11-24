@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.55" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.56" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -96,7 +96,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.55: Settings > General > Views per kind: choose which view the Lucent skin uses for films, series, seasons, episodes, sets, videos and menus. Only views that can show that kind are offered.
+        <news>1.0.0~rc1.56: switching sound tracks during playback no longer restarts Lucent's start-of-video work (Kodi can report a new start for a sound switch with passthrough on; Lucent then set your preferred sound again and asked for a subtitle search). Skin issue #39.
+1.0.0~rc1.55: Settings > General > Views per kind: choose which view the Lucent skin uses for films, series, seasons, episodes, sets, videos and menus. Only views that can show that kind are offered.
 1.0.0~rc1.54: faster Home rows, from the measurements on a Cube: a row shown from its saved copy no longer looks up scores again (the copy keeps them), no longer loads the whole player, only reads the watched tables it needs, and starts quicker (concurrent.futures and logging are loaded only when used).
 1.0.0~rc1.53: faster Home rows: titles MDBList does not know, and MDBList being down, no longer make every row ask MDBList again. Each Home row now logs how long it took and where the time went.
 1.0.0~rc1.52: Account information (TorBox and others) no longer says 'The answer could not be read' on some boxes: dates are read without Python's strptime, which can fail inside Kodi. Such an error now also logs where it happened.
@@ -153,7 +154,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.55: Instellingen > Algemeen > Weergave per soort: kies welke weergave de Lucent-skin gebruikt voor films, series, seizoenen, afleveringen, sets, video's en menu's. Alleen weergaven die die soort kunnen tonen staan erbij.
+        <news lang="nl_NL">1.0.0~rc1.56: wisselen van geluidsspoor tijdens het kijken start het startwerk van Lucent niet meer opnieuw (Kodi kan bij een geluidswissel met passthrough een nieuwe start melden; Lucent zette dan je voorkeursgeluid terug en vroeg om een ondertitelzoektocht). Skin-issue #39.
+1.0.0~rc1.55: Instellingen > Algemeen > Weergave per soort: kies welke weergave de Lucent-skin gebruikt voor films, series, seizoenen, afleveringen, sets, video's en menu's. Alleen weergaven die die soort kunnen tonen staan erbij.
 1.0.0~rc1.54: snellere rijen op het hoofdscherm, op basis van metingen op een Cube: een rij uit zijn bewaarde kopie zoekt de scores niet opnieuw op (de kopie bewaart ze), laadt niet meer de hele speler, leest alleen de bekeken-tabellen die hij nodig heeft en start sneller (concurrent.futures en logging worden pas geladen als ze nodig zijn).
 1.0.0~rc1.53: snellere rijen op het hoofdscherm: titels die MDBList niet kent, en een MDBList die niet antwoordt, laten niet meer elke rij opnieuw bij MDBList vragen. Elke rij logt nu hoe lang hij duurde en waar de tijd zat.
 1.0.0~rc1.52: Accountinformatie (TorBox en andere) zegt op sommige kastjes niet meer 'Het antwoord kon niet worden gelezen': datums worden gelezen zonder strptime van Python, dat binnen Kodi kan mislukken. Zo'n fout logt nu ook waar hij gebeurde.

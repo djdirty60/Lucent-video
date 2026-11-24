@@ -252,7 +252,25 @@ class Watcher(xbmc.Player):
         super().__init__()
         self.monitor = xbmc.Monitor()
 
+    def onPlayBackStarted(self):  # noqa: N802 - Kodi callback name
+        self._armed = True                      # a new video: its first onAVStarted counts
+
+    def _first_av(self):
+        """Kodi can call onAVStarted again during one video (seen when switching sound tracks with passthrough on):
+        only the first call of a video counts, so a sound switch never starts the start-of-video work again."""
+        try:
+            playing = self.getPlayingFile()
+        except RuntimeError:
+            playing = ""
+        first = getattr(self, "_armed", False) or playing != getattr(self, "_av_file", None)
+        self._armed, self._av_file = False, playing
+        if not first:
+            xbmc.log("[lucent.video] player: onAVStarted again for the same video (sound or picture change): ignored", xbmc.LOGINFO)
+        return first
+
     def onAVStarted(self):  # noqa: N802 - Kodi callback name
+        if not self._first_av():
+            return
         HOME.setProperty("lucent.play.start", f"{time.time():.1f}")   # helper.py: a search right after the start
         try:
             self.look()
