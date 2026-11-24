@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.58",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T15:55Z",
+   "items": [
+    [
+     "resume",
+     "Geen lege map meer na stoppen",
+     "Na het stoppen ververst Lucent de lijst waar je terugkomt (zoals Verder kijken) pas als de speler dicht is en het scherm terug is. Lukt ophalen toch niet, dan zie je de bewaarde kopie in plaats van 'Deze map is leeg'.",
+     "No empty folder after stopping",
+     "After stopping, Lucent refreshes the list you return to (like Continue watching) only once the player has closed and the screen is back. If fetching still fails, you see the saved copy instead of 'This folder is empty'."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.57",
    "label": "RC 1",
    "label_en": "RC 1",

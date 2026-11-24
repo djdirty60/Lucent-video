@@ -772,7 +772,14 @@ def list_titles(handle, params):
             if changed and (titles or yours):
                 widgets.bump()
         return None
-    titles, content, more = gather_row(params, size)
+    try:
+        titles, content, more = gather_row(params, size)
+    except Exception as error:              # noqa: BLE001 - the saved copy of this row is better than an empty folder
+        saved = widgets.get(params)
+        if not saved or not saved.get("titles"):
+            raise
+        util.log("list %s: %s, its saved copy shown" % (name, type(error).__name__))
+        return send_titles(handle, hide.keep(saved["titles"], name), saved.get("content") or "")
     TIMES["fetch"] = time.time() - began
     if widgets.wanted(params) and titles:
         tracker.enrich(titles)              # before the copy is saved: then the copy has the scores too

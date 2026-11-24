@@ -315,7 +315,7 @@ class Watcher(xbmc.Player):
         if percent >= WATCHED_AT and meta.get("kind") == "movie":
             import kompas
             kompas.after_film(meta)
-        xbmc.executebuiltin("Container.Refresh")
+        threading.Thread(target=_refresh_list_later, daemon=True).start()
 
     def play_next(self, meta):
         following, self.following = self.following, None
@@ -471,6 +471,29 @@ class Watcher(xbmc.Player):
                 and self.total - self.position <= util.number("next_seconds", 45):
             self.asked_next = True
             self.open_next(meta)
+
+
+def _refresh_list_later():
+    """After stopping: refresh the Lucent list you came back to, so 'Continue watching' shows where you stopped.
+    Not at once: Kodi first closes the player and, with 'refresh rate On Start/Stop', switches the screen back (on
+    Android the window is even destroyed and made again). Refreshing in that moment made the list fail and show
+    'This folder is empty' (skin issue #39). Only a Lucent list is refreshed, never another add-on's folder."""
+    monitor = xbmc.Monitor()
+    for _ in range(40):                                  # up to 10 s for the player and the screen to settle
+        if monitor.waitForAbort(0.25):
+            return
+        if xbmc.getCondVisibility("Player.HasMedia"):
+            return                                       # something plays again (the next episode): nothing to refresh
+        if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(videoosd) | System.HasActiveModalDialog"):
+            break
+    else:
+        return
+    if monitor.waitForAbort(1.5):
+        return
+    if xbmc.getCondVisibility("Window.IsActive(videos)") and \
+            xbmc.getInfoLabel("Container.FolderPath").startswith("plugin://plugin.video.lucent/") and \
+            not xbmc.getCondVisibility("Container.IsUpdating | Player.HasMedia"):
+        xbmc.executebuiltin("Container.Refresh")
 
 
 def run_count():
