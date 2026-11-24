@@ -800,17 +800,31 @@ ORDER_NAMES = {"own": T("Zoals de lijst", "As the list is"), "added_new": T("Laa
 def _wants_order_row(name, page, params):
     """'Order: ...' at the top of a Trakt list (issue #5): in the list itself, also when it was opened in full from a
     Home row (the skin then opens the row's own address, with &widget=1, in the Videos window), never in the row."""
-    if name != "traktlist" or page != 1 or tracker.active() is not trakt:
+    if page != 1:
+        return False
+    if name in ACCOUNT_LISTS:                       # watchlists and collections, of any account (issue #5)
+        if not tracker.active():
+            return False
+    elif name != "traktlist" or tracker.active() is not trakt:
         return False
     return params.get("widget") != "1" or xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsVisible(videos)")
 
 
 def _order_row(params):
-    order = trakt.list_order(params["user"], params["id"])
-    url = util.url_for(action="traktlist_order", user=params["user"], id=params["id"])
+    user, list_id = _order_keys(params)
+    order = trakt.list_order(user, list_id)
+    url = util.url_for(action="traktlist_order", user=user, id=list_id)
     _url, item, _folder = items.folder(T("Volgorde: %s", "Order: %s") % ORDER_NAMES.get(order, ORDER_NAMES["own"]), url, "DefaultIconInfo.png")
     item.setProperty("SpecialSort", "top")          # always first, however the skin sorts the list
     return url, item, False
+
+
+def _order_keys(params):
+    """(owner, list) under which the chosen order is kept: a Trakt list, or 'account' and the name of a watchlist or
+    collection."""
+    if params.get("name") in ACCOUNT_LISTS:
+        return "account", params["name"]
+    return params["user"], params["id"]
 
 
 def traktlist_order(params):
@@ -823,7 +837,10 @@ def traktlist_order(params):
         return
     trakt.set_list_order(params["user"], params["id"], keys[pick])
     import widgets
-    widgets.drop({"action": "list", "name": "traktlist", "user": params["user"], "id": params["id"]})
+    if params["user"] == "account":
+        widgets.drop({"action": "list", "name": params["id"]})
+    else:
+        widgets.drop({"action": "list", "name": "traktlist", "user": params["user"], "id": params["id"]})
     widgets.bump()                                   # a Home row of this list follows the new order too
     xbmc.executebuiltin("Container.Refresh")
 
@@ -955,6 +972,8 @@ def gather(params):
         titles, content = next_up_titles(), "episodes"
     elif name == "watching":
         titles = watching_titles()
+    elif name in ACCOUNT_LISTS and trakt.list_order("account", name) in trakt.SORTS:
+        titles, more = _account_sorted(name, trakt.list_order("account", name), page)     # issue #5: your order
     elif name in ("collection_movie", "collection_tv"):          # the whole collection, A to Z
         everything = sorted(tmdb.many(tracker.pairs(name)), key=_alphabetical)
         titles, more = _slice(everything, page)
@@ -986,6 +1005,27 @@ def gather(params):
     elif titles and all(t["kind"] == "episode" for t in titles):
         content = "episodes"
     return titles, content, more
+
+
+def _account_sorted(name, order, page):
+    """A watchlist or collection of your account in the order you chose (issue #5): by date added straight from the
+    dates the account gives, by title or year from the details of every title (TMDB answers are kept)."""
+    pairs, dates = tracker.pairs(name), tracker.dates(name)
+    by_id = {(kind, str(tmdb_id)): str(when or "") for (kind, tmdb_id), when in dates.items()}
+    if order in ("added_new", "added_old"):
+        ordered = sorted(pairs, key=lambda p: by_id.get((p[0], str(p[1])), ""), reverse=order == "added_new")
+        part, more = _slice(ordered, page)
+        titles = tmdb.many(part)
+    else:
+        everything = tmdb.many(pairs)
+        if order == "title":
+            everything.sort(key=_alphabetical)
+        else:
+            newest = order == "year_new"
+            everything.sort(key=lambda m: int(str(m.get("year") or (0 if newest else 9999))[:4] or 0), reverse=newest)
+        titles, more = _slice(everything, page)
+    _date_added(titles, dates)
+    return titles, more
 
 
 def _date_added(titles, dates):

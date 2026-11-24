@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.70",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T22:58Z",
+   "items": [
+    [
+     "settings",
+     "Volgorde ook voor kijklijsten en collecties",
+     "Bovenaan je kijklijsten en collecties staat nu ook 'Volgorde: ...'. Kies laatst toegevoegd, eerst toegevoegd, titel of jaar. Lucent onthoudt de keuze per lijst, en een rij op het hoofdscherm volgt hem ook.",
+     "Order for watchlists and collections too",
+     "Your watchlists and collections now also have 'Order: ...' at the top. Choose recently added, first added, title or year. Lucent remembers the choice per list, and a Home row follows it too."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.69",
    "label": "RC 1",
    "label_en": "RC 1",
