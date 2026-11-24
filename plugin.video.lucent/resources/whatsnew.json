@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.57",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T08:40Z",
+   "items": [
+    [
+     "search",
+     "Series met dezelfde naam",
+     "Bestaan er twee series met dezelfde naam en hetzelfde jaar (zoals The Perfect Lie uit 2026, een Koreaanse en een Nederlandse), dan laat Lucent Usenet-releases weg die geplaatst zijn voordat de aflevering op tv was: die horen bij de andere serie.",
+     "Series with the same name",
+     "When two series share a name and year (like The Perfect Lie from 2026, a Korean and a Dutch one), Lucent leaves out Usenet releases posted before the episode was on TV: they belong to the other series."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.56",
    "label": "RC 1",
    "label_en": "RC 1",

@@ -4,6 +4,8 @@
 fetch(meta)  -> source dicts for the list (None when Usenet is not set up), like the other scrapers
 link(job)    -> when you press play: fetch the NZB, let the service open the release, give Kodi the local address
 """
+import datetime
+import email.utils
 import hashlib
 import json
 import os
@@ -49,7 +51,6 @@ def _badges(row):
     """'120 d · 340×': how many days ago it was posted and how often it was downloaded (when the indexer says)."""
     out = []
     try:
-        import email.utils
         import time as _time
         when = email.utils.parsedate_to_datetime(row.get("posted") or "")
         days = int((_time.time() - when.timestamp()) // 86400)
@@ -69,6 +70,29 @@ def _group(name):
 
 
 _indexer_name = newznab.name_of
+
+
+EARLY_DAYS = 2      # a release may come out this many days before TMDB's air date (time zones, a day-later shift)
+
+
+def _aired(meta):
+    """The day an episode was first on TV, as a date, or None (films, or no date on TMDB)."""
+    if meta.get("kind") != "episode":
+        return None
+    try:
+        return datetime.date.fromisoformat(str(meta.get("premiered") or "")[:10])
+    except ValueError:
+        return None
+
+
+def _posted_before(row, aired):
+    """True when the indexer says this release was posted clearly before the episode was on TV. Then it cannot be
+    this episode: it is a series with the same name (The Perfect Lie 2026: a Korean and a Dutch series)."""
+    try:
+        posted = email.utils.parsedate_to_datetime(row.get("posted") or "").date()
+    except (TypeError, ValueError):
+        return False
+    return posted < aired - datetime.timedelta(days=EARLY_DAYS)
 
 
 def fetch(meta):
@@ -119,13 +143,17 @@ def fetch(meta):
     show_badges = util.flag("nzb_badges")
     seconds = int(meta.get("runtime") or 0) * 60
     out, seen = [], set()
-    dead, skipped, locked = _dead_now(), 0, 0
+    dead, skipped, locked, early = _dead_now(), 0, 0, 0
+    aired = _aired(meta)
     for rows in answers:
         for row in rows or []:
             name = row["title"]
             key = name.lower()
             pack = meta["kind"] != "movie" and is_pack(name, titles, meta)
             if key in seen or not fits(name):
+                continue
+            if aired and _posted_before(row, aired):
+                early += 1                      # posted before this episode was on TV: another series with the same name
                 continue
             if _dead_key(row["link"]) in dead:
                 skipped += 1                    # found to be taken down before: not shown again
@@ -165,6 +193,8 @@ def fetch(meta):
             source["heavy"] = heavy
             source["always"] = True
             out.append(source)
+    if early:
+        util.log("usenet: %d release(s) left out that were posted before this episode was on TV (%s): another series with the same name" % (early, aired.isoformat()))
     if skipped:
         util.log("usenet: %d release(s) left out that were found taken down before" % skipped)
     if locked:
