@@ -11,9 +11,11 @@ import tmdb
 import util
 
 # release tag -> words that appear in the network's name on TMDB
-TAGS = {"NF": ("netflix",), "AMZN": ("amazon", "prime video"), "DSNP": ("disney",), "HMAX": ("hbo", "max"),
-        "MAX": ("max", "hbo"), "ATVP": ("apple",), "HULU": ("hulu",), "PCOK": ("peacock",), "PMTP": ("paramount",),
-        "QIBI": ("quibi",), "IP": ("bbc",), "ROKU": ("roku",), "STAN": ("stan",), "CRAV": ("crave",)}
+TAGS = {"NF": ("netflix",), "NETFLIX": ("netflix",), "AMZN": ("amazon", "prime video"), "AMAZON": ("amazon", "prime video"),
+        "DSNP": ("disney",), "DISNEY": ("disney",), "HMAX": ("hbo", "max"), "MAX": ("max", "hbo"), "HBO": ("hbo", "max"),
+        "ATVP": ("apple",), "HULU": ("hulu",), "PCOK": ("peacock",), "PEACOCK": ("peacock",), "PMTP": ("paramount",),
+        "PARAMOUNT": ("paramount",), "QIBI": ("quibi",), "QUIBI": ("quibi",), "IP": ("bbc",), "ROKU": ("roku",),
+        "STAN": ("stan",), "CRAV": ("crave",)}
 _TAG = re.compile(r"(?<![A-Za-z0-9])(%s)(?![A-Za-z0-9])" % "|".join(TAGS), re.I)
 
 
@@ -33,7 +35,7 @@ def foreign_tags(meta):
     """The service tags that point to a twin of this series and not to the series itself (empty: no twin)."""
     if meta.get("kind") not in ("episode", "tvshow"):
         return set()
-    key = "twins%s" % meta.get("tmdb")
+    key = "twins2%s" % meta.get("tmdb")      # 2: with the other series' lengths
     saved = util.cache_get(key, 7 * 86400)
     if saved is not None:
         return set(saved)
@@ -51,10 +53,14 @@ def foreign_tags(meta):
         others = [r for r in found if str(r.get("id")) != str(meta.get("tmdb"))
                   and str(r.get("name") or "").strip().lower() == name.lower() and str(r.get("first_air_date") or "")[:4] == year]
         mine_tags = _services(my_networks)
+        lengths = []
         for other in others[:3]:
             theirs = _networks(other["id"])
             if theirs:
                 foreign |= _services(theirs[1]) - mine_tags
+                lengths += [int(m) for m in theirs[0].get("episode_run_time") or [] if m]
+        if others:
+            util.cache_set("twinlengths%s" % meta.get("tmdb"), lengths)
         if others:
             util.log("twins: %s (%s) has %d other series with the same name and year; their service tags: %s"
                      % (name, year, len(others), ", ".join(sorted(foreign)) or "none"))
@@ -76,11 +82,13 @@ def drop(sources, meta):
     foreign = foreign_tags(meta)
     if not foreign:
         return sources
+    lengths = util.cache_get("twinlengths%s" % meta.get("tmdb"), 7 * 86400) or []
     kept = []
     for source in sources:
         tags = {t.upper() for t in _TAG.findall(_after_title(str(source.get("name") or "")))}
         if tags & foreign:
             continue
+        source["twin"] = lengths or True    # its length is checked too once the file is read (nzb/source.py other_series)
         kept.append(source)
     if len(kept) < len(sources):
         util.log("twins: %d release(s) left out that belong to the other series with the same name (%s)"

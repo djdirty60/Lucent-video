@@ -636,6 +636,28 @@ def file_flags(source, found):
     return flags
 
 
+def other_series(source, found):
+    """For a series with a twin (same name and year, twins.py): True when the file's running time is far from this
+    series' episodes (The Stranger 2020: the American episodes last about 8 minutes, the British ones 50)."""
+    if not source.get("twin") or not found or source.get("pack"):
+        return False
+    minutes = int((source.get("resolve") or {}).get("minutes") or 0)
+    seconds = int(found.get("seconds") or 0)
+    if not minutes or not seconds:
+        return False
+    length = seconds / 60.0
+    theirs = [m for m in source["twin"] if m] if isinstance(source["twin"], list) else []
+    if not theirs or abs(length - minutes) <= max(5, minutes * 0.3):
+        return False                            # close to this series' length, or the other series' length unknown
+    far = min(abs(length - m) for m in theirs) < abs(length - minutes)      # nearer to the other series' episodes
+    if far:
+        util.log("twins: %s lasts %d min, this series' episodes %d min: the other series" % (source.get("name", "")[:70], int(length), minutes))
+    return far
+
+
+OTHER_SERIES = util.T("lengte past bij de andere serie met deze naam", "its length fits the other series with this name")
+
+
 def tracks_text(found, job=None, source=None):
     """Only for a release that can never play (locked, packed or gone): what the file says otherwise shows in its labels."""
     if found and found.get("gone"):

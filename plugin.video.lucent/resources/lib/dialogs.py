@@ -309,6 +309,12 @@ class Sources(Base):
         """The labels set right by what the file itself says (sound, HDR, your language, FEL / P7): changed in place, the
         order of the list stays as it is while you look at it."""
         from nzb import source as nzb_source
+        if not source.get("locked") and nzb_source.other_series(source, found):
+            source["locked"] = True             # another series with the same name: to the very end of the list
+            source["health"] = (source.get("health") or "") + "  ·  [COLOR FFE5534B]✗ %s[/COLOR]" % nzb_source.OTHER_SERIES
+            self._show_health(source)
+            self._rerank()
+            return
         if found.get("locked") and not source.get("locked"):
             source["locked"] = True             # locked with a password or packed: to the very end of the list
             self._rerank()

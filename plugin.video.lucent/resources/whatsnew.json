@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.63",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T18:45Z",
+   "items": [
+    [
+     "search",
+     "Tweelingseries beter uit elkaar",
+     "Voluit geschreven diensten zoals 'Netflix' tellen nu ook mee. En duurt een Usenet-release ongeveer zo lang als de afleveringen van de andere serie met dezelfde naam, dan gaat hij onderaan met een rode melding.",
+     "Twin series told apart better",
+     "Service names written out like 'Netflix' now count too. And a Usenet release that lasts about as long as the other same-name series' episodes goes to the bottom with a red note."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.62",
    "label": "RC 1",
    "label_en": "RC 1",
