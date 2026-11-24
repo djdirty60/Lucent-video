@@ -92,7 +92,7 @@ def _paused_table():
     return table
 
 
-def send_titles(handle, titles, content, more=None):
+def send_titles(handle, titles, content, more=None, first=None):
     clock = time.time()
     titles = kids.keep(titles)
     tracker.enrich(titles)
@@ -103,7 +103,7 @@ def send_titles(handle, titles, content, more=None):
     playable = kinds & {"movie", "episode"}
     local, paused = (_resume_table(), _paused_table()) if playable else ({}, {})
     tables = time.time()
-    rows = []
+    rows = list(first or [])
     for meta in titles:
         last, counts, seen = "", None, False
         if meta["kind"] == "movie":
@@ -785,10 +785,38 @@ def list_titles(handle, params):
         tracker.enrich(titles)              # before the copy is saved: then the copy has the scores too
         widgets.put(params, titles, content, size)
     next_url = util.url_for(**dict(params, page=page + 1)) if more and params.get("widget") != "1" else None     # a Home row has no next page
-    send_titles(handle, cut(hide.keep(titles, name)), content, next_url)
+    first = None
+    if name == "traktlist" and page == 1 and params.get("widget") != "1" and tracker.active() is trakt:
+        first = [_order_row(params)]                # 'Order: ...' at the top: choose how this list is sorted
+    send_titles(handle, cut(hide.keep(titles, name)), content, next_url, first)
     if params.get("widget") == "1":
         _row_time(name, "fetched", began)
     return None
+
+
+ORDER_NAMES = {"own": T("Zoals de lijst", "As the list is"), "added_new": T("Laatst toegevoegd", "Recently added"),
+               "added_old": T("Eerst toegevoegd", "First added"), "title": T("Titel (A-Z)", "Title (A-Z)"),
+               "year_new": T("Jaar (nieuw eerst)", "Year (newest first)"), "year_old": T("Jaar (oud eerst)", "Year (oldest first)")}
+
+
+def _order_row(params):
+    order = trakt.list_order(params["user"], params["id"])
+    url = util.url_for(action="traktlist_order", user=params["user"], id=params["id"])
+    _url, item, _folder = items.folder(T("Volgorde: %s", "Order: %s") % ORDER_NAMES.get(order, ORDER_NAMES["own"]), url, "DefaultIconInfo.png")
+    item.setProperty("SpecialSort", "top")          # always first, however the skin sorts the list
+    return url, item, False
+
+
+def traktlist_order(params):
+    """Choose the order of one Trakt list: as the list is, recently added, title or year. Remembered per list."""
+    keys = list(ORDER_NAMES)
+    now = trakt.list_order(params["user"], params["id"])
+    pick = xbmcgui.Dialog().select(T("Volgorde van deze lijst", "Order of this list"), [ORDER_NAMES[k] for k in keys],
+                                   preselect=keys.index(now) if now in keys else 0)
+    if pick < 0:
+        return
+    trakt.set_list_order(params["user"], params["id"], keys[pick])
+    xbmc.executebuiltin("Container.Refresh")
 
 
 def gather_row(params, size):
@@ -927,9 +955,15 @@ def gather(params):
         titles = tmdb.many(slice_of)
         _date_added(titles, tracker.dates(name))
     elif name == "traktlist":
-        found = tracker.list_pairs(params["user"], params["id"], page, PAGE)
-        titles, more = tmdb.many(found), len(found) >= PAGE
-        _date_added(titles, tracker.list_dates(params["user"], params["id"], page, PAGE))
+        chosen = trakt.sorted_list(params["user"], params["id"], page, PAGE) if tracker.active() is trakt else None
+        if chosen:                                      # the order you chose for this list (issue #5)
+            found, dates, more = chosen
+            titles = tmdb.many(found)
+            _date_added(titles, dates)
+        else:
+            found = tracker.list_pairs(params["user"], params["id"], page, PAGE)
+            titles, more = tmdb.many(found), len(found) >= PAGE
+            _date_added(titles, tracker.list_dates(params["user"], params["id"], page, PAGE))
     elif name == "floppylist":
         found, more = floppy.items(params["id"], page, PAGE)
         titles = tmdb.many(found)
@@ -1358,6 +1392,8 @@ def _run(argv):
         if action == "wetrakr_logout":
             import wetrakr
             return wetrakr.logout()
+        if action == "traktlist_order":
+            return traktlist_order(params)
         if action == "views_choose":
             import views
             return views.choose()

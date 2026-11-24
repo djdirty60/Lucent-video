@@ -198,6 +198,64 @@ def custom_lists(kind, query=None):
     return rows
 
 
+LIST_ORDERS = "trakt_list_order.json"       # {"owner/list id": order}: the order you chose per list
+
+
+def list_rows(owner, list_id):
+    """Every item of a list (all pages), kept 15 minutes: needed to put the whole list in another order."""
+    key = "traktlistall%s/%s" % (owner, list_id)
+    rows = util.cache_get(key, 900)
+    if rows is None:
+        rows = all_pages("users/%s/lists/%s/items/movie,show" % (owner, list_id), limit=250)
+        util.cache_set(key, rows)
+    return rows
+
+
+def _row_entry(row):
+    kind = row.get("type") or ("movie" if "movie" in row else "show")
+    return row.get(kind) or {}
+
+
+def _title_key(title):
+    text = str(title or "").lower().strip()
+    for article in ("the ", "a ", "an "):
+        if text.startswith(article):
+            return text[len(article):]
+    return text
+
+
+SORTS = {
+    "added_new": lambda rows: sorted(rows, key=lambda r: str(r.get("listed_at") or ""), reverse=True),
+    "added_old": lambda rows: sorted(rows, key=lambda r: str(r.get("listed_at") or "")),
+    "title": lambda rows: sorted(rows, key=lambda r: _title_key(_row_entry(r).get("title"))),
+    "year_new": lambda rows: sorted(rows, key=lambda r: int(_row_entry(r).get("year") or 0), reverse=True),
+    "year_old": lambda rows: sorted(rows, key=lambda r: int(_row_entry(r).get("year") or 9999)),
+}
+
+
+def list_order(owner, list_id):
+    return util.load_json(LIST_ORDERS, {}).get("%s/%s" % (owner, list_id), "own")
+
+
+def set_list_order(owner, list_id, order):
+    saved = util.load_json(LIST_ORDERS, {})
+    if order == "own":
+        saved.pop("%s/%s" % (owner, list_id), None)
+    else:
+        saved["%s/%s" % (owner, list_id)] = order
+    util.save_json(LIST_ORDERS, saved)
+
+
+def sorted_list(owner, list_id, page, size):
+    """(pairs, dates, more) of one page of a list in the order you chose for it (Trakt's own order: None)."""
+    order = list_order(owner, list_id)
+    if order not in SORTS:
+        return None
+    rows = SORTS[order](list_rows(owner, list_id) or [])
+    part = rows[(page - 1) * size:page * size]
+    return pairs_from(part), dates_from(part), len(rows) > page * size
+
+
 def list_pairs(owner, list_id, page, size):
     return pairs_from(cached("users/%s/lists/%s/items/movie,show?limit=%d&page=%d" % (owner, list_id, size, page), 900))
 

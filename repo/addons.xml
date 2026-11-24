@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.59" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.60" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -97,7 +97,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.59: a playback link that redirects (AIOStreams' playback link to the debrid CDN) is followed before Kodi gets it, so every jump and sound-track switch goes to the file's own server directly, as with add-ons that hand over the CDN link (skin issue #39).
+        <news>1.0.0~rc1.60: Trakt lists get 'Order: ...' at the top: as the list is, recently added, first added, title (A-Z), year (newest or oldest first). Remembered per list (issue #5).
+1.0.0~rc1.59: a playback link that redirects (AIOStreams' playback link to the debrid CDN) is followed before Kodi gets it, so every jump and sound-track switch goes to the file's own server directly, as with add-ons that hand over the CDN link (skin issue #39).
 1.0.0~rc1.58: after stopping, the Lucent list you return to is refreshed only once the player has closed and the screen has switched back (refresh rate On Start/Stop), and never another add-on's folder; a list that cannot be fetched shows its saved copy instead of an empty folder (skin issue #39).
 1.0.0~rc1.57: two series with the same name and year (The Perfect Lie 2026, Korean and Dutch): Usenet releases posted before the episode was on TV are left out, because they belong to the other series.
 1.0.0~rc1.56: switching sound tracks during playback no longer restarts Lucent's start-of-video work (Kodi can report a new start for a sound switch with passthrough on; Lucent then set your preferred sound again and asked for a subtitle search). Skin issue #39.
@@ -158,7 +159,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.59: een afspeellink die doorverwijst (de afspeellink van AIOStreams naar de CDN van de debriddienst) wordt gevolgd voordat Kodi hem krijgt, zodat elke sprong en elke wissel van geluidsspoor direct naar de server van het bestand gaat, zoals bij add-ons die de CDN-link doorgeven (skin-issue #39).
+        <news lang="nl_NL">1.0.0~rc1.60: Trakt-lijsten krijgen bovenaan 'Volgorde: ...': zoals de lijst, laatst toegevoegd, eerst toegevoegd, titel (A-Z), jaar (nieuw of oud eerst). Per lijst onthouden (issue #5).
+1.0.0~rc1.59: een afspeellink die doorverwijst (de afspeellink van AIOStreams naar de CDN van de debriddienst) wordt gevolgd voordat Kodi hem krijgt, zodat elke sprong en elke wissel van geluidsspoor direct naar de server van het bestand gaat, zoals bij add-ons die de CDN-link doorgeven (skin-issue #39).
 1.0.0~rc1.58: na het stoppen wordt de Lucent-lijst waar je terugkomt pas ververst als de speler dicht is en het scherm is teruggeschakeld (verversingssnelheid bij start/stop), en nooit de map van een andere add-on; een lijst die niet opgehaald kan worden toont zijn bewaarde kopie in plaats van een lege map (skin-issue #39).
 1.0.0~rc1.57: twee series met dezelfde naam en hetzelfde jaar (The Perfect Lie 2026, Koreaans en Nederlands): Usenet-releases die geplaatst zijn voordat de aflevering op tv was, vallen weg, want die horen bij de andere serie.
 1.0.0~rc1.56: wisselen van geluidsspoor tijdens het kijken start het startwerk van Lucent niet meer opnieuw (Kodi kan bij een geluidswissel met passthrough een nieuwe start melden; Lucent zette dan je voorkeursgeluid terug en vroeg om een ondertitelzoektocht). Skin-issue #39.

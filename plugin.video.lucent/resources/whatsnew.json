@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.60",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T16:55Z",
+   "items": [
+    [
+     "trakt",
+     "Volgorde van Trakt-lijsten",
+     "Bovenaan een Trakt-lijst staat nu 'Volgorde'. Kies zoals de lijst, laatst toegevoegd, eerst toegevoegd, titel of jaar. Lucent onthoudt het per lijst.",
+     "Order of Trakt lists",
+     "A Trakt list now has 'Order' at the top. Choose as the list is, recently added, first added, title or year. Lucent remembers it per list."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.59",
    "label": "RC 1",
    "label_en": "RC 1",
