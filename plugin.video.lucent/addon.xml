@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.lucent" version="1.0.0~rc1.68" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.0~rc1.69" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -96,7 +96,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.0~rc1.68: among sources with the same badges the biggest file comes first, and with the same size the newest; played well or failed before no longer jumps over that. Atmos or DTS:X without a channel count counts as 7.1.
+        <news>1.0.0~rc1.69: MDBList is first asked with one request whether your history or watchlist changed, and only then fetched again. Small files of series with short episodes no longer get a red flag; a file far longer than a twin series' episodes goes to the bottom.
+1.0.0~rc1.68: among sources with the same badges the biggest file comes first, and with the same size the newest; played well or failed before no longer jumps over that. Atmos or DTS:X without a channel count counts as 7.1.
 1.0.0~rc1.67: the MEL badge in the source list is blue now, so it no longer looks like the purple FEL badge.
 1.0.0~rc1.66: far fewer MDBList requests: after watching, the Home rows no longer each ask MDBList where you stopped (up to about 24 requests per stop); one asks and the others use its answer, and where you stopped is written into Lucent's own copy at once. The same for watch history and watchlist.
 1.0.0~rc1.65: twin series (same name and year): a Usenet release without a service in its name is also recognised by its running time when TMDB leaves out the other series' episode length; a file far longer than this series' episodes goes to the bottom. Other series are not affected.
@@ -166,7 +167,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.0~rc1.68: bij bronnen met dezelfde labels staat het grootste bestand bovenaan, en bij dezelfde grootte de nieuwste; eerder goed of slecht gespeeld gaat daar niet meer overheen. Atmos of DTS:X zonder kanaal-aantal telt als 7.1.
+        <news lang="nl_NL">1.0.0~rc1.69: MDBList wordt eerst met één verzoek gevraagd of je geschiedenis of kijklijst veranderd is, en alleen dan opnieuw opgehaald. Kleine bestanden van series met korte afleveringen krijgen geen rode vlag meer; een bestand dat veel langer is dan de afleveringen van een tweelingserie, gaat onderaan.
+1.0.0~rc1.68: bij bronnen met dezelfde labels staat het grootste bestand bovenaan, en bij dezelfde grootte de nieuwste; eerder goed of slecht gespeeld gaat daar niet meer overheen. Atmos of DTS:X zonder kanaal-aantal telt als 7.1.
 1.0.0~rc1.67: het MEL-label in de bronnenlijst is nu blauw, zodat het niet meer op het paarse FEL-label lijkt.
 1.0.0~rc1.66: veel minder MDBList-verzoeken: na het kijken vraagt niet meer elke rij op het hoofdscherm apart aan MDBList waar je stopte (tot zo'n 24 verzoeken per keer stoppen); één rij vraagt het en de rest gebruikt dat antwoord, en waar je stopte schrijft Lucent meteen zelf bij. Hetzelfde voor kijkgeschiedenis en kijklijst.
 1.0.0~rc1.65: tweelingseries (zelfde naam en jaar): een Usenet-release zonder dienst in de naam wordt ook aan de lengte herkend als TMDB de afleveringslengte van de andere serie niet invult; een bestand dat veel langer is dan de afleveringen van deze serie gaat onderaan. Andere series merken hier niets van.

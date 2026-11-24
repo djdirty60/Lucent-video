@@ -18,6 +18,7 @@ STATE = "mdbtrack_state.json"       # the watched history, kept between runs
 HAS_LISTS = False                   # your MDBList lists are already under MDBList in the menu
 CHECK_EVERY = 1800                  # watched history again at most every half hour (after watching in Lucent: at once)
 PAGE = 1000
+WATCHLIST = "mdbtrackwatchlist.json"     # the last full copy of the watchlist, with MDBList's 'changed' time
 
 
 # ----------------------------------------------------------------------------------------- account
@@ -35,6 +36,8 @@ def call(path, data=None, method=None, **params):
     url = API + path + "?" + urllib.parse.urlencode(params)
     mdblist.counted(path.split("/")[0])
     answer, _ = util.http(url, data=data, method=method or ("POST" if data is not None else None), timeout=20)
+    if data is not None or method:
+        util.cache_drop("mdbtrackactivities")   # Lucent changed something: the next look sees MDBList's new times
     return answer
 
 
@@ -147,12 +150,38 @@ def _history(force=False):
         return saved["rows"]
     util.cache_set("mdbtrackcheckedbusy", 1)
     try:
+        marks = _activities(WATCH_MARKS)
+        if marks and saved.get("rows") is not None and marks == saved.get("marks"):
+            # nothing watched or removed on MDBList since the last copy: one cheap request instead of every page of
+            # the history (rc1.69; Guguloi: 547 series, about 20 pages each half hour)
+            util.cache_set("mdbtrackchecked", 1)
+            return saved["rows"]
         rows = _rows(_pages("sync/watched"))
     finally:
         util.cache_drop("mdbtrackcheckedbusy")
-    util.save_json(STATE, {"rows": rows, "at": int(time.time())})
+    util.save_json(STATE, {"rows": rows, "at": int(time.time()), "marks": marks})
     util.cache_set("mdbtrackchecked", 1)
     return rows
+
+
+WATCH_MARKS = ("watched_at", "episode_watched_at", "season_watched_at", "journal_at")
+
+
+def _activities(keys):
+    """MDBList's 'last changed' times for these parts (GET /sync/last_activities), or None when it does not answer.
+    One request, asked once per 2 minutes at most by all processes together."""
+    data = util.cache_get("mdbtrackactivities", 120)
+    if data is None:
+        try:
+            data = call("sync/last_activities") or {}
+        except util.HttpError as error:
+            util.log("MDBList last activities: %s" % error)
+            return None
+        util.cache_set("mdbtrackactivities", data)
+    if not isinstance(data, dict):
+        return None
+    marks = {k: data.get(k) for k in keys}
+    return marks if any(marks.values()) else None
 
 
 def _safe():
@@ -395,6 +424,16 @@ def _watchlist():
 
 
 def _fetch_watchlist():
+    marks = _activities(("watchlisted_at",))
+    old = util.load_json(WATCHLIST, {})
+    if marks and old.get("marks") == marks and old.get("rows") is not None:
+        return old["rows"]                      # unchanged on MDBList: no pages fetched (rc1.69)
+    rows = _watchlist_pages()
+    util.save_json(WATCHLIST, {"rows": rows, "marks": marks})
+    return rows
+
+
+def _watchlist_pages():
     data = _pages("watchlist/items")
     rows = []
     for kind, key in (("movie", "movies"), ("tvshow", "shows")):

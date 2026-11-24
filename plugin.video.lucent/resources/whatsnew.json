@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.69",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-24",
+   "at": "2026-11-24T21:15Z",
+   "items": [
+    [
+     "settings",
+     "Nog minder MDBList-verzoeken",
+     "Lucent vraagt MDBList eerst met één verzoek of er iets veranderd is. Alleen dan haalt hij je hele kijkgeschiedenis of kijklijst opnieuw op. Bij een grote geschiedenis scheelt dat zo'n twintig verzoeken per half uur.",
+     "Even fewer MDBList requests",
+     "Lucent first asks MDBList with one request whether anything changed. Only then does it fetch your whole watch history or watchlist again. With a big history that saves about twenty requests every half hour."
+    ],
+    [
+     "search",
+     "Korte afleveringen niet meer rood",
+     "Bij series met korte afleveringen (zoals 8 minuten) krijgt een klein bestand geen rode vlag meer. Een bestand dat veel langer is dan de afleveringen van een tweelingserie, gaat onderaan.",
+     "Short episodes no longer red",
+     "For series with short episodes (like 8 minutes) a small file no longer gets a red flag. A file far longer than the episodes of a twin series goes to the bottom."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.68",
    "label": "RC 1",
    "label_en": "RC 1",

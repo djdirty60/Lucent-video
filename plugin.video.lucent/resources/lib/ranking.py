@@ -459,6 +459,9 @@ def red_flag(source, tags, kind="movie"):
     if size:
         floor = {("movie", "4k"): 4.0, ("movie", "1080p"): 1.3, ("episode", "4k"): 1.2, ("episode", "1080p"): 0.35}
         limit = floor.get(("movie" if kind == "movie" else "episode", "4k" if "4k" in tags else "1080p" if "1080p" in tags else ""))
+        minutes = int((source.get("resolve") or {}).get("minutes") or 0)
+        if limit and kind != "movie" and 0 < minutes < 30:
+            limit *= max(minutes, 5) / 45.0     # rc1.69: short episodes (8 minutes, Quibi) are small files, not fakes
         if limit and size < limit * 1073741824:
             return True
     return False
