@@ -21,6 +21,7 @@ def path():
 
 BACK = (9, 10, 92)
 LEFT_RIGHT = (1, 2)
+TWIN_READS = 3             # releases read at the top of a twin series' list (their running time)
 MENU = (117, 101)          # context menu (menu button, long press on Android) and right mouse click
 ORDER = ["4K", "1440p", "1080p", "720p", "SD"]
 
@@ -222,6 +223,26 @@ class Sources(Base):
                     source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
                     self._show_health(source)
                     todo.insert(0, source)
+        if any(s.get("twin") for s in self.sources):
+            # a series with a twin (same name and year): only the running time in the file tells them apart, so the
+            # top releases are read even when they come after one that turned out to be the other series (rc1.71,
+            # The Stranger: a 25-minute release stayed on top unread after the 51-minute one fell away)
+            wanted = 0
+            for source in self.sources:
+                job = source.get("resolve") or {}
+                if wanted >= TWIN_READS or self.done:
+                    break
+                if job.get("scraper") != "Usenet" or not job.get("link") or source.get("locked") or source.get("gone"):
+                    continue
+                wanted += 1
+                if source.get("health") and not any(t is source for t in todo):
+                    continue                    # already read before (its labels are known)
+                if any(t is source for t in todo):
+                    continue
+                if nzb_source.can_check(job) or nzb_source.ensure_nzb(job, "twin series: the length tells them apart"):
+                    source["health"] = nzb_source.CHECKING % T("wordt gecontroleerd…", "being checked…")
+                    self._show_health(source)
+                    todo.append(source)
         import queue
         ready = queue.Queue()                   # releases whose file was read: their full check starts at once
 

@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0~rc1.71",
+   "label": "RC 1",
+   "label_en": "RC 1",
+   "date": "2026-11-25",
+   "at": "2026-11-25T08:05Z",
+   "items": [
+    [
+     "search",
+     "Tweelingseries: bovenste releases worden gelezen",
+     "Bij twee series met dezelfde naam en hetzelfde jaar leest Lucent nu altijd de bovenste drie Usenet-releases. Alleen de lengte van het bestand laat zien bij welke serie het hoort. Zo zakt een verkeerde release ook als hij bovenaan stond.",
+     "Twin series: the top releases are read",
+     "For two series with the same name and year Lucent now always reads the top three Usenet releases. Only the length of the file shows which series it belongs to. So a wrong release also drops when it was at the top."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.70",
    "label": "RC 1",
    "label_en": "RC 1",
