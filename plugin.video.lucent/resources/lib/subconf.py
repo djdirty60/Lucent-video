@@ -16,7 +16,6 @@ import util
 ADDON_ID = util.ADDON_ID
 DATA = xbmcvfs.translatePath("special://profile/addon_data/%s/" % ADDON_ID)
 SKIN_DATA = xbmcvfs.translatePath("special://profile/addon_data/skin.lucent/")
-SUBS_ADDON = "service.subtitles.lucent"
 
 # skin name -> (Lucent Video setting, kind). Kinds: bool, not (the skin stored 'off'), str, bg (mode), ai (mode)
 NAMES = {

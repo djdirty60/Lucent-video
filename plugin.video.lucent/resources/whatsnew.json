@@ -2,6 +2,36 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.0",
+   "label": "1.0",
+   "label_en": "1.0",
+   "date": "2026-11-25",
+   "at": "2026-11-25T14:45Z",
+   "items": [
+    [
+     "star",
+     "Lucent Video 1.0",
+     "De eerste echte versie, na de bèta's en de release-kandidaten. Dank aan iedereen die heeft getest.",
+     "Lucent Video 1.0",
+     "The first real version, after the betas and the release candidates. Thanks to everyone who tested."
+    ],
+    [
+     "settings",
+     "Instellingen opnieuw ingedeeld",
+     "Lijsten, weergave, posters en Kompas hebben nu een eigen onderdeel 'Lijsten en weergave'. Usenet staat direct na Bronnen, met kopjes voor provider, reserve, indexers, zoeken, afspelen en controleren. Bij Bronnen staat 'Zoeken en volgorde' bovenaan, bij Ondertitels eerst wat je gebruikt en daarna waar ondertitels vandaan komen. Meldingen staan nu onder Algemeen. Je instellingen blijven gewoon bewaard.",
+     "Settings arranged anew",
+     "Lists, views, posters and Kompas now have their own part 'Lists and look'. Usenet comes right after Sources, with headings for provider, backup, indexers, searching, playing and checking. Sources starts with 'Search and order', Subtitles with what you use and then where subtitles come from. Messages are under General now. Your settings are kept."
+    ],
+    [
+     "tools",
+     "Opgeruimd",
+     "De testcode is weg (alles is nu voor iedereen), net als code en teksten die nergens meer gebruikt werden.",
+     "Tidied up",
+     "The test code is gone (everything is for everyone now), as are code and texts that were no longer used anywhere."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0~rc1.71",
    "label": "RC 1",
    "label_en": "RC 1",

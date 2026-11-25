@@ -505,7 +505,6 @@ def run_count():
 
 class Events(xbmc.Monitor):
     def onSettingsChanged(self):
-        util.publish_lab()
         try:
             import libctx
             libctx.publish()                    # Usenet set up? ('Get season ready' in the library's context menu)

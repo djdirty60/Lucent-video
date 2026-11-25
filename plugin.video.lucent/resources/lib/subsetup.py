@@ -22,10 +22,6 @@ def rpc(method, params):
     return answer.get("result") or {}
 
 
-def install(addon_id):
-    xbmc.executebuiltin("InstallAddon(%s)" % addon_id)
-
-
 # ------------------------------------------------------------------ subtitles
 def subs_keys():
     """(OpenSubtitles key + login filled in, SubDL key filled in) of the subtitle search built into Lucent Video."""

@@ -1181,8 +1181,8 @@ def title(handle, params):
     send_titles(handle, [meta] if meta else [], "movies" if kind == "movie" else "tvshows")
 
 
-SECTIONS = {"general": -100, "account": -99, "trakt": -99, "sources": -98, "conn": -98, "play": -97, "subs": -96, "skip": -95,
-            "library": -94, "services": -93, "usenet": -92}
+SECTIONS = {"general": -100, "lists": -99, "account": -98, "trakt": -98, "sources": -97, "conn": -97, "usenet": -96, "play": -95,
+            "subs": -94, "skip": -93, "library": -92, "services": -91}
 SUBTITLE_ACTIONS = ("subtitles", "subs_auto", "subs_background", "subs_prefetch", "subs_ready", "subs_earlier", "subs_later", "subs_other", "subs_key", "subs_mode", "subs_audio", "subs_default",
                     "subs_settings", "skip_settings", "subs_setup", "skip_setup", "skip_install", "skip_auto")
 
@@ -1243,7 +1243,7 @@ def subtitle_action(action, params=None):
 
 
 def open_settings(params):
-    """Opens the add-on's settings on one part: general, account, sources, play, library or services."""
+    """Opens the add-on's settings on one part (SECTIONS: general, lists, account, sources, usenet, play, subs, skip, library, services)."""
     xbmc.executebuiltin("Addon.OpenSettings(%s)" % util.ADDON_ID)
     focus = SECTIONS.get(params.get("section", ""))
     if focus is not None:
@@ -1277,7 +1277,6 @@ def run(argv):
     afterwards: Kodi closes the settings for such a button, and settings changed while they are open would be lost."""
     params = dict(urllib.parse.parse_qsl((argv[2] if len(argv) > 2 else "").lstrip("?")))
     back = params.get("back", "")
-    util.publish_lab()                 # the test blocks in the settings also show when the service is still the old one
     try:
         return _run(argv)
     finally:

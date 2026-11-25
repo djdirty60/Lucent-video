@@ -119,7 +119,6 @@ TIER_KIND = {"web": "WEB", "remux": "Remux", "hdbluray": "Blu-ray", "uhdbluray":
 
 
 SOURCE_RANK = {"remux": 0, "bluray": 1, "webdl": 2, "webrip": 3, "hdtv": 4, "dvd": 5, "other": 6, "cam": 7}
-SOURCE_LABEL = {"remux": "Remux", "bluray": "Blu-ray", "webdl": "WEB-DL", "webrip": "WEBRip", "hdtv": "HDTV", "dvd": "DVD", "other": "?", "cam": "CAM"}
 
 
 def source_class(tags):

@@ -47,27 +47,6 @@ def flag(name):
 
 # Only a fingerprint of the testers' code is kept here (this file is public): the code itself is never in the code.
 # one code per tester (only their sha256 is here, never the codes): remove a line to take a code back
-LAB_HASHES = {
-    "bb3837535d91cf65f5c7f1a679c31adc7fcc791e9923ad8c9a6d546a349ae3eb",     # Wilfried
-    "3de7c85ab486bd35bc87810e543f167cf0385178228c6abf082191bb42367536",     # tester 2
-}
-LAB_PROPERTY = "lucent.video.lab"
-
-
-def lab():
-    """Functions still being tested are only on with the test code (Settings > General, advanced level)."""
-    code = setting("lab_code").strip().upper()
-    return bool(code) and hashlib.sha256(code.encode("utf-8")).hexdigest() in LAB_HASHES
-
-
-def publish_lab():
-    """The settings show the test blocks only when the code is right (they look at this Home property)."""
-    if lab():
-        HOME.setProperty(LAB_PROPERTY, "1")
-    else:
-        HOME.clearProperty(LAB_PROPERTY)
-
-
 def watched_at():
     """Percent from which a film or episode counts as watched (setting, 50-100; 90 when not set)."""
     try:

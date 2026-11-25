@@ -135,10 +135,6 @@ msgctxt "#32059"
 msgid "Stop"
 msgstr "Stoppen"
 
-msgctxt "#32061"
-msgid "Cancel"
-msgstr "Annuleren"
-
 msgctxt "#32070"
 msgid "I keep track of what I watch with"
 msgstr "Ik houd bij wat ik kijk met"
@@ -186,10 +182,6 @@ msgstr "Floppy testen"
 msgctxt "#32083"
 msgid "Order of sources"
 msgstr "Volgorde van bronnen"
-
-msgctxt "#32084"
-msgid "Why on top?"
-msgstr "Waarom bovenaan?"
 
 msgctxt "#32085"
 msgid "Order of sources"
@@ -1457,10 +1449,6 @@ msgctxt "#32294"
 msgid "Search"
 msgstr "Zoeken"
 
-msgctxt "#32295"
-msgid "Use Podnapisi"
-msgstr "Podnapisi gebruiken"
-
 msgctxt "#32296"
 msgid "Wait at most (seconds)"
 msgstr "Maximaal wachten (seconden)"
@@ -1492,10 +1480,6 @@ msgstr "SubDL heeft veel ondertitels voor nieuwe films en series. Een gratis sle
 msgctxt "#32440"
 msgid "subdl.com: sign up, then Account > API key. Fill in the key here."
 msgstr "subdl.com: aanmelden, dan Account > API-sleutel. Vul de sleutel hier in."
-
-msgctxt "#32441"
-msgid "Podnapisi works without an account."
-msgstr "Podnapisi werkt zonder account."
 
 msgctxt "#32442"
 msgid "How long Lucent waits for the sources. A slow source is left out."
@@ -1564,10 +1548,6 @@ msgstr "Haalt de koppeling met PunchPlay weg van dit apparaat."
 msgctxt "#32457"
 msgid "Shows which PunchPlay account you are linked with and how much you watched."
 msgstr "Laat zien met welk PunchPlay-account je gekoppeld bent en hoeveel je hebt gekeken."
-
-msgctxt "#32458"
-msgid "Usenet (own provider)"
-msgstr "Usenet (eigen provider)"
 
 msgctxt "#32459"
 msgid "Use Usenet (own provider)"
@@ -1665,37 +1645,13 @@ msgctxt "#32482"
 msgid "Signs in at your provider and asks every indexer whether your key works."
 msgstr "Logt in bij je provider en vraagt elke indexer of je sleutel werkt."
 
-msgctxt "#32483"
-msgid "Test code"
-msgstr "Testcode"
-
-msgctxt "#32484"
-msgid "Only for testers: a code switches on functions that are still being tested. Leave empty."
-msgstr "Alleen voor testers: een code zet functies aan die nog getest worden. Laat leeg."
-
 msgctxt "#32485"
 msgid "Usenet"
 msgstr "Usenet"
 
-msgctxt "#32486"
-msgid "Your provider"
-msgstr "Je provider"
-
-msgctxt "#32487"
-msgid "Your indexers"
-msgstr "Je indexers"
-
-msgctxt "#32488"
-msgid "Check"
-msgstr "Controleren"
-
 msgctxt "#32489"
 msgid "Usenet with your own provider and indexers."
 msgstr "Usenet met je eigen provider en indexers."
-
-msgctxt "#32490"
-msgid "Usenet is still being tested: fill in a test code under General first."
-msgstr "Usenet wordt nog getest: vul eerst een testcode in bij Algemeen."
 
 msgctxt "#32491"
 msgid "Use a backup provider (for pieces your provider misses)"
@@ -2124,3 +2080,39 @@ msgstr "Weergave per soort (Lucent-skin)"
 msgctxt "#32597"
 msgid "Which view the Lucent skin uses for films, series, seasons, episodes, sets and menus. The skin remembers this per kind, so it counts everywhere, also in your library. 'As you last picked it': the skin keeps the view you last chose for that kind."
 msgstr "Welke weergave de Lucent-skin gebruikt voor films, series, seizoenen, afleveringen, sets en menu's. De skin onthoudt dit per soort, dus het geldt overal, ook in je bibliotheek. 'Zoals je hem laatst koos': de skin houdt de weergave die je voor die soort het laatst koos."
+
+msgctxt "#32598"
+msgid "Lists and look"
+msgstr "Lijsten en weergave"
+
+msgctxt "#32599"
+msgid "Home rows, lists, views, posters and Kompas."
+msgstr "Rijen op het hoofdscherm, lijsten, weergaven, posters en Kompas."
+
+msgctxt "#32600"
+msgid "Usenet"
+msgstr "Usenet"
+
+msgctxt "#32601"
+msgid "Your provider"
+msgstr "Je provider"
+
+msgctxt "#32602"
+msgid "Backup provider"
+msgstr "Reserve-provider"
+
+msgctxt "#32603"
+msgid "Indexers"
+msgstr "Indexers"
+
+msgctxt "#32604"
+msgid "Searching"
+msgstr "Zoeken"
+
+msgctxt "#32605"
+msgid "Playing"
+msgstr "Afspelen"
+
+msgctxt "#32606"
+msgid "Check and tune"
+msgstr "Controleren en afstemmen"

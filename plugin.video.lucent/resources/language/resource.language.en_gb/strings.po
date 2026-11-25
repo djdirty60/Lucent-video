@@ -135,10 +135,6 @@ msgctxt "#32059"
 msgid "Stop"
 msgstr ""
 
-msgctxt "#32061"
-msgid "Cancel"
-msgstr ""
-
 msgctxt "#32070"
 msgid "I keep track of what I watch with"
 msgstr ""
@@ -185,10 +181,6 @@ msgstr ""
 
 msgctxt "#32083"
 msgid "Order of sources"
-msgstr ""
-
-msgctxt "#32084"
-msgid "Why on top?"
 msgstr ""
 
 msgctxt "#32085"
@@ -1457,10 +1449,6 @@ msgctxt "#32294"
 msgid "Search"
 msgstr ""
 
-msgctxt "#32295"
-msgid "Use Podnapisi"
-msgstr ""
-
 msgctxt "#32296"
 msgid "Wait at most (seconds)"
 msgstr ""
@@ -1491,10 +1479,6 @@ msgstr ""
 
 msgctxt "#32440"
 msgid "subdl.com: sign up, then Account > API key. Fill in the key here."
-msgstr ""
-
-msgctxt "#32441"
-msgid "Podnapisi works without an account."
 msgstr ""
 
 msgctxt "#32442"
@@ -1563,10 +1547,6 @@ msgstr ""
 
 msgctxt "#32457"
 msgid "Shows which PunchPlay account you are linked with and how much you watched."
-msgstr ""
-
-msgctxt "#32458"
-msgid "Usenet (own provider)"
 msgstr ""
 
 msgctxt "#32459"
@@ -1665,36 +1645,12 @@ msgctxt "#32482"
 msgid "Signs in at your provider and asks every indexer whether your key works."
 msgstr ""
 
-msgctxt "#32483"
-msgid "Test code"
-msgstr ""
-
-msgctxt "#32484"
-msgid "Only for testers: a code switches on functions that are still being tested. Leave empty."
-msgstr ""
-
 msgctxt "#32485"
 msgid "Usenet"
 msgstr ""
 
-msgctxt "#32486"
-msgid "Your provider"
-msgstr ""
-
-msgctxt "#32487"
-msgid "Your indexers"
-msgstr ""
-
-msgctxt "#32488"
-msgid "Check"
-msgstr ""
-
 msgctxt "#32489"
 msgid "Usenet with your own provider and indexers."
-msgstr ""
-
-msgctxt "#32490"
-msgid "Usenet is still being tested: fill in a test code under General first."
 msgstr ""
 
 msgctxt "#32491"
@@ -2123,4 +2079,40 @@ msgstr ""
 
 msgctxt "#32597"
 msgid "Which view the Lucent skin uses for films, series, seasons, episodes, sets and menus. The skin remembers this per kind, so it counts everywhere, also in your library. 'As you last picked it': the skin keeps the view you last chose for that kind."
+msgstr ""
+
+msgctxt "#32598"
+msgid "Lists and look"
+msgstr ""
+
+msgctxt "#32599"
+msgid "Home rows, lists, views, posters and Kompas."
+msgstr ""
+
+msgctxt "#32600"
+msgid "Usenet"
+msgstr ""
+
+msgctxt "#32601"
+msgid "Your provider"
+msgstr ""
+
+msgctxt "#32602"
+msgid "Backup provider"
+msgstr ""
+
+msgctxt "#32603"
+msgid "Indexers"
+msgstr ""
+
+msgctxt "#32604"
+msgid "Searching"
+msgstr ""
+
+msgctxt "#32605"
+msgid "Playing"
+msgstr ""
+
+msgctxt "#32606"
+msgid "Check and tune"
 msgstr ""

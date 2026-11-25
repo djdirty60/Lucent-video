@@ -6,13 +6,11 @@ import threading
 import time
 
 import xbmcgui
-import xbmcvfs
 
 import streams
 import util
 
 T = util.T
-PATH = xbmcvfs.translatePath(util.ADDON.getAddonInfo("path"))
 
 
 def path():
