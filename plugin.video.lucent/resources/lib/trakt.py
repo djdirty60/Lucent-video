@@ -249,9 +249,11 @@ def set_list_order(owner, list_id, order):
 def sorted_list(owner, list_id, page, size):
     """(pairs, dates, more) of one page of a list in the order you chose for it (Trakt's own order: None)."""
     order = list_order(owner, list_id)
-    if order not in SORTS:
-        return None
-    rows = SORTS[order](list_rows(owner, list_id) or [])
+    if order not in SORTS and size <= 100:
+        return None                             # Trakt's own order in pages Trakt itself can give
+    rows = list_rows(owner, list_id) or []
+    if order in SORTS:
+        rows = SORTS[order](rows)
     part = rows[(page - 1) * size:page * size]
     return pairs_from(part), dates_from(part), len(rows) > page * size
 

@@ -2116,3 +2116,27 @@ msgstr "Afspelen"
 msgctxt "#32606"
 msgid "Check and tune"
 msgstr "Controleren en afstemmen"
+
+msgctxt "#32607"
+msgid "Series: when you press play"
+msgstr "Series: als je op afspelen drukt"
+
+msgctxt "#32608"
+msgid "For episodes: play the best source, show the list of sources, or do the same as for films."
+msgstr "Voor afleveringen: de beste bron afspelen, de lijst met bronnen tonen, of hetzelfde doen als bij films."
+
+msgctxt "#32609"
+msgid "Same as for films"
+msgstr "Hetzelfde als bij films"
+
+msgctxt "#32610"
+msgid "Titles per page"
+msgstr "Titels per pagina"
+
+msgctxt "#32611"
+msgid "How many titles a list shows before 'Next page': lists, watchlists, collections and Trakt lists. More titles take a little longer to open."
+msgstr "Hoeveel titels een lijst toont voor 'Volgende pagina': lijsten, kijklijsten, collecties en Trakt-lijsten. Meer titels openen iets langer."
+
+msgctxt "#32612"
+msgid "Films: when you press play"
+msgstr "Films: als je op afspelen drukt"

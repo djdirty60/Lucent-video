@@ -2,6 +2,29 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.1",
+   "label": "1.0.1",
+   "label_en": "1.0.1",
+   "date": "2026-11-25",
+   "at": "2026-11-25T17:40Z",
+   "items": [
+    [
+     "play",
+     "Series apart instellen bij afspelen",
+     "Onder Afspelen kies je nu apart wat er bij series gebeurt als je op afspelen drukt: de beste bron, de lijst met bronnen, of hetzelfde als bij films (zo staat het standaard).",
+     "Series on their own when playing",
+     "Under Play you now choose separately what happens for series when you press play: the best source, the list of sources, or the same as for films (the default)."
+    ],
+    [
+     "layout",
+     "Titels per pagina",
+     "Onder Lijsten en weergave kies je hoeveel titels een lijst toont voor 'Volgende pagina' (20 tot 500). Een rij van het hoofdscherm die je helemaal opent, toont nu ook de hele lijst met volgende pagina's.",
+     "Titles per page",
+     "Under Lists and look you choose how many titles a list shows before 'Next page' (20 to 500). A Home row you open in full now shows the whole list with next pages too."
+    ]
+   ]
+  },
+  {
    "v": "1.0.0",
    "label": "1.0",
    "label_en": "1.0",

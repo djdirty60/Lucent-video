@@ -524,6 +524,15 @@ def search_with_screen(params, before=None):
 ASK_RESUME = "lucent.video.askresume"     # set by the skin (2.1.21+) when it started a library item with 'noresume'
 
 
+def _play_mode(meta):
+    """0: play the best source, 1: show the list. Episodes have their own choice (issue #7), 'same as films' by default."""
+    films = util.number("play_mode", 0)
+    if meta.get("kind") == "episode":
+        tv = util.number("play_mode_tv", 2)
+        return films if tv == 2 else tv
+    return films
+
+
 def play(params, handle):
     autoplay = params.get("autoplay") == "1"
     # read and wipe at once, whatever happens next: it is meant for this one title only
@@ -583,7 +592,7 @@ def play(params, handle):
     for source in sources:
         source["cannot"] = cannot_play(source)
     usable = [s for s in usable if not s["cannot"]] or usable
-    if params.get("select") == "1" or (util.number("play_mode", 0) == 1 and not autoplay):
+    if params.get("select") == "1" or (_play_mode(meta) == 1 and not autoplay):
         chosen = dialogs.choose_source(meta, sources, util.flag("include_uncached"))
         if not chosen:
             return _fail(handle)

@@ -2116,3 +2116,27 @@ msgstr ""
 msgctxt "#32606"
 msgid "Check and tune"
 msgstr ""
+
+msgctxt "#32607"
+msgid "Series: when you press play"
+msgstr ""
+
+msgctxt "#32608"
+msgid "For episodes: play the best source, show the list of sources, or do the same as for films."
+msgstr ""
+
+msgctxt "#32609"
+msgid "Same as for films"
+msgstr ""
+
+msgctxt "#32610"
+msgid "Titles per page"
+msgstr ""
+
+msgctxt "#32611"
+msgid "How many titles a list shows before 'Next page': lists, watchlists, collections and Trakt lists. More titles take a little longer to open."
+msgstr ""
+
+msgctxt "#32612"
+msgid "Films: when you press play"
+msgstr ""

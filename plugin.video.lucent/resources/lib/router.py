@@ -29,7 +29,21 @@ def ThreadPoolExecutor(*args, **kwargs):
 
 
 T = util.T
-PAGE = 40
+PAGE = 40                               # titles per page when the setting is not read (see page_size)
+
+
+ROW_ONLY = False                        # set by list_titles: this call fills a Home row, not a full list
+
+
+def page_size():
+    """Titles per page of a list (setting 'Titles per page', issue #6)."""
+    if ROW_ONLY:
+        return PAGE
+    try:
+        size = int(util.setting("list_page") or PAGE)
+    except ValueError:
+        size = PAGE
+    return max(20, min(500, size))
 TMDB_LISTS = {
     "trending_movie": ("trending/movie/week", "movie"), "popular_movie": ("movie/popular", "movie"),
     "toprated_movie": ("movie/top_rated", "movie"), "nowplaying_movie": ("movie/now_playing", "movie"),
@@ -531,8 +545,9 @@ def _alphabetical(meta):
 
 
 def _slice(pairs, page):
-    start = (page - 1) * PAGE
-    return pairs[start:start + PAGE], len(pairs) > start + PAGE
+    size = page_size()
+    start = (page - 1) * size
+    return pairs[start:start + size], len(pairs) > start + size
 
 
 def continue_titles(only=None):
@@ -750,7 +765,14 @@ def list_titles(handle, params):
         return librows.send_row(handle, name)
     page = int(params.get("page") or 1)
     import hide
+    if params.get("widget") == "1" and xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsVisible(videos)"):
+        # a Home row opened in full (the skin opens the row's own address in the Videos window): a whole list with
+        # 'Titles per page' and a next page, not cut to the row's length (issue #6). 'full' keeps the Order line.
+        params = dict(params, full="1")
+        params.pop("widget")
     size = util.number("widget_size", 20) if params.get("widget") == "1" else 0       # a Home row: as many as you chose
+    global ROW_ONLY
+    ROW_ONLY = bool(size)                   # a row on Home itself keeps pages of 40 (it shows 'Titles per Home row')
     cut = (lambda rows: rows[:size]) if size else (lambda rows: rows)
     began = time.time()
     first = [_order_row(params)] if _wants_order_row(name, page, params) else None
@@ -983,20 +1005,21 @@ def gather(params):
         titles = tmdb.many(slice_of)
         _date_added(titles, tracker.dates(name))
     elif name == "traktlist":
-        chosen = trakt.sorted_list(params["user"], params["id"], page, PAGE) if tracker.active() is trakt else None
+        size = page_size()
+        chosen = trakt.sorted_list(params["user"], params["id"], page, size) if tracker.active() is trakt else None
         if chosen:                                      # the order you chose for this list (issue #5)
             found, dates, more = chosen
             titles = tmdb.many(found)
             _date_added(titles, dates)
         else:
-            found = tracker.list_pairs(params["user"], params["id"], page, PAGE)
-            titles, more = tmdb.many(found), len(found) >= PAGE
-            _date_added(titles, tracker.list_dates(params["user"], params["id"], page, PAGE))
+            found = tracker.list_pairs(params["user"], params["id"], page, size)
+            titles, more = tmdb.many(found), len(found) >= size
+            _date_added(titles, tracker.list_dates(params["user"], params["id"], page, size))
     elif name == "floppylist":
-        found, more = floppy.items(params["id"], page, PAGE)
+        found, more = floppy.items(params["id"], page, page_size())
         titles = tmdb.many(found)
     elif name == "mdblist":
-        found, more = mdblist.items(params["id"], page, PAGE)
+        found, more = mdblist.items(params["id"], page, page_size())
         titles = tmdb.many(found)
     else:
         titles = []
