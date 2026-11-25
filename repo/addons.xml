@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.lucent" version="1.0.1" name="Lucent Video" provider-name="Wilfried van der Voort">
+<addon id="plugin.video.lucent" version="1.0.2" name="Lucent Video" provider-name="Wilfried van der Voort">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
@@ -97,7 +97,8 @@
         <disclaimer lang="nl_NL">Dit product gebruikt de TMDB API, maar is niet goedgekeurd of gecertificeerd door TMDB. Lucent gebruikt Trakt, maar is niet goedgekeurd of gecertificeerd door Trakt.</disclaimer>
         <platform>all</platform>
         <license>MIT</license>
-        <news>1.0.1: series get their own choice of what happens when you press play (issue #7); titles per page for lists, watchlists, collections and Trakt lists (20 to 500), and a Home row opened in full shows the whole list (issue #6).
+        <news>1.0.2: Films and Series have 'Recently watched' near the top, and Series also 'In progress': series you started but did not finish (issue #8).
+1.0.1: series get their own choice of what happens when you press play (issue #7); titles per page for lists, watchlists, collections and Trakt lists (20 to 500), and a Home row opened in full shows the whole list (issue #6).
 1.0.0: the first real version. Settings arranged anew: own part 'Lists and look', Usenet right after Sources with headings, Search and order first, Messages under General (your settings are kept). The test code and unused code and texts are gone.
 1.0.0~rc1.71: twin series (same name and year): the top three Usenet releases are always read, so one with the other series' running time drops even when it was at the top.
 1.0.0~rc1.70: 'Order: ...' also at the top of your watchlists and collections (recently added, first added, title, year), remembered per list (issue #5).
@@ -172,7 +173,8 @@
 1.0.0~rc1: release candidate 1. Background search skips titles that found nothing for 3 hours; the NZB of the two best Usenet releases is fetched while the source list is open; audio languages show per release right away; fast reader 0.1.4 (precise skips from the MKV index, chapter pictures wait for the film).
 1.0.0 beta 1, update 91: searching no longer waits for a slow subtitle source (at most 2 s); Podnapisi removed.
 1.0.0 beta 1, update 90: the skin's own menu on an episode in the series page gets the Lucent options of that episode.</news>
-        <news lang="nl_NL">1.0.1: series hebben hun eigen keuze voor wat er gebeurt als je op afspelen drukt (issue #7); titels per pagina voor lijsten, kijklijsten, collecties en Trakt-lijsten (20 tot 500), en een rij van het hoofdscherm die je helemaal opent toont de hele lijst (issue #6).
+        <news lang="nl_NL">1.0.2: Films en Series hebben bovenaan 'Laatst bekeken', en Series ook 'Bezig met kijken': series die je begonnen bent maar nog niet uit hebt (issue #8).
+1.0.1: series hebben hun eigen keuze voor wat er gebeurt als je op afspelen drukt (issue #7); titels per pagina voor lijsten, kijklijsten, collecties en Trakt-lijsten (20 tot 500), en een rij van het hoofdscherm die je helemaal opent toont de hele lijst (issue #6).
 1.0.0: de eerste echte versie. Instellingen opnieuw ingedeeld: eigen onderdeel 'Lijsten en weergave', Usenet direct na Bronnen met kopjes, Zoeken en volgorde bovenaan, Meldingen onder Algemeen (je instellingen blijven bewaard). De testcode en ongebruikte code en teksten zijn weg.
 1.0.0~rc1.71: tweelingseries (zelfde naam en jaar): de bovenste drie Usenet-releases worden altijd gelezen, zodat een release met de lengte van de andere serie ook zakt als hij bovenaan stond.
 1.0.0~rc1.70: 'Volgorde: ...' ook bovenaan je kijklijsten en collecties (laatst toegevoegd, eerst toegevoegd, titel, jaar), onthouden per lijst (issue #5).

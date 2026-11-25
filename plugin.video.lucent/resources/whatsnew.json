@@ -2,6 +2,22 @@
  "_comment": "Lucent Video: what's new per update, same item format as the skin's resources/whatsnew.json ([icon, heading nl, text nl, heading en, text en]). 'v' is the add-on version, 'label' what to show.",
  "versions": [
   {
+   "v": "1.0.2",
+   "label": "1.0.2",
+   "label_en": "1.0.2",
+   "date": "2026-11-25",
+   "at": "2026-11-25T19:45Z",
+   "items": [
+    [
+     "movies",
+     "Laatst bekeken en Bezig met kijken",
+     "Bij Films en Series staat bovenaan nu 'Laatst bekeken': wat je het laatst gezien hebt eerst. Bij Series ook 'Bezig met kijken': series die je begonnen bent maar nog niet uit hebt.",
+     "Recently watched and In progress",
+     "Films and Series now have 'Recently watched' near the top: what you saw last comes first. Series also have 'In progress': series you started but did not finish yet."
+    ]
+   ]
+  },
+  {
    "v": "1.0.1",
    "label": "1.0.1",
    "label_en": "1.0.1",

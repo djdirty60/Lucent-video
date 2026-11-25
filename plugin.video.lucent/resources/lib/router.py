@@ -242,6 +242,11 @@ def menu(handle, params):
     else:
         rows = [items.folder(T("Verder kijken en volgende aflevering", "Continue and next episode"), util.url_for(action="list", name="watching"),
                              "DefaultInProgressShows.png")]
+    # issue #8: what you watched last, and (series) the ones you started but did not finish
+    rows.append(items.folder(T("Laatst bekeken", "Recently watched"), util.url_for(action="list", name="recent_movie" if movie else "recent_tv"),
+                             "DefaultRecentlyAddedMovies.png" if movie else "DefaultRecentlyAddedEpisodes.png"))
+    if not movie:
+        rows.append(items.folder(T("Bezig met kijken", "In progress"), util.url_for(action="list", name="progress_tv"), "DefaultInProgressShows.png"))
     rows += [items.folder(label, util.url_for(action="list", name=name)) for label, name in entries]
     rows.append(items.folder(T("Genres", "Genres"), util.url_for(action="genres", type=params.get("type"))))
     rows.append(items.folder(T("Studio's", "Studios") if movie else T("Netwerken", "Networks"), util.url_for(action="studios", type=params.get("type"))))
@@ -253,7 +258,7 @@ def menu(handle, params):
     if movie:
         season = discover.season_now()
         if season:                              # Christmas films from mid November, Halloween in October ...
-            rows.insert(1, items.folder(discover.label(season), util.url_for(action="list", name="discover", key=season)))
+            rows.insert(2, items.folder(discover.label(season), util.url_for(action="list", name="discover", key=season)))
         rows.append(items.folder(discover.label("digital"), util.url_for(action="list", name="discover", key="digital")))
         rows.append(items.folder(T("Filmreeksen", "Film series"), util.url_for(action="collections")))
     else:
@@ -653,6 +658,40 @@ def watching_titles():
 NEW_DAYS = 30
 
 
+def recent_pairs(kind):
+    """Issue #8: what you watched, the last one first. Films by when you saw them, series by their last episode."""
+    if kind == "movie":
+        films = tracker.watched_movies()
+        return [("movie", i) for i in sorted(films, key=lambda i: films[i] or "", reverse=True) if i and i != "None"]
+    shows = tracker.watched_episodes()
+    last = {i: max(eps.values() or [""]) for i, eps in shows.items() if i and i != "None"}
+    return [("tvshow", i) for i in sorted(last, key=lambda i: last[i] or "", reverse=True)]
+
+
+PROGRESS_SHOWS = 150
+
+
+def progress_pairs():
+    """Issue #8: series you started but did not finish yet (fewer episodes seen than were on TV), last watched first."""
+    cached = util.cache_get("progresstv", 300)
+    if cached is not None:
+        return [tuple(p) for p in cached]
+    shows = tracker.watched_episodes()
+    pairs = recent_pairs("tvshow")[:PROGRESS_SHOWS]
+
+    def unfinished(pair):
+        try:
+            show = tmdb.details("tvshow", pair[1])
+        except util.HttpError:
+            return False
+        seen = sum(1 for season, _e in shows.get(pair[1]) or {} if int(season) > 0)
+        return bool(show) and 0 < seen < int(show.get("aired") or 0)
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        keep = [pair for pair, ok in zip(pairs, pool.map(unfinished, pairs)) if ok]
+    util.cache_set("progresstv", keep)
+    return keep
+
+
 def calendar_titles():
     """Episodes still to come of what you follow, from today up to two months ahead, the first one first."""
     today = datetime.date.today()
@@ -994,6 +1033,13 @@ def gather(params):
         titles, content = next_up_titles(), "episodes"
     elif name == "watching":
         titles = watching_titles()
+    elif name in ("recent_movie", "recent_tv"):
+        found, more = _slice(recent_pairs("movie" if name == "recent_movie" else "tvshow"), page)
+        titles = tmdb.many(found)
+        content = "movies" if name == "recent_movie" else "tvshows"
+    elif name == "progress_tv":
+        found, more = _slice(progress_pairs(), page)
+        titles, content = tmdb.many(found), "tvshows"
     elif name in ACCOUNT_LISTS and trakt.list_order("account", name) in trakt.SORTS:
         titles, more = _account_sorted(name, trakt.list_order("account", name), page)     # issue #5: your order
     elif name in ("collection_movie", "collection_tv"):          # the whole collection, A to Z
